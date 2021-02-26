@@ -12,9 +12,10 @@ const screens = createStackNavigator(
   {
     defaultNavigationOptions: {
       headerStyle: {
-        backgroundColor: theme.colors.accent,
         shadowColor: "transparent",
+        backgroundColor: theme.colors.accent
       },
+      headerTransparent: true,
       headerBackImage: () => (
         <Image source={require("../assets/icons/left_arrow.png")} />
       ),
