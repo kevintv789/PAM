@@ -14,7 +14,6 @@ export default class Typography extends Component<TextProps> {
       title,
       body,
       caption,
-      small,
       size,
       transform,
       align,
@@ -53,7 +52,6 @@ export default class Typography extends Component<TextProps> {
       title && styles.title,
       body && styles.body,
       caption && styles.caption,
-      small && styles.small,
       size && { fontSize: size },
       transform && { textTransform: transform },
       align && { textAlign: align },
@@ -90,7 +88,7 @@ export default class Typography extends Component<TextProps> {
   }
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   // default style
   text: {
     fontSize: theme.sizes.font,
@@ -132,5 +130,4 @@ const styles = StyleSheet.create({
   title: theme.fonts.title,
   body: theme.fonts.body,
   caption: theme.fonts.caption,
-  small: theme.fonts.small,
 });

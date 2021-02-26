@@ -1,4 +1,6 @@
-import { Container, Text } from "./components";
+import * as Button from "./components/common/Button";
+import * as Container from "./components/common/Container";
+import * as Text from "./components/common/Text";
 
 export interface ContainerProps {
   margin: number;
@@ -28,7 +30,6 @@ export interface TextProps {
   title: any;
   body: any;
   caption: any;
-  small: any;
   size: any;
   transform: any;
   align: any;
@@ -53,4 +54,14 @@ export interface TextProps {
   gray: any;
   gray2: any;
   style: any;
+}
+
+export interface ButtonProps {
+  style: any;
+  opacity: any;
+  color: keyof typeof Button.styles;
+  end: any;
+  start: any;
+  locations: any;
+  shadow: any;
 }

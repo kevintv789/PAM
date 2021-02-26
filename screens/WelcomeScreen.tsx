@@ -1,4 +1,4 @@
-import { Container, Text } from "../components";
+import { Button, Container, Text } from "../components";
 import { ImageBackground, StyleSheet } from "react-native";
 import React, { Component } from "react";
 
@@ -26,6 +26,15 @@ export default class WelcomeScreen extends Component {
             <Text offWhite size={16}>
               property assistant manager.
             </Text>
+          </Container>
+
+          <Container flex={0.5}>
+            <Button shadow onPress={() => {}}>
+              <Text center offWhite>Log In</Text>
+            </Button>
+            <Button shadow color="offWhite" onPress={() => {}}>
+              <Text center accent>Sign Up</Text>
+            </Button>
           </Container>
         </Container>
       </ImageBackground>
