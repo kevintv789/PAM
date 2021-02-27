@@ -1,4 +1,4 @@
-import HomeScreen from "../screens/HomeScreen";
+import { BottomTabNavigator } from './BottomTabNavigator';
 import { Image } from "react-native";
 import LoginScreen from "../screens/LoginScreen";
 import React from "react";
@@ -13,7 +13,12 @@ const screens = createStackNavigator(
     Welcome,
     LoginScreen,
     SignUpScreen,
-    HomeScreen,
+    HomeScreen: {
+      screen: BottomTabNavigator,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
   },
   {
     defaultNavigationOptions: {
@@ -25,7 +30,10 @@ const screens = createStackNavigator(
       },
       headerTransparent: true,
       headerBackImage: () => (
-        <Image source={require("../assets/icons/left_arrow.png")} />
+        <Image
+          source={require("../assets/icons/left_arrow.png")}
+          style={{ width: 35, height: 35 }}
+        />
       ),
       headerBackTitleVisible: false,
       headerTitle: "",
