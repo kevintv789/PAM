@@ -2,10 +2,12 @@ import { Button, Container, Text } from "../components";
 import { ImageBackground, StyleSheet } from "react-native";
 import React, { Component } from "react";
 
+import { WelcomeScreenProps } from "../types";
 import { theme } from "../shared/constants";
 
-export default class WelcomeScreen extends Component {
+export default class WelcomeScreen extends Component<WelcomeScreenProps> {
   render() {
+    const { navigation } = this.props;
     return (
       <ImageBackground
         style={styles.background}
@@ -29,11 +31,19 @@ export default class WelcomeScreen extends Component {
           </Container>
 
           <Container flex={0.5}>
-            <Button shadow onPress={() => {}}>
-              <Text center offWhite>Log In</Text>
+            <Button shadow onPress={() => navigation.navigate("LoginScreen")}>
+              <Text center offWhite size={17} medium>
+                Log In
+              </Text>
             </Button>
-            <Button shadow color="offWhite" onPress={() => {}}>
-              <Text center accent>Sign Up</Text>
+            <Button
+              shadow
+              color="offWhite"
+              onPress={() => navigation.navigate("SignUpScreen")}
+            >
+              <Text center accent size={17} medium>
+                Sign Up
+              </Text>
             </Button>
           </Container>
         </Container>

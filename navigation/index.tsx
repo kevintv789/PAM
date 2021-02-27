@@ -1,19 +1,27 @@
+import HomeScreen from "../screens/HomeScreen";
 import { Image } from "react-native";
+import LoginScreen from "../screens/LoginScreen";
 import React from "react";
+import SignUpScreen from "../screens/SignUpScreen";
 import Welcome from "../screens/WelcomeScreen";
 import { createAppContainer } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
-import { theme } from '../shared/constants';
+import { theme } from "../shared/constants";
 
 const screens = createStackNavigator(
   {
     Welcome,
+    LoginScreen,
+    SignUpScreen,
+    HomeScreen,
   },
   {
     defaultNavigationOptions: {
       headerStyle: {
         shadowColor: "transparent",
-        backgroundColor: theme.colors.accent
+        backgroundColor: theme.colors.accent,
+        elevation: 0, // for android
+        height: theme.sizes.base * 7,
       },
       headerTransparent: true,
       headerBackImage: () => (
@@ -23,6 +31,8 @@ const screens = createStackNavigator(
       headerTitle: "",
       headerLeftContainerStyle: {
         alignItems: "center",
+        marginLeft: theme.sizes.padding * 1.5,
+        marginTop: theme.sizes.padding * 2,
       },
       headerRightContainerStyle: {
         alignItems: "center",

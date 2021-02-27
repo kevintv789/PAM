@@ -65,3 +65,26 @@ export interface ButtonProps {
   locations: any;
   shadow: any;
 }
+
+export interface WelcomeScreenProps {
+  navigation: any;
+}
+
+export interface TextInputProps {
+  label: string;
+  error: boolean;
+  secure: boolean;
+  rightLabel: string;
+  rightStyle: any;
+  onRightPress: any;
+  email: string;
+  phone: string;
+  number: number;
+  style: any;
+  value: string;
+}
+
+export interface TextInputState {
+  toggleSecure: boolean;
+  isFocused: boolean;
+}

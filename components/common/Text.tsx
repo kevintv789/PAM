@@ -91,7 +91,7 @@ export default class Typography extends Component<TextProps> {
 export const styles = StyleSheet.create({
   // default style
   text: {
-    fontSize: theme.sizes.font,
+    fontSize: theme.fontSizes.regular,
     color: theme.colors.black,
   },
   // variations

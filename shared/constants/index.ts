@@ -1,5 +1,7 @@
+import * as mockData from './mockData';
 import * as theme from './theme';
 
 export {
   theme,
+  mockData
 };

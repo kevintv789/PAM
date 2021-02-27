@@ -1,8 +1,10 @@
+import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
 import React, { Component } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
 
 import { ButtonProps } from "../../types";
 import { theme } from "../../shared/constants";
+
+const { width } = Dimensions.get("window");
 
 class Button extends Component<ButtonProps> {
   static defaultProps: { locations: number[]; opacity: number; color: string };
@@ -52,7 +54,7 @@ export const styles = StyleSheet.create({
     height: theme.sizes.base * 3,
     justifyContent: "center",
     marginVertical: theme.sizes.padding / 3,
-    width: theme.sizes.width * 1.25
+    width: width * 0.75
   },
   shadow: {
     shadowColor: theme.colors.black,
