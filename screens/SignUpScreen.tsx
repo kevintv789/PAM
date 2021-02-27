@@ -24,12 +24,13 @@ export default class SignUpScreen extends Component<
       email: "",
       password: "",
       phone: "",
+      firstName: "",
       errors: [],
     };
   }
 
   handleSignIn = () => {
-    const { email, password, phone } = this.state;
+    const { email, password, phone, firstName } = this.state;
     const { navigation } = this.props;
 
     const errors = [];
@@ -46,17 +47,21 @@ export default class SignUpScreen extends Component<
       errors.push("phone");
     }
 
+    if (!firstName.length) {
+      errors.push("firstName");
+    }
+
     if (!errors.length) {
       navigation.navigate("HomeScreen");
     } else {
       // TODO: Add warning pop up or something to give notice to user that there are errors
     }
 
-    this.setState({ email, errors });
+    this.setState({ email, password, phone, firstName, errors });
   };
 
   render() {
-    const { email, password, errors, phone } = this.state;
+    const { email, password, errors, phone, firstName } = this.state;
     const hasErrors = (key: string) =>
       errors.includes(key) ? styles.hasErrors : null;
 
@@ -77,6 +82,18 @@ export default class SignUpScreen extends Component<
               Sign Up
             </Text>
             <Container margin={[theme.sizes.padding * 1.6]}>
+              <TextInput
+                label="First Name"
+                error={hasErrors("firstName")}
+                style={[styles.input, hasErrors("firstName")]}
+                value={firstName}
+                onChangeText={(firstName: string) =>
+                  this.setState({
+                    firstName,
+                    errors: errors.filter((e) => e !== "firstName"),
+                  })
+                }
+              />
               <TextInput
                 label="Email"
                 keyboardType="email-address"

@@ -50,7 +50,6 @@ export const BottomTabNavigator = createBottomTabNavigator(
         backgroundColor: theme.colors.offWhite,
         height: theme.sizes.base * 5,
         paddingBottom: theme.sizes.padding,
-        margin: 0
       },
       activeTintColor: theme.colors.secondary,
       inactiveTintColor: theme.colors.gray

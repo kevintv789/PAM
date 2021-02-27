@@ -1,11 +1,10 @@
 export interface State {
+  user: {
     email: string;
     password: string;
-    errors: Array<string>;
     phone: string;
+    properties: Array<object>;
     firstName: string;
-}
-
-export interface Props {
-    navigation: any
+  };
+  showModal: boolean;
 }

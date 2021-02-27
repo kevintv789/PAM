@@ -1,11 +1,15 @@
 import * as Icon from "@expo/vector-icons";
 
 import { Animated, StyleSheet, TextInput } from "react-native";
-import { Button, Container } from "../../components";
 import React, { Component } from "react";
 import { TextInputProps, TextInputState } from "../../types";
 
+import _Button from "./Button"
+import _Container from "./Container";
 import { theme } from "../../shared/constants";
+
+const Button: any = _Button;
+const Container: any = _Container;
 
 export default class Input extends Component<TextInputProps, TextInputState> {
   animatedIsFocused: Animated.Value;
