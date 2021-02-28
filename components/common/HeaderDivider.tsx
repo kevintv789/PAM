@@ -23,10 +23,8 @@ const HeaderDivider = (props: any) => {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    left: 0,
-    right: 0,
     height: 47,
+    width: '100%'
   },
 });
 

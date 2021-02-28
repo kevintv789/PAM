@@ -1,11 +1,19 @@
 import { Button, Container, Text } from "../components";
-import { Image, StyleSheet, View } from "react-native";
+import { Dimensions, Image, Platform, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { mockData, theme } from "../shared/constants";
 
 import AddPropertyComponent from "../components/AddPropertyComponent";
 import { HomeModel } from "../models";
 import Modal from "react-native-modal";
+
+const deviceWidth = Dimensions.get("window").width;
+const deviceHeight =
+  Platform.OS === "ios"
+    ? Dimensions.get("window").height
+    : require("react-native-extra-dimensions-android").get(
+        "REAL_WINDOW_HEIGHT"
+      );
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
   constructor(props: any) {
@@ -53,6 +61,10 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     );
   };
 
+  handleCancelModalClicked = () => {
+    this.setState({ showModal: false });
+  }
+
   renderAddPropertyModal = () => {
     const { showModal } = this.state;
     return (
@@ -60,8 +72,15 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
         <Modal
           isVisible={showModal}
           onBackdropPress={() => this.setState({ showModal: false })}
+          // onSwipeComplete={() => this.setState({ showModal: false })}
+          // swipeDirection="down"
+          hideModalContentWhileAnimating={true}
+          deviceWidth={deviceWidth}
+          deviceHeight={deviceHeight}
+          style={styles.modal}
+          propagateSwipe={true}
         >
-          <AddPropertyComponent />
+          <AddPropertyComponent handleCancelClicked={() => this.handleCancelModalClicked()}/>
         </Modal>
       </Container>
     );
@@ -71,7 +90,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     const { user } = this.state;
     return (
       <Container color="accent">
-        <Container middle center flex={0.35}>
+        <Container middle center flex={0.8}>
           <Text h1 tertiary>
             My Properties
           </Text>
@@ -92,4 +111,9 @@ const styles = StyleSheet.create({
   setUpProperty: {
     marginTop: theme.sizes.base * 1.6,
   },
+  modal: {
+    marginTop: theme.sizes.padding * 2,
+    marginLeft: 0,
+    marginRight: 0,
+  }
 });
