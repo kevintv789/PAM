@@ -1,19 +1,11 @@
 import { Button, Container, Text } from "../components";
-import { Dimensions, Image, Platform, StyleSheet } from "react-native";
+import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { mockData, theme } from "../shared/constants";
 
-import AddPropertyComponent from "../components/AddPropertyComponent";
+import AddPropertyComponent from "../components/modals/AddPropertyComponent";
+import AddPropertyDoneComponent from "../components/modals/AddPropertyDoneComponent";
 import { HomeModel } from "../models";
-import Modal from "react-native-modal";
-
-const deviceWidth = Dimensions.get("window").width;
-const deviceHeight =
-  Platform.OS === "ios"
-    ? Dimensions.get("window").height
-    : require("react-native-extra-dimensions-android").get(
-        "REAL_WINDOW_HEIGHT"
-      );
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
   constructor(props: any) {
@@ -22,6 +14,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     this.state = {
       user: mockData.User,
       showModal: false,
+      showDoneModal: false,
     };
   }
   renderDefaultMessage = () => {
@@ -63,24 +56,44 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
 
   handleCancelModalClicked = () => {
     this.setState({ showModal: false });
-  }
+  };
+
+  handleNextClicked = () => {
+    this.setState({ showModal: false, showDoneModal: true });
+  };
 
   renderAddPropertyModal = () => {
     const { showModal } = this.state;
     return (
       <Container flex={1}>
         <Modal
-          isVisible={showModal}
-          onBackdropPress={() => this.setState({ showModal: false })}
-          // onSwipeComplete={() => this.setState({ showModal: false })}
-          // swipeDirection="down"
-          hideModalContentWhileAnimating={true}
-          deviceWidth={deviceWidth}
-          deviceHeight={deviceHeight}
-          style={styles.modal}
-          propagateSwipe={true}
+          visible={showModal}
+          presentationStyle="formSheet"
+          animationType="slide"
+          onDismiss={() => this.setState({ showModal: false })}
         >
-          <AddPropertyComponent handleCancelClicked={() => this.handleCancelModalClicked()}/>
+          <AddPropertyComponent
+            handleCancelClicked={() => this.handleCancelModalClicked()}
+            handleNextClicked={() => this.handleNextClicked()}
+          />
+        </Modal>
+      </Container>
+    );
+  };
+
+  renderAddPropertyDoneModal = () => {
+    const { showDoneModal } = this.state;
+    return (
+      <Container>
+        <Modal
+          visible={showDoneModal}
+          presentationStyle="pageSheet"
+          animationType="fade"
+          onDismiss={() => this.setState({ showDoneModal: false })}
+        >
+          <AddPropertyDoneComponent
+            handleFinishedClick={() => this.setState({ showDoneModal: false })}
+          />
         </Modal>
       </Container>
     );
@@ -90,13 +103,14 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     const { user } = this.state;
     return (
       <Container color="accent">
-        <Container middle center flex={0.8}>
+        <Container middle center flex={1.5}>
           <Text h1 tertiary>
             My Properties
           </Text>
         </Container>
         {!user.properties.length && this.renderDefaultMessage()}
         {this.renderAddPropertyModal()}
+        {this.renderAddPropertyDoneModal()}
       </Container>
     );
   }
@@ -111,9 +125,4 @@ const styles = StyleSheet.create({
   setUpProperty: {
     marginTop: theme.sizes.base * 1.6,
   },
-  modal: {
-    marginTop: theme.sizes.padding * 2,
-    marginLeft: 0,
-    marginRight: 0,
-  }
 });

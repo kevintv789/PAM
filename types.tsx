@@ -82,6 +82,7 @@ export interface TextInputProps {
   number: number;
   style: any;
   value: string;
+  required: boolean;
 }
 
 export interface TextInputState {

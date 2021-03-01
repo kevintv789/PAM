@@ -1,17 +1,26 @@
 import {
+  AddressInput,
   Button,
   Container,
   HeaderDivider,
   Pills,
   Text,
   TextInput,
-} from "../components";
-import { Dimensions, FlatList, Image, StyleSheet } from "react-native";
+} from "..";
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  StyleSheet,
+} from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import { constants, mockData, theme } from "../shared/constants";
+import { constants, mockData, theme } from "../../shared/constants";
 
-import { AddPropertyModel } from "../models";
+import { AddPropertyModel } from "../../models";
+import { Entypo } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,6 +34,10 @@ export default class AddPropertyComponent extends Component<
     this.state = {
       propertyTypes: mockData.PropertyTypes,
       typeSelected: "",
+      propertyNickName: "",
+      streetAddress: "",
+      streetAddressResults: [],
+      showKeyboard: true,
     };
   }
 
@@ -40,7 +53,7 @@ export default class AddPropertyComponent extends Component<
             middle
           >
             <Image
-              source={require("../assets/icons/camera.png")}
+              source={require("../../assets/icons/camera.png")}
               style={styles.cameraImage}
             />
           </Container>
@@ -60,6 +73,7 @@ export default class AddPropertyComponent extends Component<
       <Container center margin={[theme.sizes.padding, 0, 0, 0]}>
         <HeaderDivider title="Property Type" style={styles.divider} />
         <FlatList
+          keyboardShouldPersistTaps={"handled"}
           data={propertyTypes}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -101,18 +115,18 @@ export default class AddPropertyComponent extends Component<
 
     switch (typeSelected) {
       case constants.PROPERTY_TYPES.APT_CONDO:
-        imagePath = require("../assets/icons/prop_type_apartment.png");
+        imagePath = require("../../assets/icons/prop_type_apartment.png");
         break;
       case constants.PROPERTY_TYPES.SINGLE_FAM:
-        imagePath = require("../assets/icons/prop_type_sfh.png");
+        imagePath = require("../../assets/icons/prop_type_sfh.png");
         break;
       case constants.PROPERTY_TYPES.TOWNHOUSE:
-        imagePath = require("../assets/icons/prop_type_townhouse.png");
+        imagePath = require("../../assets/icons/prop_type_townhouse.png");
         newWidth = 50;
         newHeight = 50;
         break;
       case constants.PROPERTY_TYPES.MULTI_FAM:
-        imagePath = require("../assets/icons/prop_type_multiplex.png");
+        imagePath = require("../../assets/icons/prop_type_multiplex.png");
         newWidth = 50;
         newHeight = 50;
         break;
@@ -140,7 +154,7 @@ export default class AddPropertyComponent extends Component<
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked } = this.props;
+    const { handleCancelClicked, handleNextClicked } = this.props;
 
     return (
       <Container
@@ -153,7 +167,7 @@ export default class AddPropertyComponent extends Component<
           0,
           theme.sizes.padding / 1.3,
         ]}
-        style={{ height: height / 5 }}
+        style={{ height: height / 4.8 }}
       >
         <Button
           color="red"
@@ -164,7 +178,11 @@ export default class AddPropertyComponent extends Component<
             Cancel
           </Text>
         </Button>
-        <Button color="secondary" style={styles.navigationButtons}>
+        <Button
+          color="secondary"
+          style={styles.navigationButtons}
+          onPress={() => handleNextClicked()}
+        >
           <Text offWhite center semibold>
             Next
           </Text>
@@ -174,37 +192,93 @@ export default class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
+    const { propertyNickName, streetAddress, showKeyboard } = this.state;
+
     return (
       <Container center>
         <HeaderDivider title="Property Details" style={styles.divider} />
-        <TextInput label="Street Address" style={styles.input} />
-        <TextInput label="Property Nickname" style={styles.input} />
-        <TextInput label="Add Notes" style={styles.input} />
+
+        {/* BUG -- Implement Auto scroll when lists are popped up */}
+        <AddressInput
+          handleSelect={(streetAddress: string) =>
+            this.setState({ streetAddress, showKeyboard: false })
+          }
+          handleResults={(streetAddressResults: Array<string>) => {
+            this.setState({
+              streetAddressResults,
+              // showKeyboard: streetAddressResults.length > 0 ? false : true,
+            });
+          }}
+          onFocus={() =>
+            this.setState({ streetAddressResults: [], showKeyboard: true })
+          }
+        />
+        <TextInput
+          label="Property Nickname"
+          style={styles.input}
+          value={propertyNickName}
+          onChangeText={(propertyNickName: string) =>
+            this.setState({
+              propertyNickName,
+              showKeyboard: true,
+            })
+          }
+        />
+        <Button style={styles.addNotesButton}>
+          <Text
+            gray
+            size={theme.fontSizes.medium}
+            style={styles.addNotesButtonText}
+          >
+            Add Notes
+          </Text>
+          <Entypo
+            name="chevron-small-right"
+            size={26}
+            color={theme.colors.gray}
+            style={styles.notesChevron}
+          />
+        </Button>
       </Container>
     );
   };
 
   render() {
+    const { showKeyboard } = this.state;
+
+    if (!showKeyboard) {
+      Keyboard.dismiss();
+    }
+
     return (
-      <Container center color="accent" style={styles.mainContainer}>
-        <ScrollView>
-          <Text h1 offWhite center style={{ paddingTop: theme.sizes.padding }}>
-            Add Property
-          </Text>
-          {this.renderImageSection()}
-          {this.renderPropertyTypeSelection()}
-          {this.renderPropertyDetails()}
-          {this.renderNavigationButtons()}
-        </ScrollView>
-      </Container>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flex: 1 }}
+        scrollEnabled={true}
+        keyboardShouldPersistTaps={"handled"}
+        enableAutomaticScroll={true}
+      >
+        <Container center color="accent">
+          <ScrollView keyboardShouldPersistTaps={"handled"}>
+            <Text
+              h1
+              offWhite
+              center
+              style={{ paddingTop: theme.sizes.padding }}
+            >
+              Add Property
+            </Text>
+            {this.renderImageSection()}
+            {this.renderPropertyTypeSelection()}
+            {this.renderPropertyDetails()}
+            {this.renderNavigationButtons()}
+          </ScrollView>
+        </Container>
+      </KeyboardAwareScrollView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    top: theme.sizes.padding * 2,
-  },
   imageContainer: {
     backgroundColor: theme.colors.offWhite,
     borderRadius: 100,
@@ -239,5 +313,19 @@ const styles = StyleSheet.create({
   },
   input: {
     width: width * 0.87,
+  },
+  addNotesButton: {
+    backgroundColor: "transparent",
+    width: "87%",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.offWhite,
+  },
+  addNotesButtonText: {
+    paddingLeft: 4,
+  },
+  notesChevron: {
+    position: "absolute",
+    right: 0,
+    top: theme.sizes.base,
   },
 });

@@ -7,4 +7,5 @@ export interface State {
     firstName: string;
   };
   showModal: boolean;
+  showDoneModal: boolean;
 }
