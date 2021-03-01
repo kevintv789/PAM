@@ -1,11 +1,17 @@
 import * as Icon from "@expo/vector-icons";
 
 import { Animated, StyleSheet, TextInput } from "react-native";
-import { Button, Container } from "../../components";
 import React, { Component } from "react";
 import { TextInputProps, TextInputState } from "../../types";
 
+import _Button from "./Button";
+import _Container from "./Container";
+import _Text from "./Text";
 import { theme } from "../../shared/constants";
+
+const Button: any = _Button;
+const Container: any = _Container;
+const Text: any = _Text;
 
 export default class Input extends Component<TextInputProps, TextInputState> {
   animatedIsFocused: Animated.Value;
@@ -39,7 +45,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
   handleBlur = () => this.setState({ isFocused: false });
 
   renderLabel = () => {
-    const { label, error } = this.props;
+    const { label, error, required } = this.props;
 
     const labelStyle = {
       position: "absolute",
@@ -64,7 +70,12 @@ export default class Input extends Component<TextInputProps, TextInputState> {
     return (
       <Container flex={false}>
         {label ? (
-          <Animated.Text style={labelStyle}>{label}</Animated.Text>
+          <Animated.Text style={labelStyle}>
+            <Animated.Text>{label} </Animated.Text>
+            {required && (
+              <Animated.Text style={styles.required}>*</Animated.Text>
+            )}
+          </Animated.Text>
         ) : null}
       </Container>
     );
@@ -130,7 +141,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
       : "default";
 
     return (
-      <Container flex={false} margin={[theme.sizes.base, 0]}>
+      <Container flex={false} margin={[theme.sizes.base / 2, 0]}>
         {this.renderLabel()}
         <TextInput
           style={inputStyles}
@@ -143,6 +154,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
           onBlur={this.handleBlur}
           {...props}
         />
+
         {this.renderToggle()}
         {this.renderRight()}
       </Container>
@@ -169,5 +181,9 @@ export const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "transparent",
     color: theme.colors.offWhite,
+  },
+  required: {
+    fontWeight: "200",
+    fontSize: 20,
   },
 });
