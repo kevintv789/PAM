@@ -5,7 +5,9 @@ import _Container from "./common/Container";
 import _HeaderDivider from "./common/HeaderDivider";
 import _Input from "./common/TextInput";
 import _Pills from "./common/Pills";
+import _PropertyComponent from "./PropertyComponent";
 import _Text from "./common/Text";
+import _VerticalDivider from "./common/VerticalDivider";
 
 const Container: any = _Container;
 const Text: any = _Text;
@@ -15,6 +17,8 @@ const HeaderDivider: any = _HeaderDivider;
 const Pills: any = _Pills;
 const AddressInput: any = _AddressInput;
 const AddPropertyDoneComponent: any = _AddPropertyDoneComponent;
+const PropertyComponent: any = _PropertyComponent;
+const VerticalDivider: any = _VerticalDivider;
 
 export {
   Container,
@@ -25,4 +29,6 @@ export {
   Pills,
   AddressInput,
   AddPropertyDoneComponent,
+  PropertyComponent,
+  VerticalDivider,
 };

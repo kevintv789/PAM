@@ -54,6 +54,7 @@ export interface TextProps {
   gray: any;
   gray2: any;
   style: any;
+  red: any;
 }
 
 export interface ButtonProps {
