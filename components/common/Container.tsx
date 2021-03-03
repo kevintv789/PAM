@@ -2,7 +2,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import React, { Component } from "react";
 
 import { ContainerProps } from "../../types";
-import { theme } from "../../shared/constants";
+import { theme } from "../../shared";
 
 export default class Container extends Component<ContainerProps> {
   handleMargins() {

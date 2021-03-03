@@ -1,5 +1,5 @@
 import { PropertyTypes } from "./constants/mockData";
-import { constants } from "./constants";
+import { constants } from ".";
 
 /**
  * Validates if an email address has the correct format

@@ -6,6 +6,7 @@ import _HeaderDivider from "./common/HeaderDivider";
 import _Input from "./common/TextInput";
 import _Pills from "./common/Pills";
 import _PropertyComponent from "./PropertyComponent";
+import _PropertyContentComponent from "./PropertyContentComponent";
 import _Text from "./common/Text";
 import _VerticalDivider from "./common/VerticalDivider";
 
@@ -19,6 +20,7 @@ const AddressInput: any = _AddressInput;
 const AddPropertyDoneComponent: any = _AddPropertyDoneComponent;
 const PropertyComponent: any = _PropertyComponent;
 const VerticalDivider: any = _VerticalDivider;
+const PropertyContentComponent: any = _PropertyContentComponent;
 
 export {
   Container,
@@ -31,4 +33,5 @@ export {
   AddPropertyDoneComponent,
   PropertyComponent,
   VerticalDivider,
+  PropertyContentComponent,
 };

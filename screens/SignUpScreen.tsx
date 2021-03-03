@@ -10,7 +10,7 @@ import { formatMobileNumber, validateEmail } from "../shared/Utils";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SignUpModel } from "../models";
-import { theme } from "../shared/constants";
+import { theme } from "../shared";
 
 const { width, height } = Dimensions.get("window");
 

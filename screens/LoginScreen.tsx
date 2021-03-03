@@ -8,7 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../shared/constants";
+import { mockData, theme } from "../shared";
 
 import { LoginModel } from "../models";
 import { validateEmail } from "../shared/Utils";

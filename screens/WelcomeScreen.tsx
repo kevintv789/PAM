@@ -3,7 +3,7 @@ import { ImageBackground, StyleSheet } from "react-native";
 import React, { Component } from "react";
 
 import { WelcomeScreenProps } from "../types";
-import { theme } from "../shared/constants";
+import { theme } from "../shared";
 
 export default class WelcomeScreen extends Component<WelcomeScreenProps> {
   render() {

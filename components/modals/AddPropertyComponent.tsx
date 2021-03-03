@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import { constants, mockData, theme } from "../../shared/constants";
+import { constants, mockData, theme } from "../../shared";
 
 import { AddPropertyModel } from "../../models";
 import { Entypo } from "@expo/vector-icons";

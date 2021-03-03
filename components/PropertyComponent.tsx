@@ -1,16 +1,17 @@
 import { Animated, Dimensions, Image, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { animations, mockData, theme } from "../shared";
 import { filter, findIndex, sortBy } from "lodash";
 import {
   formatNumber,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "../shared/Utils";
-import { mockData, theme } from "../shared/constants";
 
 import { PropertyModel } from "../models";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import _Container from "./common/Container";
+import _PropertyContentComponent from "./PropertyContentComponent";
 import _Text from "./common/Text";
 import _VerticalDivider from "./common/VerticalDivider";
 import moment from "moment";
@@ -18,11 +19,16 @@ import moment from "moment";
 const Container: any = _Container;
 const Text: any = _Text;
 const VerticalDivider: any = _VerticalDivider;
+const PropertyContentComponent: any = _PropertyContentComponent;
 
 const { width } = Dimensions.get("window");
 
 const tenantData = mockData.Tenants;
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
+const AnimatedImage = Animated.createAnimatedComponent(Image);
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
+  TouchableOpacity
+);
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
@@ -34,24 +40,66 @@ class PropertyComponent extends Component<
     this.state = {
       expanded: false,
       animatedHeaderHeight: new Animated.Value(100),
+      animatedHeaderImageWidth: new Animated.Value(74),
+      animatedHeaderImageHeight: new Animated.Value(74),
+      animatedContainerHeight: new Animated.Value(200),
+      animatedHeaderPropertyAddressTop: new Animated.Value(0),
+      animatedExpandedContentOpacity: new Animated.Value(0),
     };
   }
 
   togglePropertyContent = () => {
-    const { animatedHeaderHeight, expanded } = this.state;
+    const {
+      animatedHeaderHeight,
+      expanded,
+      animatedHeaderImageWidth,
+      animatedHeaderImageHeight,
+      animatedContainerHeight,
+      animatedHeaderPropertyAddressTop,
+      animatedExpandedContentOpacity,
+    } = this.state;
 
-    Animated.timing(animatedHeaderHeight, {
-      toValue: !expanded ? 50 : 100,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
+    // animate header height
+    animations.animateOnToggle(animatedHeaderHeight, expanded, 100, 70);
+
+    // animate header image width
+    animations.animateOnToggle(animatedHeaderImageWidth, expanded, 74, 45);
+
+    // animate header image height
+    animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
+
+    // animate entire container height
+    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 600);
+
+    // animate property address on header
+    animations.animateOnToggle(
+      animatedHeaderPropertyAddressTop,
+      expanded,
+      0,
+      10
+    );
+
+    // animate expanded content opacity
+    animations.animateOnToggle(
+      animatedExpandedContentOpacity,
+      expanded,
+      0,
+      1,
+      800
+    );
 
     this.setState({ expanded: !expanded });
   };
 
   renderHeader = () => {
     const { propertyData } = this.props;
-    const { animatedHeaderHeight } = this.state;
+    const {
+      animatedHeaderHeight,
+      animatedHeaderImageWidth,
+      animatedHeaderImageHeight,
+      animatedHeaderPropertyAddressTop,
+      expanded,
+    } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
@@ -63,12 +111,23 @@ class PropertyComponent extends Component<
           { backgroundColor: propertyData.color, height: animatedHeaderHeight },
         ]}
       >
-        <Image
+        <AnimatedImage
           source={getPropertyImage(propertyData.image, propertyData.unitType)}
-          style={styles.propertyImages}
+          style={[
+            styles.propertyImages,
+            {
+              width: animatedHeaderImageWidth,
+              height: animatedHeaderImageHeight,
+            },
+          ]}
         />
         <Container>
-          <Container row center>
+          <AnimatedContainer
+            row
+            center
+            flex={1}
+            style={{ top: animatedHeaderPropertyAddressTop }}
+          >
             <Image
               source={iconImageData.imagePath}
               style={[
@@ -80,16 +139,17 @@ class PropertyComponent extends Component<
                   height: iconImageData.newHeight
                     ? iconImageData.newHeight / 1.8
                     : 20,
+                  marginTop: -5,
                 },
               ]}
             />
             <Text accent light size={theme.fontSizes.medium}>
               {propertyData.propertyAddress}
             </Text>
-          </Container>
+          </AnimatedContainer>
 
           <Text accent semibold size={theme.fontSizes.medium}>
-            {propertyData.propertyName}
+            {!expanded && propertyData.propertyName}
           </Text>
         </Container>
       </AnimatedContainer>
@@ -253,16 +313,27 @@ class PropertyComponent extends Component<
   };
 
   render() {
-    const { expanded } = this.state;
+    const {
+      expanded,
+      animatedContainerHeight,
+      animatedExpandedContentOpacity,
+    } = this.state;
 
     return (
-      <TouchableOpacity
-        style={[styles.mainContainer]}
+      <AnimatedTouchableOpacity
+        style={[styles.mainContainer, { height: animatedContainerHeight }]}
         onPress={() => this.togglePropertyContent()}
       >
         {this.renderHeader()}
         {!expanded && this.renderBottom()}
-      </TouchableOpacity>
+        {expanded && (
+          <AnimatedContainer
+            style={{ opacity: animatedExpandedContentOpacity }}
+          >
+            <PropertyContentComponent />
+          </AnimatedContainer>
+        )}
+      </AnimatedTouchableOpacity>
     );
   }
 }

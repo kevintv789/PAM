@@ -1,5 +1,5 @@
 import { Image, StyleSheet } from "react-native";
-import { constants, theme } from "../../shared/constants";
+import { constants, theme } from "../../shared";
 
 import React from "react";
 import _Button from "../common/Button";

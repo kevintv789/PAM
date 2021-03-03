@@ -6,7 +6,7 @@ import SignUpScreen from "../screens/SignUpScreen";
 import Welcome from "../screens/WelcomeScreen";
 import { createAppContainer } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
-import { theme } from "../shared/constants";
+import { theme } from "../shared";
 
 const screens = createStackNavigator(
   {

@@ -1,7 +1,7 @@
 import { Button, Container, PropertyComponent, Text } from "../components";
 import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../shared/constants";
+import { mockData, theme } from "../shared";
 
 import AddPropertyComponent from "../components/modals/AddPropertyComponent";
 import AddPropertyDoneComponent from "../components/modals/AddPropertyDoneComponent";

@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { StyleSheet, Text } from "react-native";
 
 import { TextProps } from "../../types";
-import { theme } from "../../shared/constants";
+import { theme } from "../../shared";
 
 export default class Typography extends Component<TextProps> {
   render() {

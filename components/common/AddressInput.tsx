@@ -1,4 +1,4 @@
-import { environment, theme } from "../../shared/constants";
+import { environment, theme } from "../../shared";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PlacesInput from "react-native-places-input";

@@ -5,7 +5,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import _Button from "./Button";
 import _Container from "./Container";
 import _Text from "./Text";
-import { theme } from "../../shared/constants";
+import { theme } from "../../shared";
 
 const Button: any = _Button;
 const Container: any = _Container;
