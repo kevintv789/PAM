@@ -1,5 +1,4 @@
 import { Dimensions, Image, StyleSheet } from "react-native";
-import React, { useState } from "react";
 import { filter, findIndex, sortBy } from "lodash";
 import {
   formatNumber,
@@ -8,6 +7,7 @@ import {
 } from "../shared/Utils";
 import { mockData, theme } from "../shared/constants";
 
+import React from "react";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import _Container from "./common/Container";
 import _Text from "./common/Text";
@@ -24,7 +24,6 @@ const PropertyComponent = (props: any) => {
   const { propertyData } = props;
   const tenantData = mockData.Tenants;
   const totalProfit = propertyData.income - propertyData.expenses;
-  //   const [tenantData, setTenantData] = useState(mockData.Tenants);
 
   const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 

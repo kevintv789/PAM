@@ -7,6 +7,7 @@ import AddPropertyComponent from "../components/modals/AddPropertyComponent";
 import AddPropertyDoneComponent from "../components/modals/AddPropertyDoneComponent";
 import { HomeModel } from "../models";
 import { ScrollView } from "react-native-gesture-handler";
+import { ThemeContext } from "react-navigation";
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
   constructor(props: any) {
@@ -104,9 +105,13 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     const { user } = this.state;
     return (
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: theme.sizes.padding,
+        }}
         style={styles.propertiesScrollView}
         keyboardShouldPersistTaps={"handled"}
+        showsVerticalScrollIndicator={false}
       >
         <Container center>
           {user.properties.map((property: any) => {
@@ -122,7 +127,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
   render() {
     const { user } = this.state;
     return (
-      <Container color="accent">
+      <Container color="accent" style={{}}>
         <Container
           middle
           center
