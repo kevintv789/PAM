@@ -71,7 +71,7 @@ export const getPropertyTypeIcons = (type: string) => {
 };
 
 /**
- * This function retrieves the default image of each property if there are no 
+ * This function retrieves the default image of each property if there are no
  * images available. If there are, just return the original image
  * @param image
  * @param type
@@ -94,3 +94,10 @@ export const getPropertyImage = (image: any, type: string) => {
 
   return image;
 };
+
+/**
+ * Formats number with comma separated pattern
+ * @param value 
+ */
+export const formatNumber = (value: any) =>
+  new Intl.NumberFormat().format(value);

@@ -14,6 +14,9 @@ export default class WelcomeScreen extends Component<WelcomeScreenProps> {
         source={require("../assets/images/welcome_screen.png")}
       >
         <Container center padding={theme.sizes.padding}>
+
+          {/* TODO -- On smaller screens iPhone SE, the words are being blended in with the sun in the background.
+          Either change the background or find a way to move the text to the top without messing it up for the other screens. */}
           <Text offWhite size={40}>
             Meet
             <Text tertiary bold size={48}>

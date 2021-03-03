@@ -110,7 +110,9 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
       >
         <Container center>
           {user.properties.map((property: any) => {
-            return <PropertyComponent data={property} key={property.id} />;
+            return (
+              <PropertyComponent propertyData={property} key={property.id} />
+            );
           })}
         </Container>
       </ScrollView>

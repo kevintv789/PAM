@@ -1,8 +1,14 @@
 import { Dimensions, Image, StyleSheet } from "react-native";
-import { constants, theme } from "../shared/constants";
-import { getPropertyImage, getPropertyTypeIcons } from "../shared/Utils";
+import React, { useState } from "react";
+import { filter, findIndex, sortBy } from "lodash";
+import {
+  formatNumber,
+  getPropertyImage,
+  getPropertyTypeIcons,
+} from "../shared/Utils";
+import { mockData, theme } from "../shared/constants";
 
-import React from "react";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import _Container from "./common/Container";
 import _Text from "./common/Text";
 import _VerticalDivider from "./common/VerticalDivider";
@@ -15,18 +21,25 @@ const VerticalDivider: any = _VerticalDivider;
 const { width } = Dimensions.get("window");
 
 const PropertyComponent = (props: any) => {
-  const { data } = props;
-  const iconImageData = getPropertyTypeIcons(data.unitType);
+  const { propertyData } = props;
+  const tenantData = mockData.Tenants;
+  const totalProfit = propertyData.income - propertyData.expenses;
+  //   const [tenantData, setTenantData] = useState(mockData.Tenants);
+
+  const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
   const renderHeader = () => {
     return (
       <Container
         row
         flex={false}
-        style={[styles.headerContainer, { backgroundColor: data.color }]}
+        style={[
+          styles.headerContainer,
+          { backgroundColor: propertyData.color },
+        ]}
       >
         <Image
-          source={getPropertyImage(data.image, data.unitType)}
+          source={getPropertyImage(propertyData.image, propertyData.unitType)}
           style={styles.propertyImages}
         />
         <Container>
@@ -46,47 +59,78 @@ const PropertyComponent = (props: any) => {
               ]}
             />
             <Text accent light size={theme.fontSizes.medium}>
-              {data.propertyAddress}
+              {propertyData.propertyAddress}
             </Text>
           </Container>
 
           <Text accent semibold size={theme.fontSizes.medium}>
-            {data.propertyName}
+            {propertyData.propertyName}
           </Text>
         </Container>
       </Container>
     );
   };
 
+  const getOneTenantFromData = (index: number) => {
+    const tenantIdToFind = propertyData.tenants[index];
+    return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
+  };
+
+  const getAllTenantsFromData = () => {
+    const tenantIds = propertyData.tenants;
+    let tenants: object[] = [];
+
+    // Loop on each tenant IDs and build an array
+    if (tenantIds && tenantIds.length) {
+      tenantIds.forEach((id: number) => {
+        tenants.push(filter(tenantData, (e) => e.id === id)[0]);
+      });
+    }
+
+    return tenants;
+  };
+
+  const findEarliestMoveInDate = () => {
+    const tenants = getAllTenantsFromData();
+
+    // sort on leaseStartDate
+    const earliestMoveIn = sortBy(tenants, "leaseStartDate")[0].leaseStartDate;
+    return moment(earliestMoveIn).format("MM/DD/YYYY");
+  };
+
   const renderTenantNames = () => {
-    if (!data.tenants.length) {
+    if (!propertyData.tenants.length) {
       return (
-        <Text accent bold>
+        <Text accent semibold size={theme.fontSizes.big}>
           Vacant
         </Text>
       );
-    } else if (data.tenants.length > 0 && data.tenants.length < 3) {
+    } else if (
+      propertyData.tenants.length > 0 &&
+      propertyData.tenants.length < 4
+    ) {
       return (
-        <Container row>
-          <Text accent bold>
-            {data.tenants[1]}
-          </Text>
-          <Text light accent size={10}>
-            From 1/12/2021
-          </Text>
-          <Text accent bold>
-            {data.tenants[2]}
-          </Text>
-          <Text light accent size={10}>
-            From 1/12/2021
-          </Text>
+        <Container>
+          {propertyData.tenants.map((e: any, index: number) => (
+            <Container row space="between" middle key={e.id}>
+              <Text accent medium>
+                {getOneTenantFromData(index).name.split(" ")[0]}
+              </Text>
+              <Text light size={11} style={{ top: 2 }}>
+                From {getOneTenantFromData(index).leaseStartDate}
+              </Text>
+            </Container>
+          ))}
         </Container>
       );
     } else {
       return (
-        <Text accent bold>
-          {data.tenants.length} Occupants
-        </Text>
+        <Container>
+          <Text accent semibold>
+            {propertyData.tenants.length} Occupants
+          </Text>
+          <Text light>From {findEarliestMoveInDate()}</Text>
+        </Container>
       );
     }
   };
@@ -125,31 +169,52 @@ const PropertyComponent = (props: any) => {
               {moment(new Date()).format("MMM, YYYY")} Report
             </Text>
           </Container>
-          <Container row padding={[0, 0, 0, 3]} flex={3}>
-            <Text accent medium size={theme.fontSizes.small}>
-              Total Income{"  "}
-            </Text>
-            <Text accent medium size={theme.fontSizes.small}>
-              Total Expense
-            </Text>
-          </Container>
-          <Container row space="between">
-            <Text
-              secondary
-              size={theme.fontSizes.small}
-              style={styles.dollars}
-              bold
-            >
-              ${data.income}
-            </Text>
-            <Text
-              red
-              size={theme.fontSizes.small}
-              style={[styles.dollars, { left: 47 }]}
-              bold
-            >
-              ${data.expenses}
-            </Text>
+          <Container
+            padding={[0, 0, 0, 3]}
+            flex={3}
+            style={{ width: width / 2.3 }}
+          >
+            <Container row space="between" style={styles.dollarContainers}>
+              <Text accent medium style={styles.dollars}>
+                Total Income
+              </Text>
+              <Text
+                secondary
+                size={theme.fontSizes.small}
+                bold
+                style={styles.dollars}
+              >
+                ${formatNumber(propertyData.income)}
+              </Text>
+            </Container>
+
+            <Container row space="between" style={styles.dollarContainers}>
+              <Text accent medium style={styles.dollars}>
+                Total Expense
+              </Text>
+              <Text
+                primary
+                size={theme.fontSizes.small}
+                bold
+                style={styles.dollars}
+              >
+                ${formatNumber(propertyData.expenses)}
+              </Text>
+            </Container>
+
+            <Container row space="between" style={styles.dollarContainers}>
+              <Text accent medium style={styles.dollars}>
+                Total Profit
+              </Text>
+              <Text
+                color={totalProfit > 0 ? "secondary" : "primary"}
+                size={theme.fontSizes.small}
+                bold
+                style={styles.dollars}
+              >
+                ${formatNumber(totalProfit)}
+              </Text>
+            </Container>
           </Container>
         </Container>
       </Container>
@@ -157,10 +222,12 @@ const PropertyComponent = (props: any) => {
   };
 
   return (
-    <Container center style={styles.mainContainer} flex={false}>
-      {renderHeader()}
-      {renderBottom()}
-    </Container>
+    <TouchableOpacity style={styles.mainContainer}>
+      <Container center style={{ width: "100%" }}>
+        {renderHeader()}
+        {renderBottom()}
+      </Container>
+    </TouchableOpacity>
   );
 };
 
@@ -193,9 +260,13 @@ const styles = StyleSheet.create({
   right: {
     left: -55,
   },
+  dollarContainers: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.gray,
+    top: -10,
+  },
   dollars: {
-    bottom: 30,
-    left: 37,
+    top: 5,
   },
 });
 
