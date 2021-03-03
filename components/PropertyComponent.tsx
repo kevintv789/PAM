@@ -1,4 +1,5 @@
-import { Dimensions, Image, StyleSheet } from "react-native";
+import { Animated, Dimensions, Image, StyleSheet } from "react-native";
+import React, { Component } from "react";
 import { filter, findIndex, sortBy } from "lodash";
 import {
   formatNumber,
@@ -7,7 +8,7 @@ import {
 } from "../shared/Utils";
 import { mockData, theme } from "../shared/constants";
 
-import React from "react";
+import { PropertyModel } from "../models";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import _Container from "./common/Container";
 import _Text from "./common/Text";
@@ -20,21 +21,46 @@ const VerticalDivider: any = _VerticalDivider;
 
 const { width } = Dimensions.get("window");
 
-const PropertyComponent = (props: any) => {
-  const { propertyData } = props;
-  const tenantData = mockData.Tenants;
-  const totalProfit = propertyData.income - propertyData.expenses;
+const tenantData = mockData.Tenants;
+const AnimatedContainer = Animated.createAnimatedComponent(Container);
 
-  const iconImageData = getPropertyTypeIcons(propertyData.unitType);
+class PropertyComponent extends Component<
+  PropertyModel.Props,
+  PropertyModel.State
+> {
+  constructor(props: PropertyModel.Props) {
+    super(props);
 
-  const renderHeader = () => {
+    this.state = {
+      expanded: false,
+      animatedHeaderHeight: new Animated.Value(100),
+    };
+  }
+
+  togglePropertyContent = () => {
+    const { animatedHeaderHeight, expanded } = this.state;
+
+    Animated.timing(animatedHeaderHeight, {
+      toValue: !expanded ? 50 : 100,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+
+    this.setState({ expanded: !expanded });
+  };
+
+  renderHeader = () => {
+    const { propertyData } = this.props;
+    const { animatedHeaderHeight } = this.state;
+    const iconImageData = getPropertyTypeIcons(propertyData.unitType);
+
     return (
-      <Container
+      <AnimatedContainer
         row
         flex={false}
         style={[
           styles.headerContainer,
-          { backgroundColor: propertyData.color },
+          { backgroundColor: propertyData.color, height: animatedHeaderHeight },
         ]}
       >
         <Image
@@ -66,16 +92,18 @@ const PropertyComponent = (props: any) => {
             {propertyData.propertyName}
           </Text>
         </Container>
-      </Container>
+      </AnimatedContainer>
     );
   };
 
-  const getOneTenantFromData = (index: number) => {
+  getOneTenantFromData = (index: number) => {
+    const { propertyData } = this.props;
     const tenantIdToFind = propertyData.tenants[index];
     return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
   };
 
-  const getAllTenantsFromData = () => {
+  getAllTenantsFromData = () => {
+    const { propertyData } = this.props;
     const tenantIds = propertyData.tenants;
     let tenants: object[] = [];
 
@@ -89,15 +117,16 @@ const PropertyComponent = (props: any) => {
     return tenants;
   };
 
-  const findEarliestMoveInDate = () => {
-    const tenants = getAllTenantsFromData();
+  findEarliestMoveInDate = () => {
+    const tenants = this.getAllTenantsFromData();
 
     // sort on leaseStartDate
     const earliestMoveIn = sortBy(tenants, "leaseStartDate")[0].leaseStartDate;
     return moment(earliestMoveIn).format("MM/DD/YYYY");
   };
 
-  const renderTenantNames = () => {
+  renderTenantNames = () => {
+    const { propertyData } = this.props;
     if (!propertyData.tenants.length) {
       return (
         <Text accent semibold size={theme.fontSizes.big}>
@@ -111,12 +140,12 @@ const PropertyComponent = (props: any) => {
       return (
         <Container>
           {propertyData.tenants.map((e: any, index: number) => (
-            <Container row space="between" middle key={e.id}>
+            <Container row space="between" middle key={index}>
               <Text accent medium>
-                {getOneTenantFromData(index).name.split(" ")[0]}
+                {this.getOneTenantFromData(index).name.split(" ")[0]}
               </Text>
               <Text light size={11} style={{ top: 2 }}>
-                From {getOneTenantFromData(index).leaseStartDate}
+                From {this.getOneTenantFromData(index).leaseStartDate}
               </Text>
             </Container>
           ))}
@@ -128,13 +157,16 @@ const PropertyComponent = (props: any) => {
           <Text accent semibold>
             {propertyData.tenants.length} Occupants
           </Text>
-          <Text light>From {findEarliestMoveInDate()}</Text>
+          <Text light>From {this.findEarliestMoveInDate()}</Text>
         </Container>
       );
     }
   };
 
-  const renderBottom = () => {
+  renderBottom = () => {
+    const { propertyData } = this.props;
+    const totalProfit = propertyData.income - propertyData.expenses;
+
     return (
       <Container row>
         <Container>
@@ -148,7 +180,7 @@ const PropertyComponent = (props: any) => {
             </Text>
           </Container>
           <Container padding={8} flex={4} style={{ width: width / 2.3 }}>
-            {renderTenantNames()}
+            {this.renderTenantNames()}
           </Container>
         </Container>
 
@@ -220,23 +252,28 @@ const PropertyComponent = (props: any) => {
     );
   };
 
-  return (
-    <TouchableOpacity style={styles.mainContainer}>
-      <Container center style={{ width: "100%" }}>
-        {renderHeader()}
-        {renderBottom()}
-      </Container>
-    </TouchableOpacity>
-  );
-};
+  render() {
+    const { expanded } = this.state;
+
+    return (
+      <TouchableOpacity
+        style={[styles.mainContainer]}
+        onPress={() => this.togglePropertyContent()}
+      >
+        {this.renderHeader()}
+        {!expanded && this.renderBottom()}
+      </TouchableOpacity>
+    );
+  }
+}
 
 const styles = StyleSheet.create({
   mainContainer: {
     backgroundColor: theme.colors.offWhite,
     borderRadius: 10,
     width: "90%",
-    minHeight: 200,
-    maxHeight: 300,
+    height: 200,
+    // maxHeight: 600,
     marginBottom: theme.sizes.padding,
   },
   headerContainer: {
