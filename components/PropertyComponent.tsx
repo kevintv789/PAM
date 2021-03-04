@@ -325,6 +325,8 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
     } = this.state;
 
+    const { propertyData } = this.props;
+
     return (
       <AnimatedTouchableOpacity
         style={[styles.mainContainer, { height: animatedContainerHeight }]}
@@ -337,7 +339,7 @@ class PropertyComponent extends Component<
           <AnimatedContainer
             style={{ opacity: animatedExpandedContentOpacity }}
           >
-            <PropertyContentComponent tenantData={this.getAllTenantsFromData()} />
+            <PropertyContentComponent tenantData={this.getAllTenantsFromData()} propertyData={propertyData}/>
           </AnimatedContainer>
         )}
       </AnimatedTouchableOpacity>

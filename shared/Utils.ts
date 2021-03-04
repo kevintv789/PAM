@@ -128,3 +128,16 @@ export const getDaysDiffFrom = (
 
   return diff;
 };
+
+/**
+ * Formats a string to either plural or singular based on provided parameters
+ * @param str 
+ * @param num 
+ */
+export const formatPlural = (str: string, num: number) => {
+  if (num && num > 1) {
+    return str + "s";
+  }
+
+  return str;
+};

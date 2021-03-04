@@ -7,7 +7,6 @@ import AddPropertyComponent from "../components/modals/AddPropertyComponent";
 import AddPropertyDoneComponent from "../components/modals/AddPropertyDoneComponent";
 import { HomeModel } from "../models";
 import { ScrollView } from "react-native-gesture-handler";
-import { ThemeContext } from "react-navigation";
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
   constructor(props: any) {

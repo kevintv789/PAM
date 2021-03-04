@@ -2,6 +2,7 @@ import _AddPropertyDoneComponent from "./modals/AddPropertyDoneComponent";
 import _AddressInput from "./common/AddressInput";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
+import _DataOutline from './common/DataOutline';
 import _HeaderDivider from "./common/HeaderDivider";
 import _Input from "./common/TextInput";
 import _Pills from "./common/Pills";
@@ -21,6 +22,7 @@ const AddPropertyDoneComponent: any = _AddPropertyDoneComponent;
 const PropertyComponent: any = _PropertyComponent;
 const VerticalDivider: any = _VerticalDivider;
 const PropertyContentComponent: any = _PropertyContentComponent;
+const DataOutline: any = _DataOutline;
 
 export {
   Container,
@@ -34,4 +36,5 @@ export {
   PropertyComponent,
   VerticalDivider,
   PropertyContentComponent,
+  DataOutline
 };
