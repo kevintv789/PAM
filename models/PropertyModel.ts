@@ -1,4 +1,5 @@
 import { Animated } from "react-native";
+
 export interface State {
   expanded: boolean;
   animatedHeaderHeight: Animated.Value;

@@ -1,4 +1,4 @@
-import { Animated, Dimensions, Image, StyleSheet } from "react-native";
+import { Animated, Dimensions, Image, StyleSheet, TouchableOpacity } from "react-native";
 import React, { Component } from "react";
 import { animations, mockData, theme } from "../shared";
 import { filter, findIndex, sortBy } from "lodash";
@@ -9,7 +9,7 @@ import {
 } from "../shared/Utils";
 
 import { PropertyModel } from "../models";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import _Button from "./common/Button";
 import _Container from "./common/Container";
 import _PropertyContentComponent from "./PropertyContentComponent";
 import _Text from "./common/Text";
@@ -19,6 +19,7 @@ import moment from "moment";
 const Container: any = _Container;
 const Text: any = _Text;
 const VerticalDivider: any = _VerticalDivider;
+const Button: any = _Button;
 const PropertyContentComponent: any = _PropertyContentComponent;
 
 const { width } = Dimensions.get("window");
@@ -146,6 +147,11 @@ class PropertyComponent extends Component<
             <Text accent light size={theme.fontSizes.medium}>
               {propertyData.propertyAddress}
             </Text>
+            {expanded && (
+              <Button style={styles.editButton} onPress={() => console.log("Edit Pressed...")}>
+                <Text center>Edit</Text>
+              </Button>
+            )}
           </AnimatedContainer>
 
           <Text accent semibold size={theme.fontSizes.medium}>
@@ -323,6 +329,7 @@ class PropertyComponent extends Component<
       <AnimatedTouchableOpacity
         style={[styles.mainContainer, { height: animatedContainerHeight }]}
         onPress={() => this.togglePropertyContent()}
+        activeOpacity={0.9}
       >
         {this.renderHeader()}
         {!expanded && this.renderBottom()}
@@ -330,7 +337,7 @@ class PropertyComponent extends Component<
           <AnimatedContainer
             style={{ opacity: animatedExpandedContentOpacity }}
           >
-            <PropertyContentComponent />
+            <PropertyContentComponent tenantData={this.getAllTenantsFromData()} />
           </AnimatedContainer>
         )}
       </AnimatedTouchableOpacity>
@@ -374,6 +381,16 @@ const styles = StyleSheet.create({
   },
   dollars: {
     top: 5,
+  },
+  editButton: {
+    width: 60,
+    position: "absolute",
+    right: 0,
+    height: 40,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: theme.colors.accent,
+    borderRadius: 10,
   },
 });
 

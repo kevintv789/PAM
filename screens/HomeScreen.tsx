@@ -109,6 +109,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
           flexGrow: 1,
           paddingBottom: theme.sizes.padding,
         }}
+        nestedScrollEnabled
         style={styles.propertiesScrollView}
         keyboardShouldPersistTaps={"handled"}
         showsVerticalScrollIndicator={false}

@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from "moment";
 
 export const VALID_EMAIL = "test@test.com";
 export const VALID_PASSWORD = "test123";
@@ -18,14 +18,17 @@ export const Tenants = [
     name: "Elizabeth Olsen",
     phone: "1234567890",
     email: "eliza@gmail.com",
-    leaseType: "monthly",
+    leaseType: "monthly", // monthly or fixed term
     leaseStartDate: "1/12/2021",
     leaseEndDate: null,
     securityDeposit: 500,
-    recurringPaymentType: "Monthly",
+    recurringPaymentType: "Monthly", // monthly, quarterly, annually, etc. this will be used to calculate next expected payment
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
+    lastPaymentDate: moment("2/12/2021"),
+    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 2,
@@ -41,6 +44,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("2/12/2021"),
+    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 3,
@@ -56,6 +62,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: null,
+    lastPaymentDate: moment("2/12/2021"),
+    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 4,
@@ -71,6 +80,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 1,
+    lastPaymentDate: moment("3/1/2021"),
+    nextPaymentDate: moment("4/1/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 5,
@@ -79,13 +91,16 @@ export const Tenants = [
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: "1/12/2021",
+    leaseStartDate: "1/03/2021",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: null,
+    lastPaymentDate: moment("1/03/2021"),
+    nextPaymentDate: moment("3/02/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 6,
@@ -101,6 +116,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("1/11/2021"),
+    nextPaymentDate: moment("3/11/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 7,
@@ -116,6 +134,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("2/11/2021"),
+    nextPaymentDate: moment("3/11/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 8,
@@ -131,6 +152,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("2/18/2021"),
+    nextPaymentDate: moment("3/18/2021") // calculcated from current month on the collection day of the month
   },
   {
     id: 9,
@@ -146,6 +170,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("2/12/2021"),
+    nextPaymentDate: moment("3/12/2021")
   },
   {
     id: 10,
@@ -161,6 +188,9 @@ export const Tenants = [
     totalOccupants: 1,
     notes: "",
     rent: 1000,
+    collectionDay: 0,
+    lastPaymentDate: moment("2/12/2021"),
+    nextPaymentDate: moment("3/12/2021")
   },
 ];
 

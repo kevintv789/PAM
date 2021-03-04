@@ -1,5 +1,6 @@
 import { PropertyTypes } from "./constants/mockData";
 import { constants } from ".";
+import moment from "moment";
 
 /**
  * Validates if an email address has the correct format
@@ -97,7 +98,33 @@ export const getPropertyImage = (image: any, type: string) => {
 
 /**
  * Formats number with comma separated pattern
- * @param value 
+ * @param value
  */
 export const formatNumber = (value: any) =>
   new Intl.NumberFormat().format(value);
+
+/**
+ * Gets difference of time in days
+ * @param startDate
+ * @param endDate
+ */
+export const getDaysDiffFrom = (
+  startDate: any,
+  endDate: any,
+  inclusive: boolean = false
+) => {
+  const start = moment(startDate);
+  const end = moment(endDate);
+
+  if (!start.isValid() || !end.isValid()) {
+    return;
+  }
+
+  const diff = end.diff(start, "days");
+
+  if (inclusive) {
+    return diff + 1;
+  }
+
+  return diff;
+};
