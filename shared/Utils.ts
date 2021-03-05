@@ -1,5 +1,5 @@
-import { PropertyTypes } from "./constants/mockData";
 import { constants } from ".";
+import { filter } from "lodash";
 import moment from "moment";
 
 /**
@@ -131,8 +131,8 @@ export const getDaysDiffFrom = (
 
 /**
  * Formats a string to either plural or singular based on provided parameters
- * @param str 
- * @param num 
+ * @param str
+ * @param num
  */
 export const formatPlural = (str: string, num: number) => {
   if (num && num > 1) {
@@ -140,4 +140,28 @@ export const formatPlural = (str: string, num: number) => {
   }
 
   return str;
+};
+
+/**
+ * This function retrieves data from an input of IDs
+ * Ex: Property:
+ * [{
+ *   tenantIds: [1, 2, 3]
+ * }]
+ *
+ * Based on the property array above, this will return all tenant objects that has ID 1, 2, 3
+ * @param ids
+ * @param dataToFilter
+ */
+export const getDataFromProperty = (ids: number[], dataToFilter: object[]) => {
+  let result: object[] = [];
+
+  // Loop on each IDs and build an array
+  if (ids && ids.length) {
+    ids.forEach((id: number) => {
+      result.push(filter(dataToFilter, (e: any) => e.id === id)[0]);
+    });
+  }
+
+  return result;
 };

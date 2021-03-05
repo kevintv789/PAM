@@ -7,3 +7,7 @@ export const PROPERTY_TYPES = {
   TOWNHOUSE: "Townhouse",
   OTHER: "Other",
 };
+
+export const RECURRING_PAYMENT_TYPE = {
+  MONTHLY: 'Monthly'
+}

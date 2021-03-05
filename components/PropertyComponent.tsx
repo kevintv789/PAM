@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React, { Component } from "react";
-import { animations, mockData, theme } from "../shared";
+import { animations, constants, mockData, theme } from "../shared";
 import { filter, findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
+  getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "../shared/Utils";
@@ -77,7 +78,7 @@ class PropertyComponent extends Component<
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
     // animate entire container height
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 730);
+    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 750);
 
     // animate property address on header
     animations.animateOnToggle(
@@ -178,22 +179,9 @@ class PropertyComponent extends Component<
     return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
   };
 
-  getDataFromProperty = (ids: number[], dataToFilter: object[]) => {
-    let result: object[] = [];
-
-    // Loop on each IDs and build an array
-    if (ids && ids.length) {
-      ids.forEach((id: number) => {
-        result.push(filter(dataToFilter, (e: any) => e.id === id)[0]);
-      });
-    }
-
-    return result;
-  };
-
   findEarliestMoveInDate = () => {
     const { propertyData } = this.props;
-    const tenants = this.getDataFromProperty(propertyData.tenants, tenantData);
+    const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
     const earliestMoveIn = sortBy(tenants, (e) => moment(e.leaseStartDate))[0]
@@ -204,10 +192,7 @@ class PropertyComponent extends Component<
   sumExpenses = () => {
     const { propertyData } = this.props;
 
-    const expenses = this.getDataFromProperty(
-      propertyData.expenses,
-      expensesData
-    );
+    const expenses = getDataFromProperty(propertyData.expenses, expensesData);
     return sumBy(expenses, "amount");
   };
 
@@ -249,10 +234,42 @@ class PropertyComponent extends Component<
     }
   };
 
+  sumAllTenantIncomeForTimePeriod = (timePeriod: string) => {
+    const { propertyData } = this.props;
+    const date = new Date();
+    const tenantInfo = getDataFromProperty(propertyData.tenants, tenantData);
+    let totalIncome = 0;
+
+    switch (timePeriod) {
+      case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+        const curMonth = date.getMonth() + 1;
+        const curDate = moment();
+
+        tenantInfo.forEach((data: any) => {
+          const paidMonth = moment(data.lastPaymentDate).month() + 1;
+          const paidDate = moment(data.lastPaymentDate);
+
+          if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
+            totalIncome += data.rent;
+          }
+        });
+
+        break;
+      default:
+        break;
+    }
+
+    return totalIncome;
+  };
+
   renderBottom = () => {
     const { propertyData } = this.props;
     const expensesSum = this.sumExpenses();
-    const totalProfit = propertyData.income - expensesSum;
+    const totalIncome =
+      this.sumAllTenantIncomeForTimePeriod(
+        constants.RECURRING_PAYMENT_TYPE.MONTHLY
+      ) || 0;
+    const totalProfit = totalIncome - expensesSum;
 
     return (
       <Container row>
@@ -302,7 +319,7 @@ class PropertyComponent extends Component<
                 bold
                 style={styles.dollars}
               >
-                ${formatNumber(propertyData.income)}
+                ${formatNumber(totalIncome)}
               </Text>
             </Container>
 
@@ -330,7 +347,7 @@ class PropertyComponent extends Component<
                 bold
                 style={styles.dollars}
               >
-                ${formatNumber(totalProfit)}
+                {totalProfit < 0 ? '-' : '' }${formatNumber(Math.abs(totalProfit))}
               </Text>
             </Container>
           </Container>
@@ -361,15 +378,13 @@ class PropertyComponent extends Component<
             style={{ opacity: animatedExpandedContentOpacity }}
           >
             <PropertyContentComponent
-              tenantData={this.getDataFromProperty(
-                propertyData.tenants,
-                tenantData
-              )}
-              expenseData={this.getDataFromProperty(
+              tenantData={getDataFromProperty(propertyData.tenants, tenantData)}
+              expenseData={getDataFromProperty(
                 propertyData.expenses,
                 expensesData
               )}
               propertyData={propertyData}
+              totalIncome={this.sumAllTenantIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
             />
           </AnimatedContainer>
         )}

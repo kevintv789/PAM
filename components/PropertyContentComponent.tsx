@@ -6,17 +6,18 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
+import { constants, mockData, theme } from "../shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "../shared/Utils";
-import { mockData, theme } from "../shared";
+import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { PropertyContentModel } from "../models";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
 import _DataOutline from "./common/DataOutline";
 import _Text from "./common/Text";
 import moment from "moment";
-import { sumBy } from "lodash";
 
 const Text: any = _Text;
 const Container: any = _Container;
@@ -235,8 +236,65 @@ export default class PropertyContentComponent extends Component<
     );
   };
 
+  flattenList = (list: any[]) => {
+    return list.map((e) => {
+      return {
+        id: e.id,
+        name: e.name,
+        amount: e.rent || e.amount,
+        type: e.rent ? "rent" : "expense",
+        paidOn:
+          (e.paidOn && moment(e.paidOn).format("MM/DD/YYYY")) ||
+          (e.lastPaymentDate && moment(e.lastPaymentDate).format("MM/DD/YYYY")),
+      };
+    });
+  };
+
+  getReportForTimePeriod = (list: any[], timePeriod: string) => {
+    let newList: any[] = [];
+
+    switch (timePeriod) {
+      case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+        const curDate = moment();
+
+        list.forEach((item) => {
+          const monthPaid = moment(item.paidOn);
+          if (
+            monthPaid.diff(curDate) <= 0 &&
+            curDate.month() + 1 === monthPaid.month() + 1
+          ) {
+            newList.push(item);
+          }
+        });
+        break;
+      default:
+        break;
+    }
+
+    return orderBy(newList, "paidOn", ["desc"]);
+  };
+
+  formatAmount = (amount: number, type: string) => {
+    if (type === "expense") {
+      return `- $${formatNumber(amount)}`;
+    }
+
+    return `+ $${formatNumber(amount)}`;
+  };
+
   renderReportDetailsSection = () => {
-    const { propertyData, expenseData } = this.props;
+    const { propertyData, expenseData, tenantData } = this.props;
+
+    // combine tenantData and expenseData and sort on paidDate/lastPaymentDate
+    const combinedData = [...expenseData, ...tenantData];
+    const flattenList = this.flattenList(combinedData);
+
+    // further filters out array based on selected time period
+    const filteredList = this.getReportForTimePeriod(
+      flattenList,
+      constants.RECURRING_PAYMENT_TYPE.MONTHLY
+    );
+
     return (
       <ScrollView
         keyboardShouldPersistTaps={"handled"}
@@ -245,8 +303,11 @@ export default class PropertyContentComponent extends Component<
         horizontal={false}
         nestedScrollEnabled
       >
-        {expenseData.map((data: any) => (
-          <Container key={data.id} style={styles.expensesContainer}>
+        {filteredList.map((data: any) => (
+          <Container
+            key={`${data.id}-${data.type}`}
+            style={styles.expensesContainer}
+          >
             <TouchableWithoutFeedback>
               <Container row>
                 <Text semibold accent>
@@ -254,16 +315,14 @@ export default class PropertyContentComponent extends Component<
                   {"  "}
                 </Text>
                 <Text accent light size={theme.fontSizes.small}>
-                  {data.paidOn
-                    ? `Paid ${data.paidOn}`
-                    : `Due ${data.paymentDue}`}
+                  Paid {data.paidOn}
                 </Text>
                 <Text
-                  primary
+                  color={data.type === "rent" ? "secondary" : "primary"}
                   semibold
                   style={{ right: 0, position: "absolute" }}
                 >
-                  - ${formatNumber(data.amount)}
+                  {this.formatAmount(data.amount, data.type)}
                 </Text>
               </Container>
             </TouchableWithoutFeedback>
@@ -274,9 +333,9 @@ export default class PropertyContentComponent extends Component<
   };
 
   renderReport = () => {
-    const { propertyData, expenseData } = this.props;
+    const { propertyData, expenseData, totalIncome } = this.props;
     const totalExpense = sumBy(expenseData, "amount");
-    const profit = propertyData.income - totalExpense;
+    const profit = totalIncome - totalExpense;
 
     return (
       <Container
@@ -296,13 +355,13 @@ export default class PropertyContentComponent extends Component<
           <DataOutline
             square
             color="secondary"
-            text={"$" + formatNumber(propertyData.income)}
+            text={"$" + formatNumber(totalIncome)}
             caption="Income"
           />
           <DataOutline
             circle
             color={profit < 0 ? "primary" : "secondary"}
-            text={"$" + formatNumber(profit)}
+            text={(profit < 0 ? '-' : '') + "$" + formatNumber(Math.abs(profit))}
             caption="Profit"
           />
           <DataOutline
@@ -339,7 +398,7 @@ export default class PropertyContentComponent extends Component<
             Notes
           </Text>
         </Container>
-        {notesFromProperty && (
+        {notesFromProperty ? (
           <TouchableOpacity style={styles.notesContainer}>
             <Container
               color="accent"
@@ -369,6 +428,13 @@ export default class PropertyContentComponent extends Component<
               </Container>
             </Container>
           </TouchableOpacity>
+        ) : (
+          <Container center padding={[theme.sizes.padding]}>
+            <Button style={styles.createNotesButton} onPress={() => console.log("Creating a note!")}>
+              <Ionicons name="ios-create-outline" size={22} color={theme.colors.secondary} />
+              <Text center secondary bold style={{ paddingTop: 2 }}>Create a Note</Text>
+            </Button>
+          </Container>
         )}
       </Container>
     );
@@ -434,5 +500,12 @@ const styles = StyleSheet.create({
   },
   notesContainer: {
     maxHeight: 100,
+  },
+  createNotesButton: {
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: theme.colors.secondary,
+    alignItems: 'center'
   },
 });
