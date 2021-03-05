@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { StyleSheet, Text } from "react-native";
 
 import { TextProps } from "../../types";
-import { theme } from "../../shared/constants";
+import { theme } from "../../shared";
 
 export default class Typography extends Component<TextProps> {
   render() {
@@ -41,6 +41,7 @@ export default class Typography extends Component<TextProps> {
       gray2,
       style,
       children,
+      red,
       ...props
     } = this.props;
 
@@ -77,6 +78,7 @@ export default class Typography extends Component<TextProps> {
       gray && styles.gray,
       offWhite && styles.offWhite,
       gray2 && styles.gray2,
+      red && styles.red,
       style, // rewrite predefined styles
     ];
 
@@ -123,6 +125,7 @@ export const styles = StyleSheet.create({
   white: { color: theme.colors.white },
   gray: { color: theme.colors.gray },
   gray2: { color: theme.colors.gray2 },
+  red: { color: theme.colors.red },
   // fonts
   h1: theme.fonts.h1,
   h2: theme.fonts.h2,

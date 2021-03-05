@@ -1,11 +1,12 @@
-import { Button, Container, Text } from "../components";
+import { Button, Container, PropertyComponent, Text } from "../components";
 import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../shared/constants";
+import { mockData, theme } from "../shared";
 
 import AddPropertyComponent from "../components/modals/AddPropertyComponent";
 import AddPropertyDoneComponent from "../components/modals/AddPropertyDoneComponent";
 import { HomeModel } from "../models";
+import { ScrollView } from "react-native-gesture-handler";
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
   constructor(props: any) {
@@ -99,16 +100,58 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     );
   };
 
+  renderProperties = () => {
+    const { user } = this.state;
+    return (
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: theme.sizes.padding,
+        }}
+        nestedScrollEnabled
+        style={styles.propertiesScrollView}
+        keyboardShouldPersistTaps={"handled"}
+        showsVerticalScrollIndicator={false}
+      >
+        <Container center>
+          {user.properties.map((property: any) => {
+            return (
+              <PropertyComponent propertyData={property} key={property.id} />
+            );
+          })}
+        </Container>
+      </ScrollView>
+    );
+  };
+
   render() {
     const { user } = this.state;
     return (
-      <Container color="accent">
-        <Container middle center flex={1.5}>
+      <Container color="accent" style={{}}>
+        <Container
+          middle
+          center
+          flex={false}
+          style={{ marginTop: theme.sizes.padding * 2.5 }}
+          row
+        >
           <Text h1 tertiary>
             My Properties
           </Text>
+          <Button
+            color="transparent"
+            style={styles.addPropButton}
+            onPress={() => this.setState({ showModal: true })}
+          >
+            <Image
+              source={require("../assets/icons/plus.png")}
+              style={{ width: 29, height: 29 }}
+            />
+          </Button>
         </Container>
-        {!user.properties.length && this.renderDefaultMessage()}
+        {!user.properties.length
+          ? this.renderDefaultMessage()
+          : this.renderProperties()}
         {this.renderAddPropertyModal()}
         {this.renderAddPropertyDoneModal()}
       </Container>
@@ -124,5 +167,15 @@ const styles = StyleSheet.create({
   },
   setUpProperty: {
     marginTop: theme.sizes.base * 1.6,
+  },
+  propertiesScrollView: {
+    paddingTop: theme.sizes.padding,
+  },
+  addPropButton: {
+    position: "absolute",
+    right: 20,
+    top: -5,
+    width: 29,
+    height: 29,
   },
 });

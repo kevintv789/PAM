@@ -6,7 +6,7 @@ import React from "react";
 import ReportsScreen from "../screens/ReportsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import { createBottomTabNavigator } from "react-navigation-tabs";
-import { theme } from "../shared/constants";
+import { theme } from "../shared";
 
 export const BottomTabNavigator = createBottomTabNavigator(
   {
