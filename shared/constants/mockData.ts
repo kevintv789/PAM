@@ -28,7 +28,7 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
     lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 2,
@@ -46,7 +46,7 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 3,
@@ -64,7 +64,7 @@ export const Tenants = [
     rent: 1000,
     collectionDay: null,
     lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 4,
@@ -82,7 +82,7 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 1,
     lastPaymentDate: moment("3/1/2021"),
-    nextPaymentDate: moment("4/1/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("4/1/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 5,
@@ -100,16 +100,16 @@ export const Tenants = [
     rent: 1000,
     collectionDay: null,
     lastPaymentDate: moment("1/03/2021"),
-    nextPaymentDate: moment("3/02/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/02/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 6,
-    properties: [1],
-    name: "Ashton Kutcher",
+    properties: [4],
+    name: "Mariah Carey",
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: moment("11/11/2011"),
+    leaseStartDate: "11/11/2011",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
@@ -118,16 +118,16 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("1/11/2021"),
-    nextPaymentDate: moment("3/11/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/11/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 7,
-    properties: [1],
-    name: "Ashton Kutcher",
+    properties: [4],
+    name: "Miley Cyrus",
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: moment("10/11/2018"),
+    leaseStartDate: "10/11/2018",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
@@ -136,16 +136,16 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("2/11/2021"),
-    nextPaymentDate: moment("3/11/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/11/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 8,
-    properties: [1],
-    name: "Ashton Kutcher",
+    properties: [4],
+    name: "Elizabeth Wiley",
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: moment("4/18/2019"),
+    leaseStartDate: "4/18/2019",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
@@ -154,16 +154,16 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("2/18/2021"),
-    nextPaymentDate: moment("3/18/2021") // calculcated from current month on the collection day of the month
+    nextPaymentDate: moment("3/18/2021"), // calculcated from current month on the collection day of the month
   },
   {
     id: 9,
-    properties: [1],
-    name: "Ashton Kutcher",
+    properties: [4],
+    name: "Cody Sprouse",
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: moment("2/12/2021"),
+    leaseStartDate: "2/12/2021",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
@@ -172,16 +172,16 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021")
+    nextPaymentDate: moment("3/12/2021"),
   },
   {
     id: 10,
-    properties: [1],
-    name: "Ashton Kutcher",
+    properties: [4],
+    name: "Zach Sprouse",
     phone: "1234567890",
     email: "eliza@gmail.com",
     leaseType: "monthly",
-    leaseStartDate: moment("1/12/2020"),
+    leaseStartDate: "1/12/2020",
     leaseEndDate: null,
     securityDeposit: 500,
     recurringPaymentType: "Monthly",
@@ -190,7 +190,72 @@ export const Tenants = [
     rent: 1000,
     collectionDay: 0,
     lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021")
+    nextPaymentDate: moment("3/12/2021"),
+  },
+];
+
+export const Expenses = [
+  {
+    id: 1,
+    amount: 100,
+    status: "paid",
+    description: "",
+    paidOn: "3/1/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Gas",
+  },
+  {
+    id: 2,
+    amount: 150,
+    status: "paid",
+    description: "",
+    paidOn: "3/1/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Electricity",
+  },
+  {
+    id: 3,
+    amount: 50,
+    status: "paid",
+    description: "",
+    paidOn: "3/1/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Water",
+  },
+  {
+    id: 4,
+    amount: 100,
+    status: "paid",
+    description: "",
+    paidOn: "3/1/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Repairs",
+  },
+];
+
+export const Notes = [
+  {
+    id: 1,
+    text:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    lastUpdated: "1/19/2021",
+    createdOn: "1/11/2011",
   },
 ];
 
@@ -199,48 +264,48 @@ export const Properties = [
     id: 1,
     propertyName: "My Awesome House Rental",
     propertyAddress: "1234 Liberty Avenue",
-    notes: "",
+    notesId: 1, // notes object ID
     tenants: [4, 5],
     image: null,
     unitType: PropertyTypes[1],
     income: 1860,
-    expenses: 500,
+    expenses: [1, 2, 3, 4],
     color: "#F2CC8F",
   },
   {
     id: 2,
     propertyName: "My Awesome Apartment Rental",
     propertyAddress: "567 Raven Court",
-    notes: "",
+    notes: null,
     tenants: [1, 2, 3],
     image: "",
     unitType: PropertyTypes[0],
     income: 1000,
-    expenses: 500,
+    expenses: [1, 2, 3, 4], // 500
     color: "#81B29A",
   },
   {
     id: 3,
     propertyName: "My Awesome Duplex",
     propertyAddress: "8793 Sudarland Blvd.",
-    notes: "",
+    notes: null,
     tenants: [],
     image: "",
     unitType: PropertyTypes[2],
     income: 0,
-    expenses: 2500,
+    expenses: [1, 2, 3, 4], // 2000
     color: "#E29578",
   },
   {
     id: 4,
     propertyName: "My Awesome Townhouse",
     propertyAddress: "11888 Prince William St.",
-    notes: "",
-    tenants: [7, 8, 9, 10],
+    notes: null,
+    tenants: [6, 7, 8, 9, 10],
     image: "",
     unitType: PropertyTypes[3],
     income: 1000,
-    expenses: 2000,
+    expenses: [1, 2, 3, 4], // 2500
     color: "#8ECAE6",
   },
 ];

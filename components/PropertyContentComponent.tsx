@@ -16,12 +16,14 @@ import _Container from "./common/Container";
 import _DataOutline from "./common/DataOutline";
 import _Text from "./common/Text";
 import moment from "moment";
-import { property } from "lodash";
+import { sumBy } from "lodash";
 
 const Text: any = _Text;
 const Container: any = _Container;
 const Button: any = _Button;
 const DataOutline: any = _DataOutline;
+
+const notesData = mockData.Notes;
 
 export default class PropertyContentComponent extends Component<
   PropertyContentModel.Props,
@@ -109,12 +111,12 @@ export default class PropertyContentComponent extends Component<
     return (
       <Container
         onStartShouldSetResponder={() => true}
-        style={{ maxHeight: "30%", paddingTop: 5 }}
+        style={{ maxHeight: 150, paddingTop: 5 }}
         flex={1}
       >
         <ScrollView
           keyboardShouldPersistTaps={"handled"}
-          contentContainerStyle={{ flexGrow: 1 }}
+          //   contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={true}
           horizontal={false}
           nestedScrollEnabled
@@ -233,36 +235,141 @@ export default class PropertyContentComponent extends Component<
     );
   };
 
+  renderReportDetailsSection = () => {
+    const { propertyData, expenseData } = this.props;
+    return (
+      <ScrollView
+        keyboardShouldPersistTaps={"handled"}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={true}
+        horizontal={false}
+        nestedScrollEnabled
+      >
+        {expenseData.map((data: any) => (
+          <Container key={data.id} style={styles.expensesContainer}>
+            <TouchableWithoutFeedback>
+              <Container row>
+                <Text semibold accent>
+                  {data.name}
+                  {"  "}
+                </Text>
+                <Text accent light size={theme.fontSizes.small}>
+                  {data.paidOn
+                    ? `Paid ${data.paidOn}`
+                    : `Due ${data.paymentDue}`}
+                </Text>
+                <Text
+                  primary
+                  semibold
+                  style={{ right: 0, position: "absolute" }}
+                >
+                  - ${formatNumber(data.amount)}
+                </Text>
+              </Container>
+            </TouchableWithoutFeedback>
+          </Container>
+        ))}
+      </ScrollView>
+    );
+  };
+
   renderReport = () => {
-    const { propertyData } = this.props;
-    const profit = propertyData.income - propertyData.expenses;
+    const { propertyData, expenseData } = this.props;
+    const totalExpense = sumBy(expenseData, "amount");
+    const profit = propertyData.income - totalExpense;
 
     return (
-      <Container padding={[15, 10, 10, 10]}>
+      <Container
+        padding={[theme.sizes.padding, 10, 10, 10]}
+        style={{ maxHeight: 350 }}
+        flex={false}
+      >
         {this.renderReportHeader()}
 
-        <Container>
-          <Container row middle space="between">
+        <Container
+          row
+          middle
+          space="around"
+          flex={false}
+          padding={[0, 0, theme.sizes.base]}
+        >
           <DataOutline
-              square
-              color="secondary"
-              text={"$" + formatNumber(propertyData.income)}
-              caption="Income"
-            />
-            <DataOutline
-              circle
-              color="secondary"
-              text={"$" + formatNumber(profit)}
-              caption="Profit"
-            />
-            <DataOutline
-              square
-              color="primary"
-              text={"$" + formatNumber(propertyData.expenses)}
-              caption="Expense"
-            />
-          </Container>
+            square
+            color="secondary"
+            text={"$" + formatNumber(propertyData.income)}
+            caption="Income"
+          />
+          <DataOutline
+            circle
+            color={profit < 0 ? "primary" : "secondary"}
+            text={"$" + formatNumber(profit)}
+            caption="Profit"
+          />
+          <DataOutline
+            square
+            color="primary"
+            text={"$" + formatNumber(totalExpense)}
+            caption="Expense"
+          />
         </Container>
+
+        {this.renderReportDetailsSection()}
+      </Container>
+    );
+  };
+
+  renderNotesSection = () => {
+    const { propertyData } = this.props;
+    const notesFromProperty = notesData.filter(
+      (note: any) => note.id === propertyData.notesId
+    )[0];
+
+    return (
+      <Container>
+        <Container style={styles.notesHeaderContainer} flex={false} row>
+          <Image
+            source={require("../assets/icons/notes.png")}
+            style={{
+              width: theme.sizes.base,
+              height: theme.sizes.base,
+              marginRight: 2,
+            }}
+          />
+          <Text accent bold size={13}>
+            Notes
+          </Text>
+        </Container>
+        {notesFromProperty && (
+          <TouchableOpacity style={styles.notesContainer}>
+            <Container
+              color="accent"
+              margin={10}
+              flex={false}
+              padding={10}
+              style={{ borderRadius: 10 }}
+            >
+              <Text offWhite numberOfLines={3}>
+                {notesFromProperty.text}
+              </Text>
+
+              <Container flex={false} row space="between">
+                {notesFromProperty.lastUpdated && (
+                  <Text
+                    light
+                    offWhite
+                    size={theme.fontSizes.small}
+                    style={{ marginTop: 2 }}
+                  >
+                    Last editted on {notesFromProperty.lastUpdated}
+                  </Text>
+                )}
+                <Text offWhite style={{ textDecorationLine: "underline" }}>
+                  More
+                </Text>
+              </Container>
+            </Container>
+          </TouchableOpacity>
+        )}
       </Container>
     );
   };
@@ -273,6 +380,7 @@ export default class PropertyContentComponent extends Component<
         {this.renderTenantHeader()}
         {this.renderTenantInfo()}
         {this.renderReport()}
+        {this.renderNotesSection()}
       </Container>
     );
   }
@@ -287,6 +395,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
     height: 29,
+  },
+  expensesContainer: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.gray,
+    marginBottom: theme.sizes.padding * 0.7,
   },
   addTenantButton: {
     flexDirection: "row",
@@ -313,5 +426,13 @@ const styles = StyleSheet.create({
   tenantInfoItem: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
+  },
+  notesHeaderContainer: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.gray,
+    padding: 10,
+  },
+  notesContainer: {
+    maxHeight: 100,
   },
 });

@@ -1,7 +1,13 @@
-import { Animated, Dimensions, Image, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import React, { Component } from "react";
 import { animations, mockData, theme } from "../shared";
-import { filter, findIndex, sortBy } from "lodash";
+import { filter, findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getPropertyImage,
@@ -25,6 +31,7 @@ const PropertyContentComponent: any = _PropertyContentComponent;
 const { width } = Dimensions.get("window");
 
 const tenantData = mockData.Tenants;
+const expensesData = mockData.Expenses;
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
@@ -70,7 +77,7 @@ class PropertyComponent extends Component<
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
     // animate entire container height
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 600);
+    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 730);
 
     // animate property address on header
     animations.animateOnToggle(
@@ -148,7 +155,10 @@ class PropertyComponent extends Component<
               {propertyData.propertyAddress}
             </Text>
             {expanded && (
-              <Button style={styles.editButton} onPress={() => console.log("Edit Pressed...")}>
+              <Button
+                style={styles.editButton}
+                onPress={() => console.log("Edit Pressed...")}
+              >
                 <Text center>Edit</Text>
               </Button>
             )}
@@ -168,27 +178,37 @@ class PropertyComponent extends Component<
     return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
   };
 
-  getAllTenantsFromData = () => {
-    const { propertyData } = this.props;
-    const tenantIds = propertyData.tenants;
-    let tenants: object[] = [];
+  getDataFromProperty = (ids: number[], dataToFilter: object[]) => {
+    let result: object[] = [];
 
-    // Loop on each tenant IDs and build an array
-    if (tenantIds && tenantIds.length) {
-      tenantIds.forEach((id: number) => {
-        tenants.push(filter(tenantData, (e) => e.id === id)[0]);
+    // Loop on each IDs and build an array
+    if (ids && ids.length) {
+      ids.forEach((id: number) => {
+        result.push(filter(dataToFilter, (e: any) => e.id === id)[0]);
       });
     }
 
-    return tenants;
+    return result;
   };
 
   findEarliestMoveInDate = () => {
-    const tenants = this.getAllTenantsFromData();
+    const { propertyData } = this.props;
+    const tenants = this.getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
-    const earliestMoveIn = sortBy(tenants, "leaseStartDate")[0].leaseStartDate;
+    const earliestMoveIn = sortBy(tenants, (e) => moment(e.leaseStartDate))[0]
+      .leaseStartDate;
     return moment(earliestMoveIn).format("MM/DD/YYYY");
+  };
+
+  sumExpenses = () => {
+    const { propertyData } = this.props;
+
+    const expenses = this.getDataFromProperty(
+      propertyData.expenses,
+      expensesData
+    );
+    return sumBy(expenses, "amount");
   };
 
   renderTenantNames = () => {
@@ -231,7 +251,8 @@ class PropertyComponent extends Component<
 
   renderBottom = () => {
     const { propertyData } = this.props;
-    const totalProfit = propertyData.income - propertyData.expenses;
+    const expensesSum = this.sumExpenses();
+    const totalProfit = propertyData.income - expensesSum;
 
     return (
       <Container row>
@@ -295,7 +316,7 @@ class PropertyComponent extends Component<
                 bold
                 style={styles.dollars}
               >
-                ${formatNumber(propertyData.expenses)}
+                ${formatNumber(expensesSum)}
               </Text>
             </Container>
 
@@ -339,7 +360,17 @@ class PropertyComponent extends Component<
           <AnimatedContainer
             style={{ opacity: animatedExpandedContentOpacity }}
           >
-            <PropertyContentComponent tenantData={this.getAllTenantsFromData()} propertyData={propertyData}/>
+            <PropertyContentComponent
+              tenantData={this.getDataFromProperty(
+                propertyData.tenants,
+                tenantData
+              )}
+              expenseData={this.getDataFromProperty(
+                propertyData.expenses,
+                expensesData
+              )}
+              propertyData={propertyData}
+            />
           </AnimatedContainer>
         )}
       </AnimatedTouchableOpacity>
