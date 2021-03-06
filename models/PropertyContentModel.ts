@@ -1,4 +1,7 @@
-export interface State {}
+export interface State {
+  showNotesModal: boolean;
+  notesValue: string;
+}
 
 export interface Props {
   tenantData: Array<any>;

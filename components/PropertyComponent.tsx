@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 import { animations, constants, mockData, theme } from "../shared";
-import { filter, findIndex, sortBy, sumBy } from "lodash";
+import { findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
@@ -15,8 +15,8 @@ import {
   getPropertyTypeIcons,
 } from "../shared/Utils";
 
+import { Entypo } from "@expo/vector-icons";
 import { PropertyModel } from "../models";
-import _Button from "./common/Button";
 import _Container from "./common/Container";
 import _PropertyContentComponent from "./PropertyContentComponent";
 import _Text from "./common/Text";
@@ -26,7 +26,6 @@ import moment from "moment";
 const Container: any = _Container;
 const Text: any = _Text;
 const VerticalDivider: any = _VerticalDivider;
-const Button: any = _Button;
 const PropertyContentComponent: any = _PropertyContentComponent;
 
 const { width } = Dimensions.get("window");
@@ -155,14 +154,18 @@ class PropertyComponent extends Component<
             <Text accent light size={theme.fontSizes.medium}>
               {propertyData.propertyAddress}
             </Text>
-            {expanded && (
-              <Button
-                style={styles.editButton}
-                onPress={() => console.log("Edit Pressed...")}
-              >
-                <Text center>Edit</Text>
-              </Button>
-            )}
+            <TouchableOpacity
+              style={{ position: "absolute", right: -5 }}
+              onPress={() => console.log("Edit Pressed...")}
+            >
+              <Container flex={false}>
+                <Entypo
+                  name="dots-three-vertical"
+                  size={18}
+                  color={theme.colors.accent}
+                />
+              </Container>
+            </TouchableOpacity>
           </AnimatedContainer>
 
           <Text accent semibold size={theme.fontSizes.medium}>
@@ -347,7 +350,8 @@ class PropertyComponent extends Component<
                 bold
                 style={styles.dollars}
               >
-                {totalProfit < 0 ? '-' : '' }${formatNumber(Math.abs(totalProfit))}
+                {totalProfit < 0 ? "-" : ""}$
+                {formatNumber(Math.abs(totalProfit))}
               </Text>
             </Container>
           </Container>
@@ -384,7 +388,9 @@ class PropertyComponent extends Component<
                 expensesData
               )}
               propertyData={propertyData}
-              totalIncome={this.sumAllTenantIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
+              totalIncome={this.sumAllTenantIncomeForTimePeriod(
+                constants.RECURRING_PAYMENT_TYPE.MONTHLY
+              )}
             />
           </AnimatedContainer>
         )}

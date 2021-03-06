@@ -1,5 +1,6 @@
 import {
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -12,6 +13,7 @@ import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import { NotesComponent } from ".";
 import { PropertyContentModel } from "../models";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
@@ -32,6 +34,11 @@ export default class PropertyContentComponent extends Component<
 > {
   constructor(props: PropertyContentModel.Props) {
     super(props);
+
+    this.state = {
+      showNotesModal: false,
+      notesValue: "",
+    };
   }
 
   renderTenantHeader = () => (
@@ -283,7 +290,7 @@ export default class PropertyContentComponent extends Component<
   };
 
   renderReportDetailsSection = () => {
-    const { propertyData, expenseData, tenantData } = this.props;
+    const { expenseData, tenantData } = this.props;
 
     // combine tenantData and expenseData and sort on paidDate/lastPaymentDate
     const combinedData = [...expenseData, ...tenantData];
@@ -309,22 +316,32 @@ export default class PropertyContentComponent extends Component<
             style={styles.expensesContainer}
           >
             <TouchableWithoutFeedback>
-              <Container row>
-                <Text semibold accent>
-                  {data.name}
-                  {"  "}
-                </Text>
-                <Text accent light size={theme.fontSizes.small}>
-                  Paid {data.paidOn}
-                </Text>
-                <Text
-                  color={data.type === "rent" ? "secondary" : "primary"}
-                  semibold
-                  style={{ right: 0, position: "absolute" }}
-                >
-                  {this.formatAmount(data.amount, data.type)}
-                </Text>
-              </Container>
+              <TouchableOpacity onPress={() => console.log(data)}>
+                <Container row>
+                  <Text semibold accent>
+                    {data.name}
+                    {"  "}
+                  </Text>
+                  <Text accent light size={theme.fontSizes.small}>
+                    Paid {data.paidOn}
+                  </Text>
+                  <Container row style={{ right: 0, position: "absolute" }}>
+                    <Text
+                      color={data.type === "rent" ? "secondary" : "primary"}
+                      semibold
+                    >
+                      {this.formatAmount(data.amount, data.type)}
+                    </Text>
+
+                    <Entypo
+                      name="chevron-small-right"
+                      size={20}
+                      color={theme.colors.accent}
+                      style={{ top: -2 }}
+                    />
+                  </Container>
+                </Container>
+              </TouchableOpacity>
             </TouchableWithoutFeedback>
           </Container>
         ))}
@@ -361,7 +378,9 @@ export default class PropertyContentComponent extends Component<
           <DataOutline
             circle
             color={profit < 0 ? "primary" : "secondary"}
-            text={(profit < 0 ? '-' : '') + "$" + formatNumber(Math.abs(profit))}
+            text={
+              (profit < 0 ? "-" : "") + "$" + formatNumber(Math.abs(profit))
+            }
             caption="Profit"
           />
           <DataOutline
@@ -379,6 +398,8 @@ export default class PropertyContentComponent extends Component<
 
   renderNotesSection = () => {
     const { propertyData } = this.props;
+    const { notesValue } = this.state;
+
     const notesFromProperty = notesData.filter(
       (note: any) => note.id === propertyData.notesId
     )[0];
@@ -398,8 +419,11 @@ export default class PropertyContentComponent extends Component<
             Notes
           </Text>
         </Container>
-        {notesFromProperty ? (
-          <TouchableOpacity style={styles.notesContainer}>
+        {(notesFromProperty || notesValue !== '') ? (
+          <TouchableOpacity
+            style={styles.notesContainer}
+            onPress={() => this.setState({ showNotesModal: true })}
+          >
             <Container
               color="accent"
               margin={10}
@@ -408,11 +432,11 @@ export default class PropertyContentComponent extends Component<
               style={{ borderRadius: 10 }}
             >
               <Text offWhite numberOfLines={3}>
-                {notesFromProperty.text}
+                {notesValue !== '' ? notesValue : notesFromProperty.text}
               </Text>
 
               <Container flex={false} row space="between">
-                {notesFromProperty.lastUpdated && (
+                {notesFromProperty && notesFromProperty.lastUpdated && (
                   <Text
                     light
                     offWhite
@@ -430,13 +454,49 @@ export default class PropertyContentComponent extends Component<
           </TouchableOpacity>
         ) : (
           <Container center padding={[theme.sizes.padding]}>
-            <Button style={styles.createNotesButton} onPress={() => console.log("Creating a note!")}>
-              <Ionicons name="ios-create-outline" size={22} color={theme.colors.secondary} />
-              <Text center secondary bold style={{ paddingTop: 2 }}>Create a Note</Text>
+            <Button
+              style={styles.createNotesButton}
+              onPress={() => this.setState({ showNotesModal: true })}
+            >
+              <Ionicons
+                name="ios-create-outline"
+                size={22}
+                color={theme.colors.secondary}
+              />
+              <Text center secondary bold style={{ paddingTop: 2 }}>
+                Create a Note
+              </Text>
             </Button>
           </Container>
         )}
       </Container>
+    );
+  };
+
+  handleNotesSave = (notesValue: string) => {
+    this.setState({ showNotesModal: false, notesValue });
+  };
+
+  renderNotesModal = () => {
+    const { showNotesModal } = this.state;
+    const { propertyData } = this.props;
+
+    const notesFromProperty = notesData.filter(
+      (note: any) => note.id === propertyData.notesId
+    )[0];
+
+    return (
+      <Modal
+        visible={showNotesModal}
+        animationType="fade"
+        onDismiss={() => this.setState({ showNotesModal: false })}
+      >
+        <NotesComponent
+          label={propertyData.propertyAddress}
+          handleBackClick={(notesValue: string) => this.handleNotesSave(notesValue)}
+          notesData={notesFromProperty}
+        />
+      </Modal>
     );
   };
 
@@ -447,6 +507,7 @@ export default class PropertyContentComponent extends Component<
         {this.renderTenantInfo()}
         {this.renderReport()}
         {this.renderNotesSection()}
+        {this.renderNotesModal()}
       </Container>
     );
   }
@@ -506,6 +567,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderWidth: 1,
     borderColor: theme.colors.secondary,
-    alignItems: 'center'
+    alignItems: "center",
   },
 });

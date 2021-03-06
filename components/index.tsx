@@ -5,6 +5,7 @@ import _Container from "./common/Container";
 import _DataOutline from './common/DataOutline';
 import _HeaderDivider from "./common/HeaderDivider";
 import _Input from "./common/TextInput";
+import _NotesComponent from './modals/NotesComponent';
 import _Pills from "./common/Pills";
 import _PropertyComponent from "./PropertyComponent";
 import _PropertyContentComponent from "./PropertyContentComponent";
@@ -23,6 +24,7 @@ const PropertyComponent: any = _PropertyComponent;
 const VerticalDivider: any = _VerticalDivider;
 const PropertyContentComponent: any = _PropertyContentComponent;
 const DataOutline: any = _DataOutline;
+const NotesComponent: any = _NotesComponent;
 
 export {
   Container,
@@ -36,5 +38,6 @@ export {
   PropertyComponent,
   VerticalDivider,
   PropertyContentComponent,
-  DataOutline
+  DataOutline,
+  NotesComponent
 };
