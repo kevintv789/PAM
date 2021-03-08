@@ -1,6 +1,7 @@
 export interface State {
   showNotesModal: boolean;
-  notesValue: string;
+  notesValue: any;
+  showAddExpenseModal: boolean;
 }
 
 export interface Props {

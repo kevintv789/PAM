@@ -73,7 +73,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
           <Animated.Text style={labelStyle}>
             <Animated.Text>{label} </Animated.Text>
             {required && (
-              <Animated.Text style={styles.required}>*</Animated.Text>
+              <Animated.Text style={styles.required}>required</Animated.Text>
             )}
           </Animated.Text>
         ) : null}
@@ -184,6 +184,7 @@ export const styles = StyleSheet.create({
   },
   required: {
     fontWeight: "200",
-    fontSize: 20,
+    fontSize: 12,
+    fontStyle: "italic",
   },
 });

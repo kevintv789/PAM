@@ -100,8 +100,15 @@ export const getPropertyImage = (image: any, type: string) => {
  * Formats number with comma separated pattern
  * @param value
  */
-export const formatNumber = (value: any) =>
-  new Intl.NumberFormat().format(value);
+export const formatNumber = (value: any) => {
+  let newValue = value;
+
+  if (typeof value === "string") {
+    newValue = Number(value.replaceAll(",", ""));
+  }
+
+  return new Intl.NumberFormat().format(newValue);
+};
 
 /**
  * Gets difference of time in days

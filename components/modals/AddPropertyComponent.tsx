@@ -41,7 +41,7 @@ export default class AddPropertyComponent extends Component<
       streetAddressResults: [],
       showKeyboard: true,
       showNotesModal: false,
-      notesValue: "",
+      notesValue: null
     };
   }
 
@@ -238,7 +238,7 @@ export default class AddPropertyComponent extends Component<
             style={styles.addNotesButtonText}
             editable={false}
             label="Add Notes"
-            value={notesValue}
+            value={notesValue ? notesValue.text : ''}
             numberOfLines={1}
           />
           <Entypo

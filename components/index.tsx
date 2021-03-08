@@ -1,3 +1,4 @@
+import _AddExpenseComponent from "./modals/AddExpenseComponent";
 import _AddPropertyDoneComponent from "./modals/AddPropertyDoneComponent";
 import _AddressInput from "./common/AddressInput";
 import _Button from "./common/Button";
@@ -25,6 +26,7 @@ const VerticalDivider: any = _VerticalDivider;
 const PropertyContentComponent: any = _PropertyContentComponent;
 const DataOutline: any = _DataOutline;
 const NotesComponent: any = _NotesComponent;
+const AddExpenseComponent: any = _AddExpenseComponent;
 
 export {
   Container,
@@ -39,5 +41,6 @@ export {
   VerticalDivider,
   PropertyContentComponent,
   DataOutline,
-  NotesComponent
+  NotesComponent,
+  AddExpenseComponent
 };

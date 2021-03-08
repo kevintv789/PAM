@@ -13,17 +13,20 @@ import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { NotesComponent } from ".";
 import { PropertyContentModel } from "../models";
+import _AddExpenseComponent from "./modals/AddExpenseComponent";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
 import _DataOutline from "./common/DataOutline";
+import _NotesComponent from "./modals/NotesComponent";
 import _Text from "./common/Text";
 import moment from "moment";
 
 const Text: any = _Text;
 const Container: any = _Container;
 const Button: any = _Button;
+const NotesComponent: any = _NotesComponent;
+const AddExpenseComponent: any = _AddExpenseComponent;
 const DataOutline: any = _DataOutline;
 
 const notesData = mockData.Notes;
@@ -37,7 +40,8 @@ export default class PropertyContentComponent extends Component<
 
     this.state = {
       showNotesModal: false,
-      notesValue: "",
+      notesValue: null,
+      showAddExpenseModal: false,
     };
   }
 
@@ -218,7 +222,7 @@ export default class PropertyContentComponent extends Component<
           <Button
             color="transparent"
             style={styles.addExpenseButton}
-            onPress={() => console.log("Adding an expense...")}
+            onPress={() => this.setState({ showAddExpenseModal: true })}
           >
             <Text light accent style={{ top: 2, right: 4 }} size={13}>
               Add Expense
@@ -240,6 +244,25 @@ export default class PropertyContentComponent extends Component<
           </Button>
         </Container>
       </Container>
+    );
+  };
+
+  renderAddExpensesModal = () => {
+    const { showAddExpenseModal } = this.state;
+
+    return (
+      <Modal
+        visible={showAddExpenseModal}
+        presentationStyle="formSheet"
+        animationType="fade"
+        onDismiss={() => this.setState({ showAddExpenseModal: false })}
+      >
+        <AddExpenseComponent
+          handleCancelClicked={() =>
+            this.setState({ showAddExpenseModal: false })
+          }
+        />
+      </Modal>
     );
   };
 
@@ -400,9 +423,9 @@ export default class PropertyContentComponent extends Component<
     const { propertyData } = this.props;
     const { notesValue } = this.state;
 
-    const notesFromProperty = notesData.filter(
-      (note: any) => note.id === propertyData.notesId
-    )[0];
+    const notesFromProperty =
+      notesValue ||
+      notesData.filter((note: any) => note.id === propertyData.notesId)[0];
 
     return (
       <Container>
@@ -419,7 +442,7 @@ export default class PropertyContentComponent extends Component<
             Notes
           </Text>
         </Container>
-        {(notesFromProperty || notesValue !== '') ? (
+        {notesFromProperty ? (
           <TouchableOpacity
             style={styles.notesContainer}
             onPress={() => this.setState({ showNotesModal: true })}
@@ -432,11 +455,11 @@ export default class PropertyContentComponent extends Component<
               style={{ borderRadius: 10 }}
             >
               <Text offWhite numberOfLines={3}>
-                {notesValue !== '' ? notesValue : notesFromProperty.text}
+                {notesFromProperty.text}
               </Text>
 
               <Container flex={false} row space="between">
-                {notesFromProperty && notesFromProperty.lastUpdated && (
+                {notesFromProperty.lastUpdated && (
                   <Text
                     light
                     offWhite
@@ -493,7 +516,9 @@ export default class PropertyContentComponent extends Component<
       >
         <NotesComponent
           label={propertyData.propertyAddress}
-          handleBackClick={(notesValue: string) => this.handleNotesSave(notesValue)}
+          handleBackClick={(notesValue: string) =>
+            this.handleNotesSave(notesValue)
+          }
           notesData={notesFromProperty}
         />
       </Modal>
@@ -508,6 +533,7 @@ export default class PropertyContentComponent extends Component<
         {this.renderReport()}
         {this.renderNotesSection()}
         {this.renderNotesModal()}
+        {this.renderAddExpensesModal()}
       </Container>
     );
   }

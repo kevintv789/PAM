@@ -6,7 +6,7 @@ export interface State {
   streetAddressResults: Array<String>;
   showKeyboard: boolean;
   showNotesModal: boolean;
-  notesValue: string;
+  notesValue: any;
 }
 
 export interface Props {

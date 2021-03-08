@@ -213,7 +213,7 @@ export const Expenses = [
     amount: 150,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/6/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
@@ -226,7 +226,7 @@ export const Expenses = [
     amount: 50,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/3/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
@@ -239,13 +239,26 @@ export const Expenses = [
     amount: 100,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/2/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
     image: null,
     propertyId: 1,
     name: "Repairs",
+  },
+  {
+    id: 5,
+    amount: 1000,
+    status: "paid",
+    description: "",
+    paidOn: "3/2/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Mortgage",
   },
 ];
 
@@ -281,7 +294,7 @@ export const Properties = [
     image: "",
     unitType: PropertyTypes[0],
     income: 1000,
-    expenses: [1, 2, 3, 4], // 500
+    expenses: [1, 2, 3, 4, 5], // 500
     color: "#81B29A",
   },
   {
@@ -293,7 +306,7 @@ export const Properties = [
     image: "",
     unitType: PropertyTypes[2],
     income: 0,
-    expenses: [1, 2, 3, 4], // 2000
+    expenses: [1, 2, 3, 4, 5], // 2000
     color: "#E29578",
   },
   {

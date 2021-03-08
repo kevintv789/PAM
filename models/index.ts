@@ -1,4 +1,5 @@
 import * as AddPropertyModel from "./AddPropertyModel";
+import * as ExpenseModel from './ExpenseModel';
 import * as HomeModel from "./HomeModel";
 import * as LoginModel from "./LoginModel";
 import * as NotesModel from './NotesModel';
@@ -13,5 +14,6 @@ export {
   AddPropertyModel,
   PropertyModel,
   PropertyContentModel,
-  NotesModel
+  NotesModel,
+  ExpenseModel
 };
