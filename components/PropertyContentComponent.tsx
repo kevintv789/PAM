@@ -14,24 +14,23 @@ import { orderBy, sumBy } from "lodash";
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { PropertyContentModel } from "../models";
-import _AddExpenseComponent from "./modals/AddExpenseComponent";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
 import _DataOutline from "./common/DataOutline";
 import _NotesComponent from "./modals/NotesComponent";
 import _Text from "./common/Text";
 import moment from "moment";
+import { withNavigation } from 'react-navigation';
 
 const Text: any = _Text;
 const Container: any = _Container;
 const Button: any = _Button;
 const NotesComponent: any = _NotesComponent;
-const AddExpenseComponent: any = _AddExpenseComponent;
 const DataOutline: any = _DataOutline;
 
 const notesData = mockData.Notes;
 
-export default class PropertyContentComponent extends Component<
+class PropertyContentComponent extends Component<
   PropertyContentModel.Props,
   PropertyContentModel.State
 > {
@@ -222,7 +221,7 @@ export default class PropertyContentComponent extends Component<
           <Button
             color="transparent"
             style={styles.addExpenseButton}
-            onPress={() => this.setState({ showAddExpenseModal: true })}
+            onPress={() => this.props.navigation.navigate("AddExpenseModal")}
           >
             <Text light accent style={{ top: 2, right: 4 }} size={13}>
               Add Expense
@@ -244,25 +243,6 @@ export default class PropertyContentComponent extends Component<
           </Button>
         </Container>
       </Container>
-    );
-  };
-
-  renderAddExpensesModal = () => {
-    const { showAddExpenseModal } = this.state;
-
-    return (
-      <Modal
-        visible={showAddExpenseModal}
-        presentationStyle="formSheet"
-        animationType="fade"
-        onDismiss={() => this.setState({ showAddExpenseModal: false })}
-      >
-        <AddExpenseComponent
-          handleCancelClicked={() =>
-            this.setState({ showAddExpenseModal: false })
-          }
-        />
-      </Modal>
     );
   };
 
@@ -533,7 +513,6 @@ export default class PropertyContentComponent extends Component<
         {this.renderReport()}
         {this.renderNotesSection()}
         {this.renderNotesModal()}
-        {this.renderAddExpensesModal()}
       </Container>
     );
   }
@@ -596,3 +575,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+export default withNavigation(PropertyContentComponent);

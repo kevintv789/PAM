@@ -121,7 +121,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
                 key={property.id}
                 onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
               >
-                <PropertyComponent propertyData={property} />
+                <PropertyComponent propertyData={property}/>
               </Container>
             );
           })}

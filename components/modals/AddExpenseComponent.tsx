@@ -1,32 +1,27 @@
-import {
-  Dimensions,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { constants, theme } from "../../shared";
 
-import { AddPropertyModel } from "../../models";
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "../../models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import _Button from "../common/Button";
 import _Container from "../common/Container";
 import _HeaderDivider from "../common/HeaderDivider";
 import _NotesComponent from "./NotesComponent";
 import _Text from "../common/Text";
 import _TextInput from "../common/TextInput";
+import _Toggle from "../common/Toggle";
 import { formatNumber } from "../../shared/Utils";
 import moment from "moment";
-import { theme } from "../../shared";
 
 const Text: any = _Text;
 const Container: any = _Container;
 const Button: any = _Button;
 const TextInput: any = _TextInput;
 const NotesComponent: any = _NotesComponent;
+const Toggle: any = _Toggle;
 const HeaderDivider: any = _HeaderDivider;
 
 const { width, height } = Dimensions.get("window");
@@ -41,12 +36,13 @@ export default class AddExpenseComponent extends Component<
     this.state = {
       expenseName: "",
       amount: 0,
-      amountFormatted: '',
-      paidOnDate: new Date(),
-      status: "paid",
+      amountFormatted: "",
+      expenseStatusDate: moment().format("MM/DD/YYYY"),
+      expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
       recurring: false,
       notes: null,
       showNotesModal: false,
+      showRecurringModal: false
     };
   }
 
@@ -78,7 +74,7 @@ export default class AddExpenseComponent extends Component<
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked } = this.props;
+    const { handleCancelClicked, navigation } = this.props;
 
     return (
       <Container
@@ -96,7 +92,7 @@ export default class AddExpenseComponent extends Component<
         <Button
           color="red"
           style={styles.navigationButtons}
-          onPress={() => handleCancelClicked()}
+          onPress={() => navigation.goBack()}
         >
           <Text offWhite center semibold>
             Cancel
@@ -105,7 +101,7 @@ export default class AddExpenseComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => {}}
+          onPress={() => navigation.goBack()}
         >
           <Text offWhite center semibold>
             Save
@@ -116,7 +112,39 @@ export default class AddExpenseComponent extends Component<
   };
 
   renderTextInputs = () => {
-    const { expenseName, amount, amountFormatted, notes } = this.state;
+    const {
+      expenseName,
+      amount,
+      amountFormatted,
+      notes,
+      expenseStatus,
+      expenseStatusDate,
+      recurring,
+    } = this.state;
+
+    const { navigation } = this.props;
+
+    const expenseStatusOptions = [
+      {
+        label: "Unpaid",
+        value: constants.EXPENSE_STATUS_TYPE.UNPAID,
+      },
+      {
+        label: "Paid",
+        value: constants.EXPENSE_STATUS_TYPE.PAID,
+      },
+    ];
+
+    const expenseRecurringOptions = [
+      {
+        label: "No",
+        value: false,
+      },
+      {
+        label: "Yes",
+        value: true,
+      },
+    ];
 
     return (
       <Container center flex={false}>
@@ -128,13 +156,85 @@ export default class AddExpenseComponent extends Component<
           onChangeText={(expenseName: string) => this.setState({ expenseName })}
         />
         {/* TODO -- Replace with an actual currency input */}
-        <TextInput 
+        <TextInput
           label="Amount"
           keyboardType="numeric"
           style={styles.input}
           value={amountFormatted}
         />
-         <TouchableOpacity
+
+        <Container
+          row
+          space="between"
+          padding={[theme.sizes.padding * 0.9, 0, 10, 0]}
+        >
+          <Toggle
+            options={expenseStatusOptions}
+            initialIndex={1}
+            handleToggled={(expenseStatus: string) =>
+              this.setState({ expenseStatus })
+            }
+            containerStyle={styles.expenseStatus}
+            borderRadius={13}
+            height={48}
+            topLabel="Status"
+          />
+
+          <Toggle
+            options={expenseRecurringOptions}
+            initialIndex={0}
+            handleToggled={(recurring: boolean) => {
+                navigation.navigate("RecurringPaymentModal", null, {mode: 'modal'});
+                this.setState({ recurring })
+            }}
+            containerStyle={styles.expenseStatus}
+            borderRadius={13}
+            height={48}
+            topLabel="Recurring?"
+          />
+        </Container>
+
+        {expenseStatus === constants.EXPENSE_STATUS_TYPE.PAID ? (
+          <TextInput
+            label="Paid on Date"
+            style={styles.input}
+            value={expenseStatusDate}
+            onChangeText={(expenseStatusDate: string) =>
+              this.setState({ expenseStatusDate })
+            }
+          />
+        ) : (
+          <TextInput
+            label="Payment Due On"
+            style={styles.input}
+            value={expenseStatusDate}
+            onChangeText={(expenseStatusDate: string) =>
+              this.setState({ expenseStatusDate })
+            }
+          />
+        )}
+
+        {recurring && (
+          <TouchableOpacity
+            style={[styles.addNotesButton, { marginBottom: 10 }]}
+            onPress={() => this.setState({ showRecurringModal: true })}
+          >
+            <TextInput
+              label="Expense Due Every"
+              style={styles.input}
+              value={""}
+              editable={false}
+            />
+            <Entypo
+              name="chevron-small-right"
+              size={26}
+              color={theme.colors.gray}
+              style={styles.notesChevron}
+            />
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
           style={styles.addNotesButton}
           onPress={() => this.setState({ showNotesModal: true })}
         >
@@ -144,7 +244,7 @@ export default class AddExpenseComponent extends Component<
             style={styles.addNotesButtonText}
             editable={false}
             label="Add Notes"
-            value={notes ? notes.text : ''}
+            value={notes ? notes.text : ""}
             numberOfLines={1}
           />
           <Entypo
@@ -235,15 +335,20 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.offWhite,
-    height: 63
+    height: 63,
   },
   addNotesButtonText: {
-    maxWidth: '93%',
+    maxWidth: "93%",
     borderBottomWidth: 0,
   },
   notesChevron: {
     position: "absolute",
     right: 0,
     top: theme.sizes.base * 1.4,
+  },
+  expenseStatus: {
+    minWidth: 145,
+    maxWidth: 145,
+    marginHorizontal: theme.sizes.padding,
   },
 });

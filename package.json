@@ -35,11 +35,13 @@
     "react-native-screens": "~2.15.2",
     "react-native-svg": "12.1.0",
     "react-native-svg-transformer": "^0.14.3",
+    "react-native-switch-selector": "^2.1.4",
     "react-native-web": "~0.13.12",
     "react-navigation": "^4.4.4",
-    "react-navigation-stack": "^2.10.3",
+    "react-navigation-stack": "^2.10.4",
     "react-navigation-tabs": "^2.11.0",
-    "react-number-format": "^4.4.4"
+    "react-number-format": "^4.4.4",
+    "toggle-switch-react-native": "^3.2.0"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",

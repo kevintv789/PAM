@@ -11,3 +11,8 @@ export const PROPERTY_TYPES = {
 export const RECURRING_PAYMENT_TYPE = {
   MONTHLY: 'Monthly'
 }
+
+export const EXPENSE_STATUS_TYPE = {
+  PAID: 'paid',
+  UNPAID: 'unpaid'
+}
