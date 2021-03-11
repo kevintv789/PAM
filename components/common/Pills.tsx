@@ -33,7 +33,7 @@ const Pills = (props: any) => {
   const renderSelectablePill = () => {
     return (
       <TouchableOpacity onPress={() => handlePillSelect()}>
-        <Container style={defaultContainerStyle}>
+        <Container style={defaultContainerStyle} flex={false}>
           <Text offWhite center style={labelStyle}>
             {label}
           </Text>

@@ -42,7 +42,8 @@ export default class AddExpenseComponent extends Component<
       recurring: false,
       notes: null,
       showNotesModal: false,
-      showRecurringModal: false
+      showRecurringModal: false,
+      recurringText: "",
     };
   }
 
@@ -120,6 +121,7 @@ export default class AddExpenseComponent extends Component<
       expenseStatus,
       expenseStatusDate,
       recurring,
+      recurringText,
     } = this.state;
 
     const { navigation } = this.props;
@@ -184,8 +186,13 @@ export default class AddExpenseComponent extends Component<
             options={expenseRecurringOptions}
             initialIndex={0}
             handleToggled={(recurring: boolean) => {
-                navigation.navigate("RecurringPaymentModal", null, {mode: 'modal'});
-                this.setState({ recurring })
+              if (recurring) {
+                navigation.navigate("RecurringPaymentModal", {
+                  onGoBack: (value: any) =>
+                    this.setState({ recurringText: value.recurringText }),
+                });
+              }
+              this.setState({ recurring });
             }}
             containerStyle={styles.expenseStatus}
             borderRadius={13}
@@ -217,12 +224,17 @@ export default class AddExpenseComponent extends Component<
         {recurring && (
           <TouchableOpacity
             style={[styles.addNotesButton, { marginBottom: 10 }]}
-            onPress={() => this.setState({ showRecurringModal: true })}
+            onPress={() =>
+              navigation.navigate("RecurringPaymentModal", {
+                onGoBack: (value: any) =>
+                  this.setState({ recurringText: value.recurringText }),
+              })
+            }
           >
             <TextInput
               label="Expense Due Every"
               style={styles.input}
-              value={""}
+              value={recurringText}
               editable={false}
             />
             <Entypo
@@ -286,7 +298,13 @@ export default class AddExpenseComponent extends Component<
         enableAutomaticScroll={true}
       >
         <Container center color="accent">
-          <ScrollView keyboardShouldPersistTaps={"handled"}>
+          <ScrollView
+            keyboardShouldPersistTaps={"handled"}
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: theme.sizes.padding * 5,
+            }}
+          >
             <Text
               h1
               offWhite

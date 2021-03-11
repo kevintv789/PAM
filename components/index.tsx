@@ -11,6 +11,7 @@ import _Pills from "./common/Pills";
 import _PropertyComponent from "./PropertyComponent";
 import _PropertyContentComponent from "./PropertyContentComponent";
 import _RecurringPaymentComponent from "./modals/RecurringPaymentComponent";
+import _SelectableBox from "./common/SelectableBox";
 import _Text from "./common/Text";
 import _VerticalDivider from "./common/VerticalDivider";
 
@@ -29,6 +30,7 @@ const DataOutline: any = _DataOutline;
 const NotesComponent: any = _NotesComponent;
 const AddExpenseComponent: any = _AddExpenseComponent;
 const RecurringPaymentComponent: any = _RecurringPaymentComponent;
+const SelectableBox: any = _SelectableBox;
 
 export {
   Container,
@@ -46,4 +48,5 @@ export {
   NotesComponent,
   AddExpenseComponent,
   RecurringPaymentComponent,
+  SelectableBox,
 };

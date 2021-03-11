@@ -56,24 +56,6 @@ const MainStack = createStackNavigator(
   }
 );
 
-const horizontalAnimation = {
-  gestureDirection: "horizontal",
-  cardStyleInterpolator: ({ current, layouts }) => {
-    return {
-      cardStyle: {
-        transform: [
-          {
-            translateX: current.progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [layouts.screen.width, 0],
-            }),
-          },
-        ],
-      },
-    };
-  },
-};
-
 const RootStack = createStackNavigator(
   {
     Main: {
@@ -103,21 +85,7 @@ const RootStack = createStackNavigator(
         },
         gestureEnabled: true,
         cardOverlayEnabled: true,
-        headerStyle: {
-          shadowColor: "transparent",
-          backgroundColor: theme.colors.accent,
-          elevation: 0, // for android
-          height: theme.sizes.base * 7,
-        },
-        headerTransparent: true,
-        headerBackTitleVisible: false,
-        headerTitle: "",
-        headerBackImage: () => (
-          <Image
-            source={require("../assets/icons/left_arrow.png")}
-            style={{ width: 35, height: 35 }}
-          />
-        ),
+        headerShown: false,
       },
     },
   },
