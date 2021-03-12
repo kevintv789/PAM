@@ -2,6 +2,7 @@ import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "../../shared";
 
+import CurrencyInput from "react-native-currency-input";
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "../../models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -13,7 +14,8 @@ import _NotesComponent from "./NotesComponent";
 import _Text from "../common/Text";
 import _TextInput from "../common/TextInput";
 import _Toggle from "../common/Toggle";
-import { formatNumber } from "../../shared/Utils";
+import currency from "currency.js";
+import { formatCurrencyFromCents } from "../../shared/Utils";
 import moment from "moment";
 
 const Text: any = _Text;
@@ -35,7 +37,7 @@ export default class AddExpenseComponent extends Component<
 
     this.state = {
       expenseName: "",
-      amount: 0,
+      amount: "",
       amountFormatted: "",
       expenseStatusDate: moment().format("MM/DD/YYYY"),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
@@ -112,6 +114,14 @@ export default class AddExpenseComponent extends Component<
     );
   };
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.amount !== this.state.amount) {
+      this.setState({
+        // amountFormatted: `$${(parseFloat(this.state.amount) / 100).toLocaleString()}`,
+      });
+    }
+  }
+
   renderTextInputs = () => {
     const {
       expenseName,
@@ -157,12 +167,23 @@ export default class AddExpenseComponent extends Component<
           value={expenseName}
           onChangeText={(expenseName: string) => this.setState({ expenseName })}
         />
-        {/* TODO -- Replace with an actual currency input */}
         <TextInput
           label="Amount"
           keyboardType="numeric"
           style={styles.input}
           value={amountFormatted}
+          onChangeText={(value: any) => {
+            if (amountFormatted.length > value.length) {
+              this.setState({ amount: "", amountFormatted: "" });
+            } else {
+              this.setState({
+                amount: formatCurrencyFromCents(value, amount).rawVal,
+                amountFormatted: `$${
+                  formatCurrencyFromCents(value, amount).formattedAmt
+                }`,
+              });
+            }
+          }}
         />
 
         <Container
@@ -302,7 +323,6 @@ export default class AddExpenseComponent extends Component<
             keyboardShouldPersistTaps={"handled"}
             contentContainerStyle={{
               flexGrow: 1,
-              paddingBottom: theme.sizes.padding * 5,
             }}
           >
             <Text

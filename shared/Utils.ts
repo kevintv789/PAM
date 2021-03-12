@@ -107,7 +107,36 @@ export const formatNumber = (value: any) => {
     newValue = Number(value.replaceAll(",", ""));
   }
 
-  return new Intl.NumberFormat().format(newValue);
+  return newValue.toLocaleString();
+};
+
+/**
+ * This function takes in an actual value and a raw value (amountState) and will
+ * format the amount into currency starting from cents
+ * @param inputValue
+ * @param amountState
+ */
+export const formatCurrencyFromCents = (
+  inputValue: string,
+  amountState: string
+) => {
+  let formattedAmt = "";
+  let tempValue = inputValue.slice(-1);
+  let rawVal = amountState + tempValue;
+
+  if (rawVal.length === 1) {
+    formattedAmt = "0.0" + rawVal;
+  } else if (rawVal.length === 2) {
+    formattedAmt = "0." + rawVal;
+  } else {
+    let intAmount = rawVal.slice(0, rawVal.length - 2);
+    let centAmount = rawVal.slice(-2);
+
+    formattedAmt =
+      intAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + centAmount;
+  }
+
+  return { formattedAmt, rawVal };
 };
 
 /**

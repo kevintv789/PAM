@@ -1,6 +1,7 @@
 export interface initialState {
   expenseName: string;
   amount: string;
+  amountFormatted: string;
   expenseStatusDate: string;
   expenseStatus: string;
   recurring: boolean;
@@ -12,4 +13,5 @@ export interface initialState {
 
 export interface defaultProps {
   handleCancelClicked: any;
+  navigation: Navigator;
 }
