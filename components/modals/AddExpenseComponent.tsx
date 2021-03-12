@@ -2,7 +2,6 @@ import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "../../shared";
 
-import CurrencyInput from "react-native-currency-input";
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "../../models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -14,7 +13,6 @@ import _NotesComponent from "./NotesComponent";
 import _Text from "../common/Text";
 import _TextInput from "../common/TextInput";
 import _Toggle from "../common/Toggle";
-import currency from "currency.js";
 import { formatCurrencyFromCents } from "../../shared/Utils";
 import moment from "moment";
 
@@ -113,14 +111,6 @@ export default class AddExpenseComponent extends Component<
       </Container>
     );
   };
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.amount !== this.state.amount) {
-      this.setState({
-        // amountFormatted: `$${(parseFloat(this.state.amount) / 100).toLocaleString()}`,
-      });
-    }
-  }
 
   renderTextInputs = () => {
     const {
