@@ -84,9 +84,13 @@ export interface TextInputProps {
   style: any;
   value: string;
   required: boolean;
+  dateTime: boolean;
+  onChangeDate: any;
+  dateValue: Date;
 }
 
 export interface TextInputState {
   toggleSecure: boolean;
   isFocused: boolean;
+  datePickerShow: boolean;
 }

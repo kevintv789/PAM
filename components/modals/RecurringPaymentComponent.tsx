@@ -70,22 +70,32 @@ export default function RecurringPaymentComponent(props: any) {
     />
   );
 
-  const renderStartAndUntilInputs = () => (
-    <Container flex={false} center>
-      <TextInput
-        label="Starting From"
-        style={styles.input}
-        value={startingFrom}
-        onChangeText={(value: string) => setStartingFrom(value)}
-      />
-      <TextInput
-        label="Until"
-        style={styles.input}
-        value={until}
-        onChangeText={(value: string) => setUntil(value)}
-      />
-    </Container>
-  );
+  const renderStartAndUntilInputs = () => {
+    const untilDate = moment(until).isValid()
+      ? moment(until).toDate()
+      : undefined;
+
+    return (
+      <Container flex={false} center>
+        <TextInput
+          dateTime
+          label="Starting From"
+          style={styles.input}
+          value={startingFrom}
+          dateValue={moment(startingFrom).toDate()}
+          onChangeDate={(value: string) => setStartingFrom(value)}
+        />
+        <TextInput
+          dateTime
+          label="Until"
+          style={styles.input}
+          value={until}
+          dateValue={untilDate}
+          onChangeDate={(value: string) => setUntil(value)}
+        />
+      </Container>
+    );
+  };
 
   const renderNotifyOptions = () => (
     <Container style={{ justifyContent: "flex-start" }}>
@@ -115,7 +125,9 @@ export default function RecurringPaymentComponent(props: any) {
     </Container>
   );
 
-  const recurringText = `${periodSelected} from ${startingFrom} ${until ? 'until ' + until : ''}`;
+  const recurringText = `${periodSelected} from ${startingFrom} ${
+    until ? "until " + until : ""
+  }`;
 
   return (
     <KeyboardAwareScrollView
@@ -129,7 +141,7 @@ export default function RecurringPaymentComponent(props: any) {
           style={{ paddingLeft: theme.sizes.base }}
           onPress={() => {
             navigation.goBack();
-            navigation.state.params.onGoBack({ recurringText })
+            navigation.state.params.onGoBack({ recurringText });
           }}
         >
           <Image

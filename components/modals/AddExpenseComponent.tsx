@@ -167,7 +167,9 @@ export default class AddExpenseComponent extends Component<
               this.setState({ amount: "", amountFormatted: "" });
             } else {
               this.setState({
-                amount: formatCurrencyFromCents(value, amount).rawVal,
+                amount: parseFloat(
+                  formatCurrencyFromCents(value, amount).rawVal
+                ).toString(),
                 amountFormatted: `$${
                   formatCurrencyFromCents(value, amount).formattedAmt
                 }`,
@@ -214,19 +216,23 @@ export default class AddExpenseComponent extends Component<
 
         {expenseStatus === constants.EXPENSE_STATUS_TYPE.PAID ? (
           <TextInput
+            dateTime
             label="Paid on Date"
             style={styles.input}
             value={expenseStatusDate}
-            onChangeText={(expenseStatusDate: string) =>
+            dateValue={moment(expenseStatusDate).toDate()}
+            onChangeDate={(expenseStatusDate: string) =>
               this.setState({ expenseStatusDate })
             }
           />
         ) : (
           <TextInput
+            dateTime
             label="Payment Due On"
             style={styles.input}
             value={expenseStatusDate}
-            onChangeText={(expenseStatusDate: string) =>
+            dateValue={moment(expenseStatusDate).toDate()}
+            onChangeDate={(expenseStatusDate: string) =>
               this.setState({ expenseStatusDate })
             }
           />
