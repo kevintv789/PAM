@@ -102,6 +102,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
 
   renderProperties = () => {
     const { user } = this.state;
+
     return (
       <ScrollView
         contentContainerStyle={{
@@ -116,7 +117,12 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
         <Container center>
           {user.properties.map((property: any) => {
             return (
-              <PropertyComponent propertyData={property} key={property.id} />
+              <Container
+                key={property.id}
+                onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
+              >
+                <PropertyComponent propertyData={property}/>
+              </Container>
             );
           })}
         </Container>

@@ -1,14 +1,21 @@
-import { BottomTabNavigator } from './BottomTabNavigator';
+import {
+  CardStyleInterpolators,
+  createStackNavigator,
+} from "react-navigation-stack";
+
+import AddExpenseComponent from "../components/modals/AddExpenseComponent";
+import { BottomTabNavigator } from "./BottomTabNavigator";
+// import { CardStyleInterpolators } from '@react-navigation/stack';
 import { Image } from "react-native";
 import LoginScreen from "../screens/LoginScreen";
 import React from "react";
+import RecurringPaymentComponent from "../components/modals/RecurringPaymentComponent";
 import SignUpScreen from "../screens/SignUpScreen";
 import Welcome from "../screens/WelcomeScreen";
 import { createAppContainer } from "react-navigation";
-import { createStackNavigator } from "react-navigation-stack";
 import { theme } from "../shared";
 
-const screens = createStackNavigator(
+const MainStack = createStackNavigator(
   {
     Welcome,
     LoginScreen,
@@ -49,4 +56,43 @@ const screens = createStackNavigator(
   }
 );
 
-export default createAppContainer(screens);
+const RootStack = createStackNavigator(
+  {
+    Main: {
+      screen: MainStack,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    AddExpenseModal: {
+      screen: AddExpenseComponent,
+      navigationOptions: {
+        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
+        cardStyle: {
+          backgroundColor: "transparent",
+        },
+        gestureEnabled: true,
+        cardOverlayEnabled: true,
+        headerShown: false,
+      },
+    },
+    RecurringPaymentModal: {
+      screen: RecurringPaymentComponent,
+      navigationOptions: {
+        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
+        cardStyle: {
+          backgroundColor: "transparent",
+        },
+        gestureEnabled: true,
+        cardOverlayEnabled: true,
+        headerShown: false,
+      },
+    },
+  },
+  {
+    initialRouteName: "Main",
+    mode: "modal",
+  }
+);
+
+export default createAppContainer(RootStack);

@@ -1,13 +1,17 @@
+import _AddExpenseComponent from "./modals/AddExpenseComponent";
 import _AddPropertyDoneComponent from "./modals/AddPropertyDoneComponent";
 import _AddressInput from "./common/AddressInput";
 import _Button from "./common/Button";
 import _Container from "./common/Container";
-import _DataOutline from './common/DataOutline';
+import _DataOutline from "./common/DataOutline";
 import _HeaderDivider from "./common/HeaderDivider";
 import _Input from "./common/TextInput";
+import _NotesComponent from "./modals/NotesComponent";
 import _Pills from "./common/Pills";
 import _PropertyComponent from "./PropertyComponent";
 import _PropertyContentComponent from "./PropertyContentComponent";
+import _RecurringPaymentComponent from "./modals/RecurringPaymentComponent";
+import _SelectableBox from "./common/SelectableBox";
 import _Text from "./common/Text";
 import _VerticalDivider from "./common/VerticalDivider";
 
@@ -23,6 +27,10 @@ const PropertyComponent: any = _PropertyComponent;
 const VerticalDivider: any = _VerticalDivider;
 const PropertyContentComponent: any = _PropertyContentComponent;
 const DataOutline: any = _DataOutline;
+const NotesComponent: any = _NotesComponent;
+const AddExpenseComponent: any = _AddExpenseComponent;
+const RecurringPaymentComponent: any = _RecurringPaymentComponent;
+const SelectableBox: any = _SelectableBox;
 
 export {
   Container,
@@ -36,5 +44,9 @@ export {
   PropertyComponent,
   VerticalDivider,
   PropertyContentComponent,
-  DataOutline
+  DataOutline,
+  NotesComponent,
+  AddExpenseComponent,
+  RecurringPaymentComponent,
+  SelectableBox,
 };

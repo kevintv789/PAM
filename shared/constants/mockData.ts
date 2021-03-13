@@ -27,8 +27,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
-    lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "02/12/2021",
+    nextPaymentDate: "3/12/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 2,
@@ -45,8 +45,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "02/12/2021",
+    nextPaymentDate: "3/12/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 3,
@@ -63,8 +63,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: null,
-    lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "02/12/2021",
+    nextPaymentDate: "3/12/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 4,
@@ -81,8 +81,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 1,
-    lastPaymentDate: moment("3/1/2021"),
-    nextPaymentDate: moment("4/1/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "03/01/2021",
+    nextPaymentDate: "04/01/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 5,
@@ -99,8 +99,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: null,
-    lastPaymentDate: moment("1/03/2021"),
-    nextPaymentDate: moment("3/02/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "01/03/2021",
+    nextPaymentDate: "3/02/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 6,
@@ -117,8 +117,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("1/11/2021"),
-    nextPaymentDate: moment("3/11/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "01/11/2021",
+    nextPaymentDate: "3/11/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 7,
@@ -135,8 +135,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("2/11/2021"),
-    nextPaymentDate: moment("3/11/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "03/11/2021",
+    nextPaymentDate: "03/11/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 8,
@@ -153,8 +153,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("2/18/2021"),
-    nextPaymentDate: moment("3/18/2021"), // calculcated from current month on the collection day of the month
+    lastPaymentDate: "03/18/2021",
+    nextPaymentDate: "03/18/2021", // calculcated from current month on the collection day of the month
   },
   {
     id: 9,
@@ -171,8 +171,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021"),
+    lastPaymentDate: "03/05/2021",
+    nextPaymentDate: "03/05/2021",
   },
   {
     id: 10,
@@ -189,8 +189,8 @@ export const Tenants = [
     notes: "",
     rent: 1000,
     collectionDay: 0,
-    lastPaymentDate: moment("2/12/2021"),
-    nextPaymentDate: moment("3/12/2021"),
+    lastPaymentDate: "03/02/2021",
+    nextPaymentDate: "03/05/2021",
   },
 ];
 
@@ -213,7 +213,7 @@ export const Expenses = [
     amount: 150,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/6/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
@@ -226,7 +226,7 @@ export const Expenses = [
     amount: 50,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/3/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
@@ -239,13 +239,26 @@ export const Expenses = [
     amount: 100,
     status: "paid",
     description: "",
-    paidOn: "3/1/2021",
+    paidOn: "3/2/2021",
     paymentDue: "",
     recurring: false,
     additionalNotes: "",
     image: null,
     propertyId: 1,
     name: "Repairs",
+  },
+  {
+    id: 5,
+    amount: 1000,
+    status: "paid",
+    description: "",
+    paidOn: "3/2/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Mortgage",
   },
 ];
 
@@ -281,7 +294,7 @@ export const Properties = [
     image: "",
     unitType: PropertyTypes[0],
     income: 1000,
-    expenses: [1, 2, 3, 4], // 500
+    expenses: [1, 2, 3, 4, 5], // 500
     color: "#81B29A",
   },
   {
@@ -293,7 +306,7 @@ export const Properties = [
     image: "",
     unitType: PropertyTypes[2],
     income: 0,
-    expenses: [1, 2, 3, 4], // 2000
+    expenses: [1, 2, 3, 4, 5], // 2000
     color: "#E29578",
   },
   {

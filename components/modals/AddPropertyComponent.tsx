@@ -3,6 +3,7 @@ import {
   Button,
   Container,
   HeaderDivider,
+  NotesComponent,
   Pills,
   Text,
   TextInput,
@@ -12,6 +13,7 @@ import {
   FlatList,
   Image,
   Keyboard,
+  Modal,
   StyleSheet,
 } from "react-native";
 import React, { Component } from "react";
@@ -38,6 +40,8 @@ export default class AddPropertyComponent extends Component<
       streetAddress: "",
       streetAddressResults: [],
       showKeyboard: true,
+      showNotesModal: false,
+      notesValue: null
     };
   }
 
@@ -192,7 +196,7 @@ export default class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
-    const { propertyNickName, streetAddress, showKeyboard } = this.state;
+    const { propertyNickName, notesValue } = this.state;
 
     return (
       <Container center>
@@ -224,22 +228,50 @@ export default class AddPropertyComponent extends Component<
             })
           }
         />
-        <Button style={styles.addNotesButton}>
-          <Text
+        <TouchableOpacity
+          style={styles.addNotesButton}
+          onPress={() => this.setState({ showNotesModal: true })}
+        >
+          <TextInput
             gray
             size={theme.fontSizes.medium}
             style={styles.addNotesButtonText}
-          >
-            Add Notes
-          </Text>
+            editable={false}
+            label="Add Notes"
+            value={notesValue ? notesValue.text : ''}
+            numberOfLines={1}
+          />
           <Entypo
             name="chevron-small-right"
             size={26}
             color={theme.colors.gray}
             style={styles.notesChevron}
           />
-        </Button>
+        </TouchableOpacity>
       </Container>
+    );
+  };
+
+  handleNotesSave = (notesValue: string) => {
+    this.setState({ showNotesModal: false, notesValue });
+  };
+
+  renderNotesModal = () => {
+    const { showNotesModal } = this.state;
+
+    return (
+      <Modal
+        visible={showNotesModal}
+        animationType="fade"
+        onDismiss={() => this.setState({ showNotesModal: false })}
+      >
+        <NotesComponent
+          label="New Property"
+          handleBackClick={(notesValue: string) =>
+            this.handleNotesSave(notesValue)
+          }
+        />
+      </Modal>
     );
   };
 
@@ -271,6 +303,7 @@ export default class AddPropertyComponent extends Component<
             {this.renderPropertyTypeSelection()}
             {this.renderPropertyDetails()}
             {this.renderNavigationButtons()}
+            {this.renderNotesModal()}
           </ScrollView>
         </Container>
       </KeyboardAwareScrollView>
@@ -316,16 +349,20 @@ const styles = StyleSheet.create({
   },
   addNotesButton: {
     backgroundColor: "transparent",
-    width: "87%",
+    minWidth: "87%",
+    maxWidth: "87%",
+    overflow: "hidden",
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.offWhite,
+    height: 63
   },
   addNotesButtonText: {
-    paddingLeft: 4,
+    maxWidth: '93%',
+    borderBottomWidth: 0,
   },
   notesChevron: {
     position: "absolute",
     right: 0,
-    top: theme.sizes.base,
+    top: theme.sizes.base * 1.4,
   },
 });

@@ -4,9 +4,12 @@ import { Animated, StyleSheet, TextInput } from "react-native";
 import React, { Component } from "react";
 import { TextInputProps, TextInputState } from "../../types";
 
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import _Button from "./Button";
 import _Container from "./Container";
 import _Text from "./Text";
+import moment from "moment";
 import { theme } from "../../shared";
 
 const Button: any = _Button;
@@ -22,6 +25,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
     this.state = {
       toggleSecure: false,
       isFocused: false,
+      datePickerShow: false,
     };
 
     this.animatedIsFocused = new Animated.Value(
@@ -73,7 +77,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
           <Animated.Text style={labelStyle}>
             <Animated.Text>{label} </Animated.Text>
             {required && (
-              <Animated.Text style={styles.required}>*</Animated.Text>
+              <Animated.Text style={styles.required}>required</Animated.Text>
             )}
           </Animated.Text>
         ) : null}
@@ -120,10 +124,78 @@ export default class Input extends Component<TextInputProps, TextInputState> {
     );
   };
 
-  render() {
-    const { email, phone, number, secure, error, style, ...props } = this.props;
+  renderNormalInput = (
+    inputStyles: Array<any>,
+    inputType: any,
+    isSecure: boolean
+  ) => {
+    const { style, ...props } = this.props;
 
-    const { toggleSecure } = this.state;
+    return (
+      <TextInput
+        style={inputStyles}
+        secureTextEntry={isSecure}
+        autoCompleteType="off"
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType={inputType}
+        onFocus={this.handleFocus}
+        onBlur={this.handleBlur}
+        {...props}
+      />
+    );
+  };
+
+  renderDateTimeInput = (inputStyles: Array<any>) => {
+    const { style, dateValue, ...props } = this.props;
+    const { datePickerShow } = this.state;
+
+    return (
+      <Container flex={false}>
+        <TouchableOpacity
+          onPress={() => this.setState({ datePickerShow: !datePickerShow })}
+        >
+          <TextInput
+            style={inputStyles}
+            onFocus={this.handleFocus}
+            onBlur={this.handleBlur}
+            editable={false}
+            {...props}
+          />
+        </TouchableOpacity>
+        <DateTimePickerModal
+          isVisible={datePickerShow}
+          date={dateValue || new Date()}
+          mode="date"
+          onConfirm={(value) =>
+            this.datePickerOnChange(moment(value).format("MM/DD/YYYY"))
+          }
+          onCancel={() => this.setState({ datePickerShow: false })}
+        />
+      </Container>
+    );
+  };
+
+  datePickerOnChange = (selectedDate: string) => {
+    const { value, onChangeDate } = this.props;
+    const currentDate = selectedDate || value;
+    onChangeDate(currentDate);
+    this.setState({ datePickerShow: false });
+  };
+
+  render() {
+    const {
+      email,
+      phone,
+      number,
+      secure,
+      error,
+      style,
+      dateTime,
+      ...props
+    } = this.props;
+
+    const { toggleSecure, datePickerShow } = this.state;
     const isSecure = toggleSecure ? false : secure;
 
     const inputStyles = [
@@ -143,17 +215,9 @@ export default class Input extends Component<TextInputProps, TextInputState> {
     return (
       <Container flex={false} margin={[theme.sizes.base / 2, 0]}>
         {this.renderLabel()}
-        <TextInput
-          style={inputStyles}
-          secureTextEntry={isSecure}
-          autoCompleteType="off"
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType={inputType}
-          onFocus={this.handleFocus}
-          onBlur={this.handleBlur}
-          {...props}
-        />
+        {dateTime
+          ? this.renderDateTimeInput(inputStyles)
+          : this.renderNormalInput(inputStyles, inputType, isSecure)}
 
         {this.renderToggle()}
         {this.renderRight()}
@@ -184,6 +248,7 @@ export const styles = StyleSheet.create({
   },
   required: {
     fontWeight: "200",
-    fontSize: 20,
+    fontSize: 12,
+    fontStyle: "italic",
   },
 });

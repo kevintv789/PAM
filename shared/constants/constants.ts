@@ -7,3 +7,20 @@ export const PROPERTY_TYPES = {
   TOWNHOUSE: "Townhouse",
   OTHER: "Other",
 };
+
+export const RECURRING_PAYMENT_TYPE = {
+  MONTHLY: 'Monthly' || "Month"
+}
+
+export const RECURRING_PAYMENT_PERIODS = [
+  "Day",
+  "Week",
+  "2 Weeks",
+  "Month",
+  "Quarter"
+]
+
+export const EXPENSE_STATUS_TYPE = {
+  PAID: 'paid',
+  UNPAID: 'unpaid'
+}

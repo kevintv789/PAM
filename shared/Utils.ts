@@ -1,5 +1,5 @@
-import { PropertyTypes } from "./constants/mockData";
 import { constants } from ".";
+import { filter } from "lodash";
 import moment from "moment";
 
 /**
@@ -100,8 +100,44 @@ export const getPropertyImage = (image: any, type: string) => {
  * Formats number with comma separated pattern
  * @param value
  */
-export const formatNumber = (value: any) =>
-  new Intl.NumberFormat().format(value);
+export const formatNumber = (value: any) => {
+  let newValue = value;
+
+  if (typeof value === "string") {
+    newValue = Number(value.replaceAll(",", ""));
+  }
+
+  return newValue.toLocaleString();
+};
+
+/**
+ * This function takes in an actual value and a raw value (amountState) and will
+ * format the amount into currency starting from cents
+ * @param inputValue
+ * @param amountState
+ */
+export const formatCurrencyFromCents = (
+  inputValue: string,
+  amountState: string
+) => {
+  let formattedAmt = "";
+  let tempValue = inputValue.slice(-1);
+  let rawVal = amountState + tempValue;
+
+  if (rawVal.length === 1) {
+    formattedAmt = "0.0" + rawVal;
+  } else if (rawVal.length === 2) {
+    formattedAmt = "0." + rawVal;
+  } else {
+    let intAmount = rawVal.slice(0, rawVal.length - 2);
+    let centAmount = rawVal.slice(-2);
+
+    formattedAmt =
+      intAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + centAmount;
+  }
+
+  return { formattedAmt, rawVal };
+};
 
 /**
  * Gets difference of time in days
@@ -131,8 +167,8 @@ export const getDaysDiffFrom = (
 
 /**
  * Formats a string to either plural or singular based on provided parameters
- * @param str 
- * @param num 
+ * @param str
+ * @param num
  */
 export const formatPlural = (str: string, num: number) => {
   if (num && num > 1) {
@@ -140,4 +176,28 @@ export const formatPlural = (str: string, num: number) => {
   }
 
   return str;
+};
+
+/**
+ * This function retrieves data from an input of IDs
+ * Ex: Property:
+ * [{
+ *   tenantIds: [1, 2, 3]
+ * }]
+ *
+ * Based on the property array above, this will return all tenant objects that has ID 1, 2, 3
+ * @param ids
+ * @param dataToFilter
+ */
+export const getDataFromProperty = (ids: number[], dataToFilter: object[]) => {
+  let result: object[] = [];
+
+  // Loop on each IDs and build an array
+  if (ids && ids.length) {
+    ids.forEach((id: number) => {
+      result.push(filter(dataToFilter, (e: any) => e.id === id)[0]);
+    });
+  }
+
+  return result;
 };

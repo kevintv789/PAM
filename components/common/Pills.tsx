@@ -1,17 +1,15 @@
-import React, { useState } from "react";
-import { StyleSheet, Touchable } from "react-native";
-
+import React from "react";
+import { StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Button from "./Button";
 import _Container from "./Container";
 import _Text from "./Text";
 import { theme } from "../../shared";
 
-const Button: any = _Button;
 const Container: any = _Container;
 const Text: any = _Text;
 
 const Pills = (props: any) => {
+
   const {
     selectable,
     label,
@@ -19,6 +17,7 @@ const Pills = (props: any) => {
     labelStyle,
     handlePillSelected,
   } = props;
+
   const defaultContainerStyle = [styles.container, containerStyle];
 
   const renderPlainPill = () => {
@@ -34,7 +33,7 @@ const Pills = (props: any) => {
   const renderSelectablePill = () => {
     return (
       <TouchableOpacity onPress={() => handlePillSelect()}>
-        <Container style={defaultContainerStyle}>
+        <Container style={defaultContainerStyle} flex={false}>
           <Text offWhite center style={labelStyle}>
             {label}
           </Text>

@@ -5,9 +5,12 @@ export interface State {
   streetAddress: string;
   streetAddressResults: Array<String>;
   showKeyboard: boolean;
+  showNotesModal: boolean;
+  notesValue: any;
 }
 
 export interface Props {
   handleCancelClicked: any;
   navigation: any;
+  handleNextClicked: any;
 }
