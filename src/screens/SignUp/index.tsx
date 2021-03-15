@@ -1,4 +1,4 @@
-import { Button, Container, Text, TextInput } from "../components";
+import { Button, Container, Text, TextInput } from "../../components";
 import {
   Dimensions,
   Keyboard,
@@ -6,11 +6,11 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
-import { formatMobileNumber, validateEmail } from "../shared/Utils";
+import { formatMobileNumber, validateEmail } from "../../shared/Utils";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { SignUpModel } from "../models";
-import { theme } from "../shared";
+import { SignUpModel } from "../../models";
+import { theme } from "../../shared";
 
 const { width, height } = Dimensions.get("window");
 

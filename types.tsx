@@ -1,6 +1,6 @@
-import * as Button from "./components/common/Button";
-import * as Container from "./components/common/Container";
-import * as Text from "./components/common/Text";
+import * as Button from "./src/components/common/Button";
+import * as Container from "./src/components/common/Container";
+import * as Text from "./src/components/common/Text";
 
 export interface ContainerProps {
   margin: number;

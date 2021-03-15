@@ -9,5 +9,11 @@
     "resolveJsonModule": true,
     "strict": true,
     "suppressImplicitAnyIndexErrors": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@assets": ["./assets"],
+      "@components": ["./components"],
+      "@navigation": ["./navigation"]
+    }
   }
 }

@@ -2,8 +2,8 @@ import { Image, StyleSheet } from "react-native";
 import React, { useState } from "react";
 
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Container from "../common/Container";
-import _Text from "../common/Text";
+import _Container from "./Container";
+import _Text from "./Text";
 import { theme } from "../../shared";
 
 const Container: any = _Container;
