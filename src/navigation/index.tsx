@@ -7,11 +7,11 @@ import AddExpenseComponent from "../components/modals/AddExpenseComponent";
 import { BottomTabNavigator } from "./BottomTabNavigator";
 // import { CardStyleInterpolators } from '@react-navigation/stack';
 import { Image } from "react-native";
-import LoginScreen from "../screens/LoginScreen";
+import LoginScreen from "../screens/Login";
 import React from "react";
 import RecurringPaymentComponent from "../components/modals/RecurringPaymentComponent";
-import SignUpScreen from "../screens/SignUpScreen";
-import Welcome from "../screens/WelcomeScreen";
+import SignUpScreen from "../screens/SignUp";
+import Welcome from "../screens/Welcome";
 import { createAppContainer } from "react-navigation";
 import { theme } from "../shared";
 

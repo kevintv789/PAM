@@ -1,4 +1,4 @@
-import { Button, Container, Text, TextInput } from "../components";
+import { Button, Container, Text, TextInput } from "../../components";
 import {
   Dimensions,
   Keyboard,
@@ -8,10 +8,10 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../shared";
+import { mockData, theme } from "../../shared";
 
-import { LoginModel } from "../models";
-import { validateEmail } from "../shared/Utils";
+import { LoginModel } from "../../models";
+import { validateEmail } from "../../shared/Utils";
 
 const { width } = Dimensions.get("window");
 

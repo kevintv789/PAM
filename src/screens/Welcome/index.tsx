@@ -1,9 +1,9 @@
-import { Button, Container, Text } from "../components";
+import { Button, Container, Text } from "components";
 import { ImageBackground, StyleSheet } from "react-native";
 import React, { Component } from "react";
 
-import { WelcomeScreenProps } from "../types";
-import { theme } from "../shared";
+import { WelcomeScreenProps } from "../../types";
+import { theme } from "../../shared";
 
 export default class WelcomeScreen extends Component<WelcomeScreenProps> {
   render() {
@@ -11,7 +11,7 @@ export default class WelcomeScreen extends Component<WelcomeScreenProps> {
     return (
       <ImageBackground
         style={styles.background}
-        source={require("../assets/images/welcome_screen.png")}
+        source={require("assets/images/welcome_screen.png")}
       >
         <Container center padding={theme.sizes.padding}>
 

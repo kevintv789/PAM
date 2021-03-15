@@ -2,7 +2,7 @@ import * as Icon from "@expo/vector-icons";
 
 import { Animated, StyleSheet, TextInput } from "react-native";
 import React, { Component } from "react";
-import { TextInputProps, TextInputState } from "../../types";
+import { TextInputProps, TextInputState } from "../../../types";
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { TouchableOpacity } from "react-native-gesture-handler";
