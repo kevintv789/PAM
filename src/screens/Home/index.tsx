@@ -1,11 +1,12 @@
-import { Button, Container, PropertyComponent, Text } from "components";
+import { Button, Container, Text } from "components/common";
 import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { mockData, theme } from "shared";
 
-import AddPropertyComponent from "components/modals/AddProperty/addProperty.component";
-import AddPropertyDoneComponent from "components/modals/AddProperty/AddPropertyDone/addPropertyDone.component";
+import AddPropertyComponent from "components/Modals/AddProperty/addProperty.component";
+import AddPropertyDoneComponent from "components/Modals/AddProperty/AddPropertyDone/addPropertyDone.component";
 import { HomeModel } from "models";
+import PropertyComponent from 'components/Property/property.component';
 import { ScrollView } from "react-native-gesture-handler";
 
 export default class HomeScreen extends Component<null, HomeModel.State> {

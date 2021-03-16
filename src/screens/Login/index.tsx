@@ -1,4 +1,4 @@
-import { Button, Container, Text, TextInput } from "../../components";
+import { Button, Container, Text, TextInput } from "../../components/common";
 import {
   Dimensions,
   Keyboard,

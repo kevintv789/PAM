@@ -11,6 +11,6 @@ export interface State {
 
 export interface Props {
   handleCancelClicked: any;
-  navigation: any;
+  navigation?: any;
   handleNextClicked: any;
 }

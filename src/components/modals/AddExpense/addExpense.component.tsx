@@ -1,3 +1,11 @@
+import {
+  Button,
+  Container,
+  HeaderDivider,
+  Text,
+  TextInput,
+  Toggle,
+} from "components/common";
 import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
@@ -5,24 +13,10 @@ import { constants, theme } from "shared";
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Button from "components/common/Button";
-import _Container from "components/common/Container";
-import _HeaderDivider from "components/common/HeaderDivider";
-import _NotesComponent from "../Notes/notes.component";
-import _Text from "components/common/Text";
-import _TextInput from "components/common/TextInput";
-import _Toggle from "components/common/Toggle";
 import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
-
-const Text: any = _Text;
-const Container: any = _Container;
-const Button: any = _Button;
-const TextInput: any = _TextInput;
-const NotesComponent: any = _NotesComponent;
-const Toggle: any = _Toggle;
-const HeaderDivider: any = _HeaderDivider;
 
 const { width, height } = Dimensions.get("window");
 

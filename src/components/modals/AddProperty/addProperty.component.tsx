@@ -3,11 +3,10 @@ import {
   Button,
   Container,
   HeaderDivider,
-  NotesComponent,
   Pills,
   Text,
   TextInput,
-} from "components";
+} from "components/common";
 import {
   Dimensions,
   FlatList,
@@ -23,6 +22,7 @@ import { constants, mockData, theme } from "shared";
 import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import NotesComponent from 'components/Modals/Notes/notes.component'
 
 const { width, height } = Dimensions.get("window");
 

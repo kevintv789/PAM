@@ -1,14 +1,8 @@
+import { Button, Container, Text } from "components/common";
 import { Image, StyleSheet } from "react-native";
 import { constants, theme } from "shared";
 
 import React from "react";
-import _Button from "components/common/Button";
-import _Container from "components/common/Container";
-import _Text from "components/common/Text";
-
-const Container: any = _Container;
-const Button: any = _Button;
-const Text: any = _Text;
 
 const AddPropertyDoneComponent = (props: any) => {
   const { handleFinishedClick } = props;

@@ -17,7 +17,7 @@ import { PropertyContentModel } from "models";
 import _Button from "components/common/Button";
 import _Container from "components/common/Container";
 import _DataOutline from "components/common/DataOutline";
-import _NotesComponent from "components/modals/Notes/notes.component";
+import _NotesComponent from "components/Modals/Notes/notes.component";
 import _Text from "components/common/Text";
 import moment from "moment";
 import { withNavigation } from 'react-navigation';

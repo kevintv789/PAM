@@ -3,12 +3,12 @@ import {
   createStackNavigator,
 } from "react-navigation-stack";
 
-import AddExpenseComponent from "components/modals/AddExpense/addExpense.component";
+import AddExpenseComponent from "components/Modals/AddExpense/addExpense.component";
 import { BottomTabNavigator } from "./BottomTabNavigator";
 import { Image } from "react-native";
 import LoginScreen from "screens/Login";
 import React from "react";
-import RecurringPaymentComponent from "components/modals/RecurringPayment/recurringPayment.component";
+import RecurringPaymentComponent from "components/Modals/RecurringPayment/recurringPayment.component";
 import SignUpScreen from "screens/SignUp";
 import Welcome from "screens/Welcome";
 import { createAppContainer } from "react-navigation";

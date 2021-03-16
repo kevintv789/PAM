@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, mockData, theme } from "shared";
 import { findIndex, sortBy, sumBy } from "lodash";
@@ -16,17 +17,9 @@ import {
 } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
+import PropertyContentComponent from "components/Property/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
-import _Container from "components/common/Container";
-import _PropertyContentComponent from "./PropertyContent/property.content.component";
-import _Text from "components/common/Text";
-import _VerticalDivider from "components/common/VerticalDivider";
 import moment from "moment";
-
-const Container: any = _Container;
-const Text: any = _Text;
-const VerticalDivider: any = _VerticalDivider;
-const PropertyContentComponent: any = _PropertyContentComponent;
 
 const { width } = Dimensions.get("window");
 
@@ -187,8 +180,9 @@ class PropertyComponent extends Component<
     const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
-    const earliestMoveIn = sortBy(tenants, (e) => moment(e.leaseStartDate))[0]
-      .leaseStartDate;
+    const earliestMoveIn = sortBy(tenants, (e: any) =>
+      moment(e.leaseStartDate)
+    )[0].leaseStartDate;
     return moment(earliestMoveIn).format("MM/DD/YYYY");
   };
 
