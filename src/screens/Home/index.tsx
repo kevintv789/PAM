@@ -1,11 +1,11 @@
-import { Button, Container, PropertyComponent, Text } from "../../components";
+import { Button, Container, PropertyComponent, Text } from "components";
 import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../../shared";
+import { mockData, theme } from "shared";
 
-import AddPropertyComponent from "../../components/modals/AddProperty/addProperty.component";
-import AddPropertyDoneComponent from "../../components/modals/AddProperty/AddPropertyDone/addPropertyDone.component";
-import { HomeModel } from "../../models";
+import AddPropertyComponent from "components/modals/AddProperty/addProperty.component";
+import AddPropertyDoneComponent from "components/modals/AddProperty/AddPropertyDone/addPropertyDone.component";
+import { HomeModel } from "models";
 import { ScrollView } from "react-native-gesture-handler";
 
 export default class HomeScreen extends Component<null, HomeModel.State> {
@@ -28,7 +28,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
         padding={[theme.sizes.padding * 0.2]}
       >
         <Image
-          source={require("../../assets/icons/keys.png")}
+          source={require("assets/icons/keys.png")}
           style={styles.keys}
         />
         <Text offWhite size={30}>
@@ -150,7 +150,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
             onPress={() => this.setState({ showModal: true })}
           >
             <Image
-              source={require("../../assets/icons/plus.png")}
+              source={require("assets/icons/plus.png")}
               style={{ width: 29, height: 29 }}
             />
           </Button>
