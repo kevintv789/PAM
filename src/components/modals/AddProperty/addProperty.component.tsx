@@ -7,7 +7,7 @@ import {
   Pills,
   Text,
   TextInput,
-} from "..";
+} from "components";
 import {
   Dimensions,
   FlatList,
@@ -18,9 +18,9 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import { constants, mockData, theme } from "../../shared";
+import { constants, mockData, theme } from "shared";
 
-import { AddPropertyModel } from "../../models";
+import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -57,7 +57,7 @@ export default class AddPropertyComponent extends Component<
             middle
           >
             <Image
-              source={require("../../assets/icons/camera.png")}
+              source={require("assets/icons/camera.png")}
               style={styles.cameraImage}
             />
           </Container>
@@ -119,18 +119,18 @@ export default class AddPropertyComponent extends Component<
 
     switch (typeSelected) {
       case constants.PROPERTY_TYPES.APT_CONDO:
-        imagePath = require("../../assets/icons/prop_type_apartment.png");
+        imagePath = require("assets/icons/prop_type_apartment.png");
         break;
       case constants.PROPERTY_TYPES.SINGLE_FAM:
-        imagePath = require("../../assets/icons/prop_type_sfh.png");
+        imagePath = require("assets/icons/prop_type_sfh.png");
         break;
       case constants.PROPERTY_TYPES.TOWNHOUSE:
-        imagePath = require("../../assets/icons/prop_type_townhouse.png");
+        imagePath = require("assets/icons/prop_type_townhouse.png");
         newWidth = 50;
         newHeight = 50;
         break;
       case constants.PROPERTY_TYPES.MULTI_FAM:
-        imagePath = require("../../assets/icons/prop_type_multiplex.png");
+        imagePath = require("assets/icons/prop_type_multiplex.png");
         newWidth = 50;
         newHeight = 50;
         break;

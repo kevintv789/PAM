@@ -2,7 +2,7 @@ import { Dimensions, StyleSheet, TouchableOpacity } from "react-native";
 import React, { Component } from "react";
 
 import { ButtonProps } from "../../../types";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const { width } = Dimensions.get("window");
 

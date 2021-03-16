@@ -6,21 +6,21 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React, { Component } from "react";
-import { animations, constants, mockData, theme } from "../../shared";
+import { animations, constants, mockData, theme } from "shared";
 import { findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
-} from "../../shared/Utils";
+} from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
-import { PropertyModel } from "../../models";
-import _Container from "../common/Container";
+import { PropertyModel } from "models";
+import _Container from "components/common/Container";
 import _PropertyContentComponent from "./PropertyContent/property.content.component";
-import _Text from "../common/Text";
-import _VerticalDivider from "../common/VerticalDivider";
+import _Text from "components/common/Text";
+import _VerticalDivider from "components/common/VerticalDivider";
 import moment from "moment";
 
 const Container: any = _Container;
@@ -279,7 +279,7 @@ class PropertyComponent extends Component<
         <Container>
           <Container row padding={8}>
             <Image
-              source={require("../../assets/icons/key.png")}
+              source={require("assets/icons/key.png")}
               style={{ width: theme.sizes.base, height: theme.sizes.base }}
             />
             <Text light accent>
@@ -296,7 +296,7 @@ class PropertyComponent extends Component<
         <Container style={styles.right}>
           <Container row padding={8} style={{ width: width / 2.3 }}>
             <Image
-              source={require("../../assets/icons/dollar_sign.png")}
+              source={require("assets/icons/dollar_sign.png")}
               style={{
                 width: theme.sizes.base,
                 height: theme.sizes.base,

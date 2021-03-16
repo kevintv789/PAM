@@ -1,10 +1,10 @@
 import { Image, StyleSheet } from "react-native";
-import { constants, theme } from "../../shared";
+import { constants, theme } from "shared";
 
 import React from "react";
-import _Button from "../common/Button";
-import _Container from "../common/Container";
-import _Text from "../common/Text";
+import _Button from "components/common/Button";
+import _Container from "components/common/Container";
+import _Text from "components/common/Text";
 
 const Container: any = _Container;
 const Button: any = _Button;
@@ -16,7 +16,7 @@ const AddPropertyDoneComponent = (props: any) => {
   return (
     <Container center color="accent" style={styles.mainContainer}>
       <Image
-        source={require("../../assets/icons/thumbs_up.png")}
+        source={require("assets/icons/thumbs_up.png")}
         style={styles.image}
       />
       <Text offWhite size={24} bold style={styles.bigText}>

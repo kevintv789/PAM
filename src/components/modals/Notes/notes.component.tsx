@@ -2,12 +2,12 @@ import { Dimensions, Image, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 
-import { NotesModel } from "../../models";
-import _Container from "../common/Container";
-import _Text from "../common/Text";
-import _TextInput from "../common/TextInput";
+import { NotesModel } from "models";
+import _Container from "components/common/Container";
+import _Text from "components/common/Text";
+import _TextInput from "components/common/TextInput";
 import moment from "moment";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const Text: any = _Text;
 const Container: any = _Container;
@@ -48,7 +48,7 @@ export default class NotesComponent extends Component<
           <Container padding={[theme.sizes.padding * 2, 25, 25, 25]}>
             <TouchableOpacity onPress={() => handleBackClick(payload)}>
               <Image
-                source={require("../../assets/icons/left_arrow.png")}
+                source={require("assets/icons/left_arrow.png")}
                 style={{ width: 40, height: 40 }}
               />
             </TouchableOpacity>

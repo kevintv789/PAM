@@ -7,18 +7,18 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
-import { constants, mockData, theme } from "../../../shared";
-import { formatNumber, formatPlural, getDaysDiffFrom } from "../../../shared/Utils";
+import { constants, mockData, theme } from "shared";
+import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
 import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { PropertyContentModel } from "../../../models";
-import _Button from "../../common/Button";
-import _Container from "../../common/Container";
-import _DataOutline from "../../common/DataOutline";
-import _NotesComponent from "../../modals/NotesComponent";
-import _Text from "../../common/Text";
+import { PropertyContentModel } from "models";
+import _Button from "components/common/Button";
+import _Container from "components/common/Container";
+import _DataOutline from "components/common/DataOutline";
+import _NotesComponent from "components/modals/Notes/notes.component";
+import _Text from "components/common/Text";
 import moment from "moment";
 import { withNavigation } from 'react-navigation';
 
@@ -47,7 +47,7 @@ class PropertyContentComponent extends Component<
   renderTenantHeader = () => (
     <Container row padding={10} style={styles.tenantheader} flex={false}>
       <Image
-        source={require("../../../assets/icons/key.png")}
+        source={require("assets/icons/key.png")}
         style={{ width: theme.sizes.base, height: theme.sizes.base }}
       />
       <Text accent bold size={13}>
@@ -65,7 +65,7 @@ class PropertyContentComponent extends Component<
           Add Tenant
         </Text>
         <Image
-          source={require("../../../assets/icons/plus.png")}
+          source={require("assets/icons/plus.png")}
           style={{ width: 20, height: 20 }}
         />
       </Button>
@@ -207,7 +207,7 @@ class PropertyContentComponent extends Component<
     return (
       <Container row style={styles.reportHeader} flex={false}>
         <Image
-          source={require("../../../assets/icons/dollar_sign.png")}
+          source={require("assets/icons/dollar_sign.png")}
           style={{
             width: theme.sizes.base,
             height: theme.sizes.base,
@@ -227,7 +227,7 @@ class PropertyContentComponent extends Component<
               Add Expense
             </Text>
             <Image
-              source={require("../../../assets/icons/plus.png")}
+              source={require("assets/icons/plus.png")}
               style={{ width: 20, height: 20 }}
             />
           </Button>
@@ -237,7 +237,7 @@ class PropertyContentComponent extends Component<
             onPress={() => console.log("Filtering...")}
           >
             <Image
-              source={require("../../../assets/icons/filter_button.png")}
+              source={require("assets/icons/filter_button.png")}
               style={{ width: 20, height: 20 }}
             />
           </Button>
@@ -411,7 +411,7 @@ class PropertyContentComponent extends Component<
       <Container>
         <Container style={styles.notesHeaderContainer} flex={false} row>
           <Image
-            source={require("../../../assets/icons/notes.png")}
+            source={require("assets/icons/notes.png")}
             style={{
               width: theme.sizes.base,
               height: theme.sizes.base,

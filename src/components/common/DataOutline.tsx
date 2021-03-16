@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 
 import React from "react";
 import _Text from "./Text";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const Text: any = _Text;
 

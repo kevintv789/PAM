@@ -13,7 +13,10 @@
     "paths": {
       "@assets": ["./assets"],
       "@components": ["./components"],
-      "@navigation": ["./navigation"]
+      "@navigation": ["./navigation"],
+      "@screens": ["./screens"],
+      "@shared": ["./shared"],
+      "@models": ["./models"]
     }
   }
 }

@@ -1,12 +1,12 @@
 import { Entypo, Feather, FontAwesome5, Ionicons } from "@expo/vector-icons";
 
-import CalendarScreen from "../screens/Calendar";
-import HomeScreen from "../screens/Home";
+import CalendarScreen from "screens/Calendar";
+import HomeScreen from "screens/Home";
 import React from "react";
-import ReportsScreen from "../screens/Reports";
-import SettingsScreen from "../screens/Settings";
+import ReportsScreen from "screens/Reports";
+import SettingsScreen from "screens/Settings";
 import { createBottomTabNavigator } from "react-navigation-tabs";
-import { theme } from "../shared";
+import { theme } from "shared";
 
 export const BottomTabNavigator = createBottomTabNavigator(
   {

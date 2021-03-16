@@ -1,16 +1,16 @@
 import { Dimensions, FlatList, Image, StyleSheet } from "react-native";
 import React, { useState } from "react";
-import { constants, theme } from "../../shared";
+import { constants, theme } from "shared";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
-import _Container from "../common/Container";
-import _HeaderDivider from "../common/HeaderDivider";
-import _Pills from "../common/Pills";
-import _SelectableBox from "../common/SelectableBox";
-import _Text from "../common/Text";
-import _TextInput from "../common/TextInput";
-import _Toggle from "../common/Toggle";
+import _Container from "components/common/Container";
+import _HeaderDivider from "components/common/HeaderDivider";
+import _Pills from "components/common/Pills";
+import _SelectableBox from "components/common/SelectableBox";
+import _Text from "components/common/Text";
+import _TextInput from "components/common/TextInput";
+import _Toggle from "components/common/Toggle";
 import moment from "moment";
 
 const Container: any = _Container;
@@ -145,7 +145,7 @@ export default function RecurringPaymentComponent(props: any) {
           }}
         >
           <Image
-            source={require("../../assets/icons/left_arrow.png")}
+            source={require("assets/icons/left_arrow.png")}
             style={{ width: 35, height: 35 }}
           />
         </TouchableWithoutFeedback>

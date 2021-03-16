@@ -1,19 +1,19 @@
 import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { constants, theme } from "../../shared";
+import { constants, theme } from "shared";
 
 import { Entypo } from "@expo/vector-icons";
-import { ExpenseModel } from "../../models";
+import { ExpenseModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Button from "../common/Button";
-import _Container from "../common/Container";
-import _HeaderDivider from "../common/HeaderDivider";
-import _NotesComponent from "./NotesComponent";
-import _Text from "../common/Text";
-import _TextInput from "../common/TextInput";
-import _Toggle from "../common/Toggle";
-import { formatCurrencyFromCents } from "../../shared/Utils";
+import _Button from "components/common/Button";
+import _Container from "components/common/Container";
+import _HeaderDivider from "components/common/HeaderDivider";
+import _NotesComponent from "../Notes/notes.component";
+import _Text from "components/common/Text";
+import _TextInput from "components/common/TextInput";
+import _Toggle from "components/common/Toggle";
+import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
 
 const Text: any = _Text;
@@ -61,7 +61,7 @@ export default class AddExpenseComponent extends Component<
             middle
           >
             <Image
-              source={require("../../assets/icons/camera.png")}
+              source={require("assets/icons/camera.png")}
               style={styles.cameraImage}
             />
           </Container>

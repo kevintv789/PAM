@@ -3,17 +3,16 @@ import {
   createStackNavigator,
 } from "react-navigation-stack";
 
-import AddExpenseComponent from "../components/modals/AddExpenseComponent";
+import AddExpenseComponent from "components/modals/AddExpense/addExpense.component";
 import { BottomTabNavigator } from "./BottomTabNavigator";
-// import { CardStyleInterpolators } from '@react-navigation/stack';
 import { Image } from "react-native";
-import LoginScreen from "../screens/Login";
+import LoginScreen from "screens/Login";
 import React from "react";
-import RecurringPaymentComponent from "../components/modals/RecurringPaymentComponent";
-import SignUpScreen from "../screens/SignUp";
-import Welcome from "../screens/Welcome";
+import RecurringPaymentComponent from "components/modals/RecurringPayment/recurringPayment.component";
+import SignUpScreen from "screens/SignUp";
+import Welcome from "screens/Welcome";
 import { createAppContainer } from "react-navigation";
-import { theme } from "../shared";
+import { theme } from "shared";
 
 const MainStack = createStackNavigator(
   {
