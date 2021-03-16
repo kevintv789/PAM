@@ -10,7 +10,7 @@ import _Button from "./Button";
 import _Container from "./Container";
 import _Text from "./Text";
 import moment from "moment";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const Button: any = _Button;
 const Container: any = _Container;

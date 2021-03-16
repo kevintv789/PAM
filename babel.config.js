@@ -21,7 +21,10 @@ module.exports = function (api) {
           alias: {
             assets: "./src/assets",
             components: "./src/components",
-            navigation: './src/navigation'
+            navigation: "./src/navigation",
+            screens: "./src/screens",
+            shared: "./src/shared",
+            models: "./src/models",
           },
         },
       ],

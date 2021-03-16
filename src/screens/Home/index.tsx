@@ -3,8 +3,8 @@ import { Image, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { mockData, theme } from "../../shared";
 
-import AddPropertyComponent from "../../components/modals/AddPropertyComponent";
-import AddPropertyDoneComponent from "../../components/modals/AddPropertyDoneComponent";
+import AddPropertyComponent from "../../components/modals/AddProperty/addProperty.component";
+import AddPropertyDoneComponent from "../../components/modals/AddProperty/AddPropertyDone/addPropertyDone.component";
 import { HomeModel } from "../../models";
 import { ScrollView } from "react-native-gesture-handler";
 

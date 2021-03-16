@@ -1,9 +1,10 @@
-import { environment, theme } from "../../shared";
+import * as environment from "../../../environment";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PlacesInput from "react-native-places-input";
 import React from "react";
 import { StyleSheet } from "react-native";
+import { theme } from "shared";
 
 const AddressInput = (props: any) => {
   const { handleSelect, handleResults, onFocus } = props;

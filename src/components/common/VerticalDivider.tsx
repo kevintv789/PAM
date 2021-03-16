@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Dash from "react-native-dash";
 import React from "react";
 import _Container from "./Container";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const Container: any = _Container;
 

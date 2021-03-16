@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import SwitchSelector from "react-native-switch-selector";
 import _Container from "./Container";
 import _Text from "./Text";
-import { theme } from "../../shared";
+import { theme } from "shared";
 
 const Container: any = _Container;
 const Text: any = _Text;
