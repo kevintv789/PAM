@@ -59,4 +59,4 @@ buck-out/
 
 # MISC
 *.code-workspace
-environment/
+environment.ts
