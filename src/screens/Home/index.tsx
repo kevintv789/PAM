@@ -4,23 +4,30 @@ import React, { Component } from "react";
 import { mockData, theme } from "shared";
 
 import AddPropertyComponent from "components/Modals/AddProperty/addProperty.component";
-import AddPropertyDoneComponent from "components/Modals/AddProperty/AddPropertyDone/addPropertyDone.component";
+import AddPropertyDoneComponent from "components/Modals/AddPropertyDone/addPropertyDone.component";
 import { HomeModel } from "models";
-import PropertyComponent from 'components/Property/property.component';
+import PropertyComponent from "components/Property/property.component";
 import { ScrollView } from "react-native-gesture-handler";
+import { connect } from "react-redux";
+import { getUser } from "reducks/modules/user";
 
-export default class HomeScreen extends Component<null, HomeModel.State> {
+class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   constructor(props: any) {
     super(props);
 
     this.state = {
-      user: mockData.User,
       showModal: false,
       showDoneModal: false,
     };
   }
+
+  componentDidMount() {
+    const { getUser } = this.props;
+    getUser(mockData.User);
+  }
+
   renderDefaultMessage = () => {
-    const { user } = this.state;
+    const { userData } = this.props;
     return (
       <Container
         flex={false}
@@ -28,12 +35,9 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
         middle
         padding={[theme.sizes.padding * 0.2]}
       >
-        <Image
-          source={require("assets/icons/keys.png")}
-          style={styles.keys}
-        />
+        <Image source={require("assets/icons/keys.png")} style={styles.keys} />
         <Text offWhite size={30}>
-          Hi {user.firstName}!
+          Hi {userData.firstName}!
         </Text>
         <Text
           center
@@ -102,7 +106,7 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { user } = this.state;
+    const { userData } = this.props;
 
     return (
       <ScrollView
@@ -116,13 +120,13 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
         showsVerticalScrollIndicator={false}
       >
         <Container center>
-          {user.properties.map((property: any) => {
+          {userData.properties.map((property: any) => {
             return (
               <Container
                 key={property.id}
                 onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
               >
-                <PropertyComponent propertyData={property}/>
+                <PropertyComponent propertyData={property} />
               </Container>
             );
           })}
@@ -131,8 +135,9 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
     );
   };
 
-  render() {
-    const { user } = this.state;
+  renderContent = () => {
+    const { userData } = this.props;
+
     return (
       <Container color="accent" style={{}}>
         <Container
@@ -156,11 +161,22 @@ export default class HomeScreen extends Component<null, HomeModel.State> {
             />
           </Button>
         </Container>
-        {!user.properties.length
+        {!userData.properties.length
           ? this.renderDefaultMessage()
           : this.renderProperties()}
         {this.renderAddPropertyModal()}
         {this.renderAddPropertyDoneModal()}
+      </Container>
+    );
+  };
+
+  render() {
+    const { userData } = this.props;
+    return userData ? (
+      this.renderContent()
+    ) : (
+      <Container>
+        <Text>No Data</Text>
       </Container>
     );
   }
@@ -186,3 +202,13 @@ const styles = StyleSheet.create({
     height: 29,
   },
 });
+
+const mapStateToProps = (state: any) => {
+  return { userData: state.userState.user };
+};
+
+const mapDispatchToProps = {
+  getUser,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

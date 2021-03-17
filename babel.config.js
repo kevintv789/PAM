@@ -25,6 +25,7 @@ module.exports = function (api) {
             screens: "./src/screens",
             shared: "./src/shared",
             models: "./src/models",
+            reducks: "./src/reducks",
           },
         },
       ],

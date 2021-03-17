@@ -17,7 +17,7 @@ import {
 } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
-import PropertyContentComponent from "components/Property/PropertyContent/property.content.component";
+import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
 import moment from "moment";
 
