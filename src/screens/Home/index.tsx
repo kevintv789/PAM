@@ -124,7 +124,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
             return (
               <Container
                 key={property.id}
-                onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
+                // onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
               >
                 <PropertyComponent propertyData={property} />
               </Container>

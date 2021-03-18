@@ -21,6 +21,7 @@ export interface ContainerProps {
   animated?: any;
   wrap?: any;
   style?: any;
+  onStartShouldSetResponder?: any;
 }
 
 export interface TextProps {
@@ -55,6 +56,7 @@ export interface TextProps {
   gray2?: any;
   style?: any;
   red?: any;
+  numberOfLines?: number;
 }
 
 export interface ButtonProps {

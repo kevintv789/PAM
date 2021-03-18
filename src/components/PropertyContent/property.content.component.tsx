@@ -1,3 +1,4 @@
+import { Button, Container, DataOutline, Text } from "components/common";
 import {
   Image,
   Modal,
@@ -13,20 +14,10 @@ import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import NotesComponent from "components/Modals/Notes/notes.component";
 import { PropertyContentModel } from "models";
-import _Button from "components/common/Button";
-import _Container from "components/common/Container";
-import _DataOutline from "components/common/DataOutline";
-import _NotesComponent from "components/Modals/Notes/notes.component";
-import _Text from "components/common/Text";
 import moment from "moment";
-import { withNavigation } from 'react-navigation';
-
-const Text: any = _Text;
-const Container: any = _Container;
-const Button: any = _Button;
-const NotesComponent: any = _NotesComponent;
-const DataOutline: any = _DataOutline;
+import { withNavigation } from "react-navigation";
 
 const notesData = mockData.Notes;
 
@@ -221,7 +212,11 @@ class PropertyContentComponent extends Component<
           <Button
             color="transparent"
             style={styles.addExpenseButton}
-            onPress={() => this.props.navigation.navigate("AddExpenseModal")}
+            onPress={() =>
+              this.props.navigation.navigate("AddExpenseModal", {
+                propertyId: this.props.propertyData.id,
+              })
+            }
           >
             <Text light accent style={{ top: 2, right: 4 }} size={13}>
               Add Expense

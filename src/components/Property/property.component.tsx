@@ -8,23 +8,23 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, mockData, theme } from "shared";
-import { findIndex, sortBy, sumBy } from "lodash";
+import { filter, findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
+import { setExpense, setTenants } from "reducks/modules/property";
 
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import { connect } from "react-redux";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
 
-const tenantData = mockData.Tenants;
-const expensesData = mockData.Expenses;
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
@@ -46,7 +46,26 @@ class PropertyComponent extends Component<
       animatedContainerHeight: new Animated.Value(200),
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
+      expensesData: this.props.expenseData,
+      tenantData: this.props.tenantData,
+      propertyData: this.props.propertyData,
     };
+  }
+
+  componentDidMount() {
+    const { setExpense, setTenants } = this.props;
+    const { propertyData, expensesData } = this.state;
+
+    // This is where app needs to call action to read from Database
+    setExpense(mockData.Expenses);
+    setTenants(mockData.Tenants);
+
+    const filteredExpenses = filter(
+      expensesData,
+      (e: any) => e.propertyId === propertyData.id
+    );
+
+    this.setState({ expensesData: filteredExpenses });
   }
 
   togglePropertyContent = () => {
@@ -171,12 +190,16 @@ class PropertyComponent extends Component<
 
   getOneTenantFromData = (index: number) => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const tenantIdToFind = propertyData.tenants[index];
-    return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
+    return tenantData[
+      findIndex(tenantData, (e: any) => e.id === tenantIdToFind)
+    ];
   };
 
   findEarliestMoveInDate = () => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
@@ -187,10 +210,8 @@ class PropertyComponent extends Component<
   };
 
   sumExpenses = () => {
-    const { propertyData } = this.props;
-
-    const expenses = getDataFromProperty(propertyData.expenses, expensesData);
-    return sumBy(expenses, "amount");
+    const { expensesData } = this.state;
+    return sumBy(expensesData, "amount");
   };
 
   renderTenantNames = () => {
@@ -233,34 +254,36 @@ class PropertyComponent extends Component<
 
   sumAllTenantIncomeForTimePeriod = (timePeriod: string) => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const date = new Date();
     const tenantInfo = getDataFromProperty(propertyData.tenants, tenantData);
     let totalIncome = 0;
 
-    switch (timePeriod) {
-      case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
-        const curMonth = date.getMonth() + 1;
-        const curDate = moment();
+    if (tenantInfo.length) {
+      switch (timePeriod) {
+        case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+          const curMonth = date.getMonth() + 1;
+          const curDate = moment();
 
-        tenantInfo.forEach((data: any) => {
-          const paidMonth = moment(data.lastPaymentDate).month() + 1;
-          const paidDate = moment(data.lastPaymentDate);
+          tenantInfo.forEach((data: any) => {
+            const paidMonth = moment(data.lastPaymentDate).month() + 1;
+            const paidDate = moment(data.lastPaymentDate);
 
-          if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
-            totalIncome += data.rent;
-          }
-        });
+            if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
+              totalIncome += data.rent;
+            }
+          });
 
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
+      }
     }
 
     return totalIncome;
   };
 
   renderBottom = () => {
-    const { propertyData } = this.props;
     const expensesSum = this.sumExpenses();
     const totalIncome =
       this.sumAllTenantIncomeForTimePeriod(
@@ -362,34 +385,44 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const { propertyData } = this.props;
+    const { tenantData, expensesData } = this.state;
 
-    return (
-      <AnimatedTouchableOpacity
-        style={[styles.mainContainer, { height: animatedContainerHeight }]}
-        onPress={() => this.togglePropertyContent()}
-        activeOpacity={0.9}
-      >
-        {this.renderHeader()}
-        {!expanded && this.renderBottom()}
-        {expanded && (
-          <AnimatedContainer
-            style={{ opacity: animatedExpandedContentOpacity }}
-          >
-            <PropertyContentComponent
-              tenantData={getDataFromProperty(propertyData.tenants, tenantData)}
-              expenseData={getDataFromProperty(
-                propertyData.expenses,
-                expensesData
-              )}
-              propertyData={propertyData}
-              totalIncome={this.sumAllTenantIncomeForTimePeriod(
-                constants.RECURRING_PAYMENT_TYPE.MONTHLY
-              )}
-            />
-          </AnimatedContainer>
-        )}
-      </AnimatedTouchableOpacity>
-    );
+    // TODO -- add in an actual loading icon when state is finally being called from API
+    if (!propertyData || !tenantData.length) {
+      return (
+        <Container>
+          <Text>Loading...</Text>
+        </Container>
+      );
+    } else {
+      return (
+        <AnimatedTouchableOpacity
+          style={[styles.mainContainer, { height: animatedContainerHeight }]}
+          onPress={() => this.togglePropertyContent()}
+          activeOpacity={0.9}
+        >
+          {this.renderHeader()}
+          {!expanded && this.renderBottom()}
+          {expanded && (
+            <AnimatedContainer
+              style={{ opacity: animatedExpandedContentOpacity }}
+            >
+              <PropertyContentComponent
+                tenantData={getDataFromProperty(
+                  propertyData.tenants,
+                  tenantData
+                )}
+                expenseData={expensesData}
+                propertyData={propertyData}
+                totalIncome={this.sumAllTenantIncomeForTimePeriod(
+                  constants.RECURRING_PAYMENT_TYPE.MONTHLY
+                )}
+              />
+            </AnimatedContainer>
+          )}
+        </AnimatedTouchableOpacity>
+      );
+    }
   }
 }
 
@@ -399,7 +432,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     height: 200,
-    // maxHeight: 600,
     marginBottom: theme.sizes.padding,
   },
   headerContainer: {
@@ -442,4 +474,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PropertyComponent;
+const mapStateToProps = (state: any) => {
+  return {
+    expenseData: state.propertyState.expenses,
+    tenantData: state.propertyState.tenants,
+  };
+};
+
+const mapDispatchToprops = (dispatch) => {
+  return {
+    setExpense: (payload: any) => dispatch(setExpense(payload)),
+    setTenants,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToprops)(PropertyComponent);

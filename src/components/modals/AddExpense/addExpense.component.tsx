@@ -15,12 +15,14 @@ import { ExpenseModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { addExpense } from "reducks/modules/property";
+import { connect } from "react-redux";
 import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
 
-export default class AddExpenseComponent extends Component<
+class AddExpenseComponent extends Component<
   ExpenseModel.defaultProps,
   ExpenseModel.initialState
 > {
@@ -68,6 +70,36 @@ export default class AddExpenseComponent extends Component<
     );
   };
 
+  handleExpenseSave = () => {
+    const { navigation, addExpense } = this.props;
+    const {
+      expenseName,
+      amountFormatted,
+      expenseStatusDate,
+      expenseStatus,
+      recurring,
+    } = this.state;
+
+    // Call API to save expense to property
+    const payload = {
+      id: Math.floor(Math.random() * 1000),
+      amount: amountFormatted.replace("$", ""),
+      status: expenseStatus,
+      description: "",
+      paidOn: expenseStatusDate,
+      paymentDue: "",
+      recurring: recurring,
+      additionalNotes: "",
+      image: null,
+      propertyId: navigation.getParam("propertyId"),
+      name: expenseName,
+    };
+
+    addExpense(payload);
+
+    navigation.goBack();
+  };
+
   renderNavigationButtons = () => {
     const { handleCancelClicked, navigation } = this.props;
 
@@ -96,7 +128,7 @@ export default class AddExpenseComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
+          onPress={() => this.handleExpenseSave()}
         >
           <Text offWhite center semibold>
             Save
@@ -380,3 +412,9 @@ const styles = StyleSheet.create({
     marginHorizontal: theme.sizes.padding,
   },
 });
+
+const mapDispatchToprops = {
+  addExpense,
+};
+
+export default connect(null, mapDispatchToprops)(AddExpenseComponent);
