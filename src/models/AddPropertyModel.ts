@@ -13,4 +13,5 @@ export interface Props {
   handleCancelClicked: any;
   navigation?: any;
   handleNextClicked: any;
+  addProperty?: any;
 }

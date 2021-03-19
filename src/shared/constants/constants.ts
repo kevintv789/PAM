@@ -1,5 +1,13 @@
 export const SUPPORT_EMAIL = "support@pam.com";
 
+export const PROPERTY_TYPES_LIST = [
+  "Apartment/Condo",
+  "Single Family",
+  "Multi-Family",
+  "Townhouse",
+  "Other",
+];
+
 export const PROPERTY_TYPES = {
   APT_CONDO: "Apartment/Condo",
   SINGLE_FAM: "Single Family",
@@ -9,18 +17,18 @@ export const PROPERTY_TYPES = {
 };
 
 export const RECURRING_PAYMENT_TYPE = {
-  MONTHLY: 'Monthly' || "Month"
-}
+  MONTHLY: "Monthly" || "Month",
+};
 
 export const RECURRING_PAYMENT_PERIODS = [
   "Day",
   "Week",
   "2 Weeks",
   "Month",
-  "Quarter"
-]
+  "Quarter",
+];
 
 export const EXPENSE_STATUS_TYPE = {
-  PAID: 'paid',
-  UNPAID: 'unpaid'
-}
+  PAID: "paid",
+  UNPAID: "unpaid",
+};

@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
-import { animations, constants, mockData, theme } from "shared";
+import { animations, constants, theme } from "shared";
 import { filter, findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
@@ -15,7 +15,10 @@ import {
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
-import { setExpense, setTenants } from "reducks/modules/property";
+import {
+  getExpense,
+  getTenants,
+} from "reducks/modules/property";
 
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
@@ -53,12 +56,15 @@ class PropertyComponent extends Component<
   }
 
   componentDidMount() {
-    const { setExpense, setTenants } = this.props;
+    const {
+      getExpense,
+      getTenants,
+    } = this.props;
     const { propertyData, expensesData } = this.state;
 
     // This is where app needs to call action to read from Database
-    setExpense(mockData.Expenses);
-    setTenants(mockData.Tenants);
+    getExpense();
+    getTenants();
 
     const filteredExpenses = filter(
       expensesData,
@@ -391,7 +397,7 @@ class PropertyComponent extends Component<
     if (!propertyData || !tenantData.length) {
       return (
         <Container>
-          <Text>Loading...</Text>
+          <Text offWhite>Loading...</Text>
         </Container>
       );
     } else {
@@ -481,11 +487,9 @@ const mapStateToProps = (state: any) => {
   };
 };
 
-const mapDispatchToprops = (dispatch) => {
-  return {
-    setExpense: (payload: any) => dispatch(setExpense(payload)),
-    setTenants,
-  };
+const mapDispatchToprops = {
+  getExpense,
+  getTenants,
 };
 
 export default connect(mapStateToProps, mapDispatchToprops)(PropertyComponent);

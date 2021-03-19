@@ -17,16 +17,18 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import { constants, mockData, theme } from "shared";
+import { constants, theme } from "shared";
 
 import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import NotesComponent from 'components/Modals/Notes/notes.component'
+import NotesComponent from "components/Modals/Notes/notes.component";
+import { addProperty } from "reducks/modules/property";
+import { connect } from "react-redux";
 
 const { width, height } = Dimensions.get("window");
 
-export default class AddPropertyComponent extends Component<
+class AddPropertyComponent extends Component<
   AddPropertyModel.Props,
   AddPropertyModel.State
 > {
@@ -34,14 +36,14 @@ export default class AddPropertyComponent extends Component<
     super(props);
 
     this.state = {
-      propertyTypes: mockData.PropertyTypes,
+      propertyTypes: constants.PROPERTY_TYPES_LIST,
       typeSelected: "",
       propertyNickName: "",
       streetAddress: "",
       streetAddressResults: [],
       showKeyboard: true,
       showNotesModal: false,
-      notesValue: null
+      notesValue: null,
     };
   }
 
@@ -157,8 +159,39 @@ export default class AddPropertyComponent extends Component<
     }
   };
 
+  /**
+   * This function combines every state together into a payload to send back to the backend
+   *
+   * Currently, the ID is auto generated using a random number from 0 to 10000, this will be
+   * completely rewritten when the API is built out
+   * 
+   * TODO -- Will need to add error handling in the future
+   */
+  handleSaveProperty = () => {
+    const { handleNextClicked, addProperty } = this.props;
+    const { typeSelected, propertyNickName, streetAddress } = this.state;
+
+    const colorArray = ["#F2CC8F", "#8ECAE6", "#E29578", "#81B29A"];
+
+    const payload = {
+      id: Math.floor(Math.random() * 10000),
+      propertyName: propertyNickName,
+      propertyAddress: streetAddress,
+      notesId: undefined,
+      tenants: [],
+      image: null,
+      unitType: typeSelected,
+      color: colorArray[Math.floor(Math.random() * 4)],
+    };
+
+    addProperty(payload);
+
+    // Calls parent component to show the Done Modal
+    handleNextClicked();
+  };
+
   renderNavigationButtons = () => {
-    const { handleCancelClicked, handleNextClicked } = this.props;
+    const { handleCancelClicked } = this.props;
 
     return (
       <Container
@@ -185,7 +218,7 @@ export default class AddPropertyComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => handleNextClicked()}
+          onPress={() => this.handleSaveProperty()}
         >
           <Text offWhite center semibold>
             Next
@@ -238,7 +271,7 @@ export default class AddPropertyComponent extends Component<
             style={styles.addNotesButtonText}
             editable={false}
             label="Add Notes"
-            value={notesValue ? notesValue.text : ''}
+            value={notesValue ? notesValue.text : ""}
             numberOfLines={1}
           />
           <Entypo
@@ -354,10 +387,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.offWhite,
-    height: 63
+    height: 63,
   },
   addNotesButtonText: {
-    maxWidth: '93%',
+    maxWidth: "93%",
     borderBottomWidth: 0,
   },
   notesChevron: {
@@ -366,3 +399,9 @@ const styles = StyleSheet.create({
     top: theme.sizes.base * 1.4,
   },
 });
+
+const mapDispatchToProps = {
+  addProperty,
+};
+
+export default connect(null, mapDispatchToProps)(AddPropertyComponent);

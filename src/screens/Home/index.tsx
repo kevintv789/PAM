@@ -9,6 +9,7 @@ import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
 import { ScrollView } from "react-native-gesture-handler";
 import { connect } from "react-redux";
+import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
@@ -23,7 +24,15 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   componentDidMount() {
     const { getUser } = this.props;
-    getUser(mockData.User);
+    getUser();
+  }
+
+  componentDidUpdate(prevProps: HomeModel.Props) {
+    const { userData, getPropertiesByIds } = this.props;
+
+    if (prevProps.userData !== userData) {
+      getPropertiesByIds(userData.properties);
+    }
   }
 
   renderDefaultMessage = () => {
@@ -106,7 +115,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { userData } = this.props;
+    const { propertyData } = this.props;
 
     return (
       <ScrollView
@@ -120,7 +129,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         showsVerticalScrollIndicator={false}
       >
         <Container center>
-          {userData.properties.map((property: any) => {
+          {propertyData.map((property: any) => {
+            // this is returning a property id
             return (
               <Container
                 key={property.id}
@@ -204,11 +214,15 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state: any) => {
-  return { userData: state.userState.user };
+  return {
+    userData: state.userState.user,
+    propertyData: state.propertyState.properties,
+  };
 };
 
 const mapDispatchToProps = {
   getUser,
+  getPropertiesByIds,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

@@ -15,4 +15,8 @@ export interface State {
 
 export interface Props {
   propertyData: any;
+  getExpense?: any;
+  getTenants?: any;
+  expenseData: any;
+  tenantData: any;
 }

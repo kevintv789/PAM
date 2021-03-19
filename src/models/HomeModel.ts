@@ -11,5 +11,6 @@ export interface Props {
     properties: Array<object>;
     firstName: string;
   };
+  getPropertiesByIds?: any;
   getUser?: any;
 }
