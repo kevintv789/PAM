@@ -1,3 +1,4 @@
+import AddImageButton from "./AddImageButton";
 import AddressInput from "./AddressInput";
 import Button from "./Button";
 import Container from "./Container";
@@ -7,7 +8,7 @@ import Pills from "./Pills";
 import SelectableBox from "./SelectableBox";
 import Text from "./Text";
 import TextInput from "./TextInput";
-import Toggle from './Toggle';
+import Toggle from "./Toggle";
 import VerticalDivider from "./VerticalDivider";
 
 export {
@@ -21,5 +22,6 @@ export {
   VerticalDivider,
   DataOutline,
   SelectableBox,
-  Toggle
+  Toggle,
+  AddImageButton,
 };

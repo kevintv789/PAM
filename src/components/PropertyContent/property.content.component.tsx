@@ -50,7 +50,7 @@ class PropertyContentComponent extends Component<
       <Button
         color="transparent"
         style={styles.addTenantButton}
-        onPress={() => {}}
+        onPress={() => this.props.navigation.navigate("AddTenantModal")}
       >
         <Text light accent style={{ top: 2 }} size={13}>
           Add Tenant

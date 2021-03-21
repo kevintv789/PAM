@@ -1,4 +1,5 @@
 import {
+  AddImageButton,
   AddressInput,
   Button,
   Container,
@@ -49,26 +50,10 @@ class AddPropertyComponent extends Component<
 
   renderImageSection = () => {
     return (
-      <Container center>
-        <TouchableOpacity>
-          <Container
-            style={styles.imageContainer}
-            margin={[theme.sizes.padding]}
-            flex={false}
-            center
-            middle
-          >
-            <Image
-              source={require("assets/icons/camera.png")}
-              style={styles.cameraImage}
-            />
-          </Container>
-        </TouchableOpacity>
-
-        <Text offWhite light>
-          Add property images or related documents
-        </Text>
-      </Container>
+      <AddImageButton
+        handleOnPress={() => console.log("Adding a property image")}
+        caption="Add property images or related documents"
+      />
     );
   };
 
@@ -164,7 +149,7 @@ class AddPropertyComponent extends Component<
    *
    * Currently, the ID is auto generated using a random number from 0 to 10000, this will be
    * completely rewritten when the API is built out
-   * 
+   *
    * TODO -- Will need to add error handling in the future
    */
   handleSaveProperty = () => {

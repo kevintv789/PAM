@@ -4,6 +4,7 @@ import {
 } from "react-navigation-stack";
 
 import AddExpenseComponent from "components/Modals/AddExpense/addExpense.component";
+import AddTenantComponent from "components/Modals/Add Tenant/addTenant.component";
 import { BottomTabNavigator } from "./BottomTabNavigator";
 import { Image } from "react-native";
 import LoginScreen from "screens/Login";
@@ -13,6 +14,16 @@ import SignUpScreen from "screens/SignUp";
 import Welcome from "screens/Welcome";
 import { createAppContainer } from "react-navigation";
 import { theme } from "shared";
+
+const defaultModalNavOptions = {
+  cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
+  cardStyle: {
+    backgroundColor: "transparent",
+  },
+  gestureEnabled: true,
+  cardOverlayEnabled: true,
+  headerShown: false,
+};
 
 const MainStack = createStackNavigator(
   {
@@ -65,27 +76,15 @@ const RootStack = createStackNavigator(
     },
     AddExpenseModal: {
       screen: AddExpenseComponent,
-      navigationOptions: {
-        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
-        cardStyle: {
-          backgroundColor: "transparent",
-        },
-        gestureEnabled: true,
-        cardOverlayEnabled: true,
-        headerShown: false,
-      },
+      navigationOptions: defaultModalNavOptions,
+    },
+    AddTenantModal: {
+      screen: AddTenantComponent,
+      navigationOptions: defaultModalNavOptions,
     },
     RecurringPaymentModal: {
       screen: RecurringPaymentComponent,
-      navigationOptions: {
-        cardStyleInterpolator: CardStyleInterpolators.forModalPresentationIOS,
-        cardStyle: {
-          backgroundColor: "transparent",
-        },
-        gestureEnabled: true,
-        cardOverlayEnabled: true,
-        headerShown: false,
-      },
+      navigationOptions: defaultModalNavOptions,
     },
   },
   {

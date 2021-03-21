@@ -1,4 +1,5 @@
 import {
+  AddImageButton,
   Button,
   Container,
   HeaderDivider,
@@ -6,7 +7,7 @@ import {
   TextInput,
   Toggle,
 } from "components/common";
-import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
+import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
@@ -45,28 +46,10 @@ class AddExpenseComponent extends Component<
 
   renderImageSection = () => {
     return (
-      <Container center>
-        <TouchableOpacity
-          onPress={() => console.log("Adding an expense image")}
-        >
-          <Container
-            style={styles.imageContainer}
-            margin={[theme.sizes.padding]}
-            flex={false}
-            center
-            middle
-          >
-            <Image
-              source={require("assets/icons/camera.png")}
-              style={styles.cameraImage}
-            />
-          </Container>
-        </TouchableOpacity>
-
-        <Text offWhite light>
-          Add expense receipts or other related documents
-        </Text>
-      </Container>
+      <AddImageButton
+        handleOnPress={() => console.log("Adding an expense image")}
+        caption="Add expense receipts or other related documents"
+      />
     );
   };
 
