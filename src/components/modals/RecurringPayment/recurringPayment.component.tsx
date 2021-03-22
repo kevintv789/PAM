@@ -2,6 +2,7 @@ import {
   Container,
   HeaderDivider,
   Pills,
+  PillsList,
   SelectableBox,
   Text,
   TextInput,
@@ -34,33 +35,10 @@ export default function RecurringPaymentComponent(props: any) {
   const { navigation } = props;
 
   const renderRecurringType = () => (
-    <FlatList
-      keyboardShouldPersistTaps={"handled"}
+    <PillsList
+      defaultSelected={constants.RECURRING_PAYMENT_TYPE.MONTH}
       data={paymentPeriods}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      renderItem={({ item }) => (
-        <Pills
-          label={item}
-          selectable
-          containerStyle={{
-            borderColor:
-              item === periodSelected
-                ? theme.colors.secondary
-                : theme.colors.offWhite,
-          }}
-          labelStyle={{
-            color:
-              item === periodSelected
-                ? theme.colors.secondary
-                : theme.colors.offWhite,
-          }}
-          handlePillSelected={(selected: string) => setPeriodSelected(selected)}
-        />
-      )}
-      keyExtractor={(item: any) => item}
-      snapToAlignment="center"
-      style={styles.periods}
+      handlePillSelected={(selected: string) => setPeriodSelected(selected)}
     />
   );
 

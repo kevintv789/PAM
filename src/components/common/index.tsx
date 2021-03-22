@@ -5,6 +5,7 @@ import Container from "./Container";
 import DataOutline from "./DataOutline";
 import HeaderDivider from "./HeaderDivider";
 import Pills from "./Pills";
+import PillsList from "./PillsList";
 import SelectableBox from "./SelectableBox";
 import Text from "./Text";
 import TextInput from "./TextInput";
@@ -24,4 +25,5 @@ export {
   SelectableBox,
   Toggle,
   AddImageButton,
+  PillsList,
 };

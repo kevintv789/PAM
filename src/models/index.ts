@@ -6,6 +6,7 @@ import * as NotesModel from './NotesModel';
 import * as PropertyContentModel from "./PropertyContentModel";
 import * as PropertyModel from "./PropertyModel";
 import * as SignUpModel from "./SignUpModel";
+import * as AddTenantModel from './AddTenantModel';
 
 export {
   LoginModel,
@@ -16,4 +17,5 @@ export {
   PropertyContentModel,
   NotesModel,
   ExpenseModel
+  AddTenantModel
 };

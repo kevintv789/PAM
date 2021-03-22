@@ -4,7 +4,7 @@ import {
   Button,
   Container,
   HeaderDivider,
-  Pills,
+  PillsList,
   Text,
   TextInput,
 } from "components/common";
@@ -63,37 +63,12 @@ class AddPropertyComponent extends Component<
     return (
       <Container center margin={[theme.sizes.padding, 0, 0, 0]}>
         <HeaderDivider title="Property Type" style={styles.divider} />
-        <FlatList
-          keyboardShouldPersistTaps={"handled"}
+        <PillsList
           data={propertyTypes}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <Pills
-              label={item}
-              selectable
-              containerStyle={{
-                borderColor:
-                  item === typeSelected
-                    ? theme.colors.secondary
-                    : theme.colors.offWhite,
-              }}
-              labelStyle={{
-                color:
-                  item === typeSelected
-                    ? theme.colors.secondary
-                    : theme.colors.offWhite,
-              }}
-              handlePillSelected={(selected: string) =>
-                this.setState({ typeSelected: selected })
-              }
-            />
-          )}
-          keyExtractor={(item: any) => item}
-          snapToAlignment="center"
-          style={styles.propertyList}
+          handlePillSelected={(selected: string) =>
+            this.setState({ typeSelected: selected })
+          }
         />
-
         {this.renderPropertyTypeIcons()}
       </Container>
     );

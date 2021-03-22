@@ -94,6 +94,7 @@ export interface TextInputProps {
   defaultValue?: string;
   multiline?: boolean;
   editable?: boolean;
+  keyboardType?: string;
 }
 
 export interface TextInputState {
