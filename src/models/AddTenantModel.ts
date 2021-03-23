@@ -10,6 +10,10 @@ export interface State {
   deposit: string;
   totalOccupants: number;
   notes: string;
+  rentFormatted: string;
+  depositFormatted: string;
 }
 
-export interface Props {}
+export interface Props {
+    navigation?: any;
+}

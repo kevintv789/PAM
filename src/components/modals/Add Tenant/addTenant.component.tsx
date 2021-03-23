@@ -1,5 +1,6 @@
 import {
   AddImageButton,
+  Button,
   Container,
   HeaderDivider,
   PillsList,
@@ -12,9 +13,10 @@ import { constants, theme } from "shared";
 
 import { AddTenantModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default class AddTenantComponent extends Component<
   AddTenantModel.Props,
@@ -30,9 +32,11 @@ export default class AddTenantComponent extends Component<
       leaseType: "",
       leaseStartDate: moment(new Date()).format("MM/DD/YYYY"),
       leaseEndDate: "",
-      rentPaidPeriod: "",
-      rent: "$0.00",
+      rentPaidPeriod: "Monthly",
+      rent: "",
+      rentFormatted: "",
       deposit: "",
+      depositFormatted: "",
       totalOccupants: 1,
       notes: "",
     };
@@ -79,7 +83,15 @@ export default class AddTenantComponent extends Component<
   };
 
   renderLeaseInfo = () => {
-    const { leaseStartDate, leaseEndDate } = this.state;
+    const {
+      leaseStartDate,
+      leaseEndDate,
+      rentPaidPeriod,
+      rent,
+      rentFormatted,
+      deposit,
+      depositFormatted,
+    } = this.state;
 
     const leaseTypes = Object.values(constants.LEASE_TYPE);
 
@@ -124,6 +136,98 @@ export default class AddTenantComponent extends Component<
             this.setState({ rentPaidPeriod })
           }
         />
+        <TextInput
+          label={`Rent / ${rentPaidPeriod}`}
+          keyboardType="numeric"
+          style={styles.input}
+          value={rentFormatted}
+          onChangeText={(value: any) => {
+            if (
+              rentFormatted.length > value.length ||
+              (value.length === 1 && value === ".")
+            ) {
+              this.setState({ rent: "", rentFormatted: "" });
+            } else {
+              this.setState({
+                rent: parseFloat(
+                  formatCurrencyFromCents(value, rent).rawVal
+                ).toString(),
+                rentFormatted:
+                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
+                    ? `$${
+                        formatCurrencyFromCents(value, rent).formattedAmt
+                      }`.slice(0, -1)
+                    : `$${formatCurrencyFromCents(value, rent).formattedAmt}`,
+              });
+            }
+          }}
+        />
+        <TextInput
+          label="Deposit paid"
+          keyboardType="numeric"
+          style={styles.input}
+          value={depositFormatted}
+          onChangeText={(value: any) => {
+            if (
+              depositFormatted.length > value.length ||
+              (value.length === 1 && value === ".")
+            ) {
+              this.setState({ deposit: "", depositFormatted: "" });
+            } else {
+              this.setState({
+                deposit: parseFloat(
+                  formatCurrencyFromCents(value, deposit).rawVal
+                ).toString(),
+                depositFormatted:
+                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
+                    ? `$${
+                        formatCurrencyFromCents(value, deposit).formattedAmt
+                      }`.slice(0, -1)
+                    : `$${
+                        formatCurrencyFromCents(value, deposit).formattedAmt
+                      }`,
+              });
+            }
+          }}
+        />
+      </Container>
+    );
+  };
+
+  renderNavigationButtons = () => {
+    const { handleCancelClicked, navigation } = this.props;
+
+    return (
+      <Container
+        row
+        space="between"
+        flex={false}
+        padding={[
+          theme.sizes.padding / 1.3,
+          theme.sizes.padding / 1.3,
+          0,
+          theme.sizes.padding / 1.3,
+        ]}
+        style={{ height: height / 4.8 }}
+      >
+        <Button
+          color="red"
+          style={styles.navigationButtons}
+          onPress={() => navigation.goBack()}
+        >
+          <Text offWhite center semibold>
+            Cancel
+          </Text>
+        </Button>
+        <Button
+          color="secondary"
+          style={styles.navigationButtons}
+          onPress={() => navigation.goBack()}
+        >
+          <Text offWhite center semibold>
+            Save
+          </Text>
+        </Button>
       </Container>
     );
   };
@@ -155,6 +259,7 @@ export default class AddTenantComponent extends Component<
             {this.renderTenantInfo()}
             <HeaderDivider title="Lease Information" />
             {this.renderLeaseInfo()}
+            {this.renderNavigationButtons()}
           </ScrollView>
         </Container>
       </KeyboardAwareScrollView>
@@ -165,5 +270,8 @@ export default class AddTenantComponent extends Component<
 const styles = StyleSheet.create({
   input: {
     width: width * 0.93,
+  },
+  navigationButtons: {
+    width: theme.sizes.padding * 5.5,
   },
 });

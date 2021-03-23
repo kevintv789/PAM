@@ -172,16 +172,22 @@ class AddExpenseComponent extends Component<
           style={styles.input}
           value={amountFormatted}
           onChangeText={(value: any) => {
-            if (amountFormatted.length > value.length) {
+            if (
+              amountFormatted.length > value.length ||
+              (value.length === 1 && value === ".")
+            ) {
               this.setState({ amount: "", amountFormatted: "" });
             } else {
               this.setState({
                 amount: parseFloat(
                   formatCurrencyFromCents(value, amount).rawVal
                 ).toString(),
-                amountFormatted: `$${
-                  formatCurrencyFromCents(value, amount).formattedAmt
-                }`,
+                amountFormatted:
+                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
+                    ? `$${
+                        formatCurrencyFromCents(value, amount).formattedAmt
+                      }`.slice(0, -1)
+                    : `$${formatCurrencyFromCents(value, amount).formattedAmt}`,
               });
             }
           }}
