@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Container from "components/common/Container";
 import Pills from "components/common/Pills";
@@ -18,6 +18,21 @@ export default function PillsList(props: any) {
     handlePillSelected(selected);
   };
 
+  let flatListRef: any;
+
+  const goIndex = (index: number) => {
+    flatListRef.scrollToIndex({ animated: true, index, viewPosition: 0.5 });
+  };
+
+  useEffect(() => {
+    if (defaultSelected) {
+      // grab index of the default selected item
+      // and automatically scroll to the selected item
+      const index = data.indexOf(defaultSelected);
+      goIndex(index);
+    }
+  }, []);
+
   return (
     <Container>
       {label && (
@@ -30,7 +45,16 @@ export default function PillsList(props: any) {
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
+        ref={(ref) => {
+          flatListRef = ref;
+        }}
+        onScrollToIndexFailed={(info) => {
+          const wait = new Promise((resolve) => setTimeout(resolve, 500)); // If FlatList fails to scroll to index automatically, then wait for 500 ms and try again
+          wait.then(() => {
+            goIndex(info.index);
+          });
+        }}
+        renderItem={({ item, index }) => (
           <Pills
             label={item}
             selectable
@@ -46,7 +70,10 @@ export default function PillsList(props: any) {
                   ? theme.colors.secondary
                   : theme.colors.offWhite,
             }}
-            handlePillSelected={(selected: any) => handleSelected(selected)}
+            handlePillSelected={(selected: any) => {
+              handleSelected(selected);
+              goIndex(index);
+            }}
           />
         )}
         keyExtractor={(item: any) => item}
@@ -65,6 +92,6 @@ const styles = StyleSheet.create({
   },
   label: {
     paddingHorizontal: 10,
-    top: 10
+    top: 10,
   },
 });

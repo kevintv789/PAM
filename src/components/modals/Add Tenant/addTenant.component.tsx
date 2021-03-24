@@ -13,6 +13,7 @@ import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { addTenant, updateProperty } from "reducks/modules/property";
 import { constants, theme } from "shared";
+import { formatCurrencyFromCents, formatMobileNumber } from "shared/Utils";
 
 import { AddTenantModel } from "models";
 import { Entypo } from "@expo/vector-icons";
@@ -20,7 +21,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { connect } from "react-redux";
-import { formatCurrencyFromCents } from "shared/Utils";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
 import update from "react-addons-update";
@@ -132,7 +132,11 @@ class AddTenantComponent extends Component<
           keyboardType="phone-pad"
           label="Phone"
           value={phone}
-          onChangeText={(phone: string) => this.setState({ phone })}
+          onChangeText={(phone: string) =>
+            this.setState<any>((prevState) => ({
+              phone: formatMobileNumber(phone, prevState.phone),
+            }))
+          }
           style={styles.input}
         />
         <TextInput

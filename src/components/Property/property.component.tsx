@@ -116,7 +116,6 @@ class PropertyComponent extends Component<
       animatedHeaderImageHeight,
       animatedHeaderPropertyAddressTop,
       expanded,
-      animatedContainerHeight,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
