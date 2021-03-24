@@ -9,11 +9,16 @@ export interface State {
   rent: string;
   deposit: string;
   totalOccupants: number;
-  notes: string;
+  notes: any;
   rentFormatted: string;
   depositFormatted: string;
+  showNotesModal: boolean;
+  lastPaymentDate: string;
+  hasTenantPaidFirstRent: boolean;
 }
 
 export interface Props {
-    navigation?: any;
+  navigation?: any;
+  addTenant?: any;
+  updateProperty?: any;
 }

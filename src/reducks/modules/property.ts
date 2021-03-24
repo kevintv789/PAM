@@ -7,6 +7,8 @@ const GET_TENANTS = "GET_TENANTS";
 const GET_PROPERTIES = "GET_PROPERTIES";
 const ADD_EXPENSE = "ADD_EXPENSE";
 const ADD_PROPERTY = "ADD_PROPERTY";
+const ADD_TENANT = "ADD_TENANT";
+const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 
 export const getExpense = () => {
   return (dispatch: any) => {
@@ -20,12 +22,17 @@ export const getPropertiesByIds = (propertyIds: number[]) => ({
 });
 export const addExpense = (payload: any) => ({ type: ADD_EXPENSE, payload });
 export const addProperty = (payload: any) => ({ type: ADD_PROPERTY, payload });
+export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
+export const updateProperty = (payload: any) => ({
+  type: UPDATE_PROPERTY,
+  payload,
+});
 
 // State & Reducer
 const initialState = {
   properties: [],
-  expenses: [],
-  tenants: [],
+  expenses: mockData.Expenses,
+  tenants: mockData.Tenants,
 };
 
 export const propertyReducer = (state = initialState, action: any) => {
@@ -42,13 +49,27 @@ export const propertyReducer = (state = initialState, action: any) => {
 
       return { ...state, properties: filteredProperties };
     case GET_EXPENSE:
-      return { ...state, expenses: mockData.Expenses };
+      return { ...state };
     case GET_TENANTS:
-      return { ...state, tenants: mockData.Tenants };
+      return { ...state };
     case ADD_EXPENSE:
       return { ...state, expenses: [...state.expenses, action.payload] };
     case ADD_PROPERTY:
       return { ...state, properties: [...state.properties, action.payload] };
+    case ADD_TENANT:
+      return { ...state, tenants: [...state.tenants, action.payload] };
+    case UPDATE_PROPERTY:
+      const propertyToUpdate = action.payload;
+      const properties: any[] = state.properties;
+
+      // find which property to update
+      properties.map((p: any, index: number) => {
+        if (p.id === propertyToUpdate.id) {
+          properties[index] = propertyToUpdate;
+        }
+      });
+
+      return { ...state, properties };
     default:
       return state;
   }

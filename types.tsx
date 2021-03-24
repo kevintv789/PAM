@@ -10,8 +10,8 @@ export interface ContainerProps {
   column?: any;
   center?: any;
   middle?: any;
-  left?: number;
-  right?: number;
+  left?: any;
+  right?: any;
   top?: number;
   bottom?: number;
   card?: any;
@@ -95,6 +95,9 @@ export interface TextInputProps {
   multiline?: boolean;
   editable?: boolean;
   keyboardType?: string;
+  gray?: any;
+  size?: number;
+  numberOfLines?: number
 }
 
 export interface TextInputState {

@@ -8,17 +8,14 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, sortBy, sumBy } from "lodash";
+import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
-import {
-  getExpense,
-  getTenants,
-} from "reducks/modules/property";
+import { getExpense, getTenants } from "reducks/modules/property";
 
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
@@ -56,10 +53,7 @@ class PropertyComponent extends Component<
   }
 
   componentDidMount() {
-    const {
-      getExpense,
-      getTenants,
-    } = this.props;
+    const { getExpense, getTenants } = this.props;
     const { propertyData, expensesData } = this.state;
 
     // This is where app needs to call action to read from Database
@@ -209,10 +203,12 @@ class PropertyComponent extends Component<
     const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
-    const earliestMoveIn = sortBy(tenants, (e: any) =>
-      moment(e.leaseStartDate)
-    )[0].leaseStartDate;
-    return moment(earliestMoveIn).format("MM/DD/YYYY");
+    if (tenants && tenants.length > 0) {
+      const earliestMoveIn = sortBy(tenants, (e: any) =>
+        moment(e.leaseStartDate)
+      )[0].leaseStartDate;
+      return moment(earliestMoveIn).format("MM/DD/YYYY");
+    }
   };
 
   sumExpenses = () => {
@@ -222,39 +218,46 @@ class PropertyComponent extends Component<
 
   renderTenantNames = () => {
     const { propertyData } = this.props;
-    if (!propertyData.tenants.length) {
-      return (
-        <Text accent semibold size={theme.fontSizes.big}>
-          Vacant
-        </Text>
-      );
-    } else if (
-      propertyData.tenants.length > 0 &&
-      propertyData.tenants.length < 4
-    ) {
-      return (
-        <Container>
-          {propertyData.tenants.map((e: any, index: number) => (
-            <Container row space="between" middle key={index}>
-              <Text accent medium>
-                {this.getOneTenantFromData(index).name.split(" ")[0]}
-              </Text>
-              <Text light size={11} style={{ top: 2 }}>
-                From {this.getOneTenantFromData(index).leaseStartDate}
-              </Text>
-            </Container>
-          ))}
-        </Container>
-      );
-    } else {
-      return (
-        <Container>
-          <Text accent semibold>
-            {propertyData.tenants.length} Occupants
+
+    if (propertyData.tenants) {
+      if (!propertyData.tenants.length) {
+        return (
+          <Text accent semibold size={theme.fontSizes.big}>
+            Vacant
           </Text>
-          <Text light>From {this.findEarliestMoveInDate()}</Text>
-        </Container>
-      );
+        );
+      } else if (
+        propertyData.tenants.length > 0 &&
+        propertyData.tenants.length < 4
+      ) {
+        return (
+          <Container>
+            {propertyData.tenants.map((e: any, index: number) => {
+              if (this.getOneTenantFromData(index)) {
+                return (
+                  <Container row space="between" middle key={index}>
+                    <Text accent medium>
+                      {this.getOneTenantFromData(index).name.split(" ")[0]}
+                    </Text>
+                    <Text light size={11} style={{ top: 2 }}>
+                      From {this.getOneTenantFromData(index).leaseStartDate}
+                    </Text>
+                  </Container>
+                );
+              }
+            })}
+          </Container>
+        );
+      } else {
+        return (
+          <Container>
+            <Text accent semibold>
+              {propertyData.tenants.length} Occupants
+            </Text>
+            <Text light>From {this.findEarliestMoveInDate()}</Text>
+          </Container>
+        );
+      }
     }
   };
 
@@ -272,11 +275,12 @@ class PropertyComponent extends Component<
           const curDate = moment();
 
           tenantInfo.forEach((data: any) => {
-            const paidMonth = moment(data.lastPaymentDate).month() + 1;
-            const paidDate = moment(data.lastPaymentDate);
-
-            if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
-              totalIncome += data.rent;
+            if (data.lastPaymentDate) {
+              const paidMonth = moment(data.lastPaymentDate).month() + 1;
+              const paidDate = moment(data.lastPaymentDate);
+              if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
+                totalIncome += data.rent;
+              }
             }
           });
 
@@ -391,7 +395,7 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const { propertyData } = this.props;
-    const { tenantData, expensesData } = this.state;
+    const { expensesData, tenantData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
     if (!propertyData || !tenantData.length) {

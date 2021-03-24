@@ -2,23 +2,32 @@ import {
   AddImageButton,
   Button,
   Container,
+  Counter,
   HeaderDivider,
   PillsList,
   Text,
   TextInput,
+  Toggle,
 } from "components/common";
-import { Dimensions, ScrollView, StyleSheet } from "react-native";
+import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { addTenant, updateProperty } from "reducks/modules/property";
 import { constants, theme } from "shared";
 
 import { AddTenantModel } from "models";
+import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import NotesComponent from "components/Modals/Notes/notes.component";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { connect } from "react-redux";
 import { formatCurrencyFromCents } from "shared/Utils";
+import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
+import update from "react-addons-update";
 
 const { width, height } = Dimensions.get("window");
 
-export default class AddTenantComponent extends Component<
+class AddTenantComponent extends Component<
   AddTenantModel.Props,
   AddTenantModel.State
 > {
@@ -38,9 +47,64 @@ export default class AddTenantComponent extends Component<
       deposit: "",
       depositFormatted: "",
       totalOccupants: 1,
-      notes: "",
+      notes: undefined,
+      showNotesModal: false,
+      lastPaymentDate: moment().format("MM/DD/YYYY"),
+      hasTenantPaidFirstRent: false,
     };
   }
+
+  handleAddTenant = () => {
+    const { navigation, addTenant, updateProperty } = this.props;
+    const {
+      primaryTenantName,
+      phone,
+      email,
+      leaseType,
+      leaseStartDate,
+      leaseEndDate,
+      deposit,
+      rentPaidPeriod,
+      totalOccupants,
+      rentFormatted,
+      lastPaymentDate,
+      hasTenantPaidFirstRent,
+    } = this.state;
+
+    const propertyData = navigation.getParam("propertyData");
+    const rentToInt =
+      rentFormatted !== ""
+        ? parseFloat(rentFormatted.replace("$", "").replace(",", ""))
+        : 0;
+    const tenantId = Math.floor(10 + Math.random() * 10000);
+
+    const tenantPayload = {
+      id: tenantId,
+      properties: [propertyData.id],
+      name: primaryTenantName,
+      phone,
+      email,
+      leaseType,
+      leaseStartDate,
+      leaseEndDate,
+      securityDeposit: deposit,
+      recurringPaymentType: rentPaidPeriod, // monthly, quarterly, annually, etc. this will be used to calculate next expected payment
+      totalOccupants,
+      rent: rentToInt,
+      collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
+      lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : undefined,
+      nextPaymentDate: getNextPaymentDate(leaseStartDate, rentPaidPeriod),
+    };
+
+    const propertyPayload = update(propertyData, {
+      tenants: { $push: [tenantId] },
+    });
+
+    addTenant(tenantPayload);
+    updateProperty(propertyPayload);
+    navigation.goBack();
+  };
+
   renderImageSection = () => {
     return (
       <AddImageButton
@@ -91,6 +155,9 @@ export default class AddTenantComponent extends Component<
       rentFormatted,
       deposit,
       depositFormatted,
+      notes,
+      hasTenantPaidFirstRent,
+      lastPaymentDate,
     } = this.state;
 
     const leaseTypes = Object.values(constants.LEASE_TYPE);
@@ -98,6 +165,11 @@ export default class AddTenantComponent extends Component<
     const rentPeriods = Object.values(constants.RECURRING_PAYMENT_TYPE).filter(
       (e) => e !== constants.RECURRING_PAYMENT_TYPE.MONTH
     );
+
+    const options = [
+      { label: "No", value: false },
+      { label: "Yes", value: true },
+    ];
 
     return (
       <Container center>
@@ -128,6 +200,41 @@ export default class AddTenantComponent extends Component<
             this.setState({ leaseEndDate })
           }
         />
+
+        {/* ------ RENT IS PAID TOGGLE ------ */}
+        <Container flex={false} row space="between" center>
+          <Container left padding={[18, 0, 0, 11]}>
+            <Text semibold tertiary>
+              Has tenant paid first rent?
+            </Text>
+          </Container>
+
+          <Toggle
+            options={options}
+            initialIndex={0}
+            handleToggled={(value: boolean) => {
+              this.setState({ hasTenantPaidFirstRent: value });
+            }}
+            containerStyle={styles.toggle}
+            borderRadius={13}
+            height={48}
+          />
+        </Container>
+
+        {/* ------ RENT PAID ON DATE ------ */}
+        {hasTenantPaidFirstRent && (
+          <TextInput
+            dateTime
+            label="Rent paid on"
+            value={lastPaymentDate}
+            style={styles.input}
+            onChangeDate={(lastPaymentDate: string) =>
+              this.setState({ lastPaymentDate })
+            }
+          />
+        )}
+
+        {/* ------ RENT IS PAID PILLS LIST ------ */}
         <PillsList
           label="Rent is paid:"
           defaultSelected={constants.RECURRING_PAYMENT_TYPE.MONTHLY}
@@ -190,12 +297,62 @@ export default class AddTenantComponent extends Component<
             }
           }}
         />
+
+        {/* ------- TOTAL OCCUPANTS COUNTER ------- */}
+        <Container
+          row
+          center
+          padding={[
+            theme.sizes.base * 1.4,
+            theme.sizes.base,
+            theme.sizes.base,
+            theme.sizes.base,
+          ]}
+        >
+          <Container left>
+            <Text tertiary semibold>
+              Total Occupants:
+            </Text>
+          </Container>
+
+          <Container right flex={false}>
+            <Counter
+              min={1}
+              max={99}
+              onCountChange={(count: number) =>
+                this.setState({ totalOccupants: count })
+              }
+            />
+          </Container>
+        </Container>
+
+        {/* ------- ADD NOTES INPUT ------- */}
+        <TouchableOpacity
+          style={styles.addNotesButton}
+          onPress={() => this.setState({ showNotesModal: true })}
+        >
+          <TextInput
+            gray
+            size={theme.fontSizes.medium}
+            style={styles.addNotesButtonText}
+            editable={false}
+            label="Add Notes"
+            value={notes ? notes.text : ""}
+            numberOfLines={1}
+          />
+          <Entypo
+            name="chevron-small-right"
+            size={26}
+            color={theme.colors.gray}
+            style={styles.notesChevron}
+          />
+        </TouchableOpacity>
       </Container>
     );
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked, navigation } = this.props;
+    const { navigation } = this.props;
 
     return (
       <Container
@@ -222,13 +379,32 @@ export default class AddTenantComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
+          onPress={() => this.handleAddTenant()}
         >
           <Text offWhite center semibold>
             Save
           </Text>
         </Button>
       </Container>
+    );
+  };
+
+  renderNotesModal = () => {
+    const { showNotesModal } = this.state;
+
+    return (
+      <Modal
+        visible={showNotesModal}
+        animationType="fade"
+        onDismiss={() => this.setState({ showNotesModal: false })}
+      >
+        <NotesComponent
+          label="New Tenant(s)"
+          handleBackClick={(notes: string) =>
+            this.setState({ notes, showNotesModal: false })
+          }
+        />
+      </Modal>
     );
   };
 
@@ -240,11 +416,7 @@ export default class AddTenantComponent extends Component<
         keyboardShouldPersistTaps={"handled"}
         enableAutomaticScroll={true}
       >
-        <Container
-          center
-          color="accent"
-          padding={[0, 0, theme.sizes.padding * 3]}
-        >
+        <Container center color="accent" padding={[0, 0, theme.sizes.padding]}>
           <ScrollView keyboardShouldPersistTaps={"handled"}>
             <Text
               h1
@@ -260,6 +432,7 @@ export default class AddTenantComponent extends Component<
             <HeaderDivider title="Lease Information" />
             {this.renderLeaseInfo()}
             {this.renderNavigationButtons()}
+            {this.renderNotesModal()}
           </ScrollView>
         </Container>
       </KeyboardAwareScrollView>
@@ -274,4 +447,34 @@ const styles = StyleSheet.create({
   navigationButtons: {
     width: theme.sizes.padding * 5.5,
   },
+  addNotesButton: {
+    backgroundColor: "transparent",
+    minWidth: "93%",
+    maxWidth: "93%",
+    overflow: "hidden",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.offWhite,
+    height: 63,
+  },
+  addNotesButtonText: {
+    maxWidth: "93%",
+    borderBottomWidth: 0,
+  },
+  notesChevron: {
+    position: "absolute",
+    right: 0,
+    top: theme.sizes.base * 1.4,
+  },
+  toggle: {
+    minWidth: 145,
+    maxWidth: 145,
+    // marginHorizontal: theme.sizes.base,
+  },
 });
+
+const mapDispatchToProps = {
+  addTenant,
+  updateProperty,
+};
+
+export default connect(null, mapDispatchToProps)(AddTenantComponent);
