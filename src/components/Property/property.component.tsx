@@ -27,9 +27,6 @@ const { width } = Dimensions.get("window");
 
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
-  TouchableOpacity
-);
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
@@ -119,72 +116,82 @@ class PropertyComponent extends Component<
       animatedHeaderImageHeight,
       animatedHeaderPropertyAddressTop,
       expanded,
+      animatedContainerHeight,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
-      <AnimatedContainer
-        row
-        flex={false}
-        style={[
-          styles.headerContainer,
-          { backgroundColor: propertyData.color, height: animatedHeaderHeight },
-        ]}
+      <TouchableOpacity
+        style={styles.touchableArea}
+        onPress={() => this.togglePropertyContent()}
+        activeOpacity={0.9}
       >
-        <AnimatedImage
-          source={getPropertyImage(propertyData.image, propertyData.unitType)}
+        <AnimatedContainer
+          row
+          flex={false}
           style={[
-            styles.propertyImages,
+            styles.headerContainer,
             {
-              width: animatedHeaderImageWidth,
-              height: animatedHeaderImageHeight,
+              backgroundColor: propertyData.color,
+              height: animatedHeaderHeight,
             },
           ]}
-        />
-        <Container>
-          <AnimatedContainer
-            row
-            center
-            flex={1}
-            style={{ top: animatedHeaderPropertyAddressTop }}
-          >
-            <Image
-              source={iconImageData.imagePath}
-              style={[
-                styles.propIcons,
-                {
-                  width: iconImageData.newWidth
-                    ? iconImageData.newWidth / 1.8
-                    : 20,
-                  height: iconImageData.newHeight
-                    ? iconImageData.newHeight / 1.8
-                    : 20,
-                  marginTop: -5,
-                },
-              ]}
-            />
-            <Text accent light size={theme.fontSizes.medium}>
-              {propertyData.propertyAddress}
-            </Text>
-            <TouchableOpacity
-              style={{ position: "absolute", right: -5 }}
-              onPress={() => console.log("Edit Pressed...")}
+        >
+          <AnimatedImage
+            source={getPropertyImage(propertyData.image, propertyData.unitType)}
+            style={[
+              styles.propertyImages,
+              {
+                width: animatedHeaderImageWidth,
+                height: animatedHeaderImageHeight,
+              },
+            ]}
+          />
+          <Container>
+            <AnimatedContainer
+              row
+              center
+              flex={1}
+              style={{ top: animatedHeaderPropertyAddressTop }}
             >
-              <Container flex={false}>
-                <Entypo
-                  name="dots-three-vertical"
-                  size={18}
-                  color={theme.colors.accent}
-                />
-              </Container>
-            </TouchableOpacity>
-          </AnimatedContainer>
+              <Image
+                source={iconImageData.imagePath}
+                style={[
+                  styles.propIcons,
+                  {
+                    width: iconImageData.newWidth
+                      ? iconImageData.newWidth / 1.8
+                      : 20,
+                    height: iconImageData.newHeight
+                      ? iconImageData.newHeight / 1.8
+                      : 20,
+                    marginTop: -5,
+                  },
+                ]}
+              />
+              <Text accent light size={theme.fontSizes.medium}>
+                {propertyData.propertyAddress}
+              </Text>
+              <TouchableOpacity
+                style={{ position: "absolute", right: -5 }}
+                onPress={() => console.log("Edit Pressed...")}
+              >
+                <Container flex={false}>
+                  <Entypo
+                    name="dots-three-vertical"
+                    size={18}
+                    color={theme.colors.accent}
+                  />
+                </Container>
+              </TouchableOpacity>
+            </AnimatedContainer>
 
-          <Text accent semibold size={theme.fontSizes.medium}>
-            {!expanded && propertyData.propertyName}
-          </Text>
-        </Container>
-      </AnimatedContainer>
+            <Text accent semibold size={theme.fontSizes.medium}>
+              {!expanded && propertyData.propertyName}
+            </Text>
+          </Container>
+        </AnimatedContainer>
+      </TouchableOpacity>
     );
   };
 
@@ -406,12 +413,16 @@ class PropertyComponent extends Component<
       );
     } else {
       return (
-        <AnimatedTouchableOpacity
+        <AnimatedContainer
           style={[styles.mainContainer, { height: animatedContainerHeight }]}
-          onPress={() => this.togglePropertyContent()}
-          activeOpacity={0.9}
         >
+          {/* <AnimatedTouchableOpacity
+            style={[styles.mainContainer, { height: animatedContainerHeight }]}
+            onPress={() => this.togglePropertyContent()}
+            activeOpacity={0.9}
+          > */}
           {this.renderHeader()}
+          {/* </AnimatedTouchableOpacity> */}
           {!expanded && this.renderBottom()}
           {expanded && (
             <AnimatedContainer
@@ -430,7 +441,7 @@ class PropertyComponent extends Component<
               />
             </AnimatedContainer>
           )}
-        </AnimatedTouchableOpacity>
+        </AnimatedContainer>
       );
     }
   }
@@ -443,6 +454,9 @@ const styles = StyleSheet.create({
     width: "90%",
     height: 200,
     marginBottom: theme.sizes.padding,
+  },
+  touchableArea: {
+    width: "100%",
   },
   headerContainer: {
     width: "100%",
