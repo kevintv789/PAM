@@ -1,25 +1,20 @@
+import {
+  Container,
+  HeaderDivider,
+  Pills,
+  PillsList,
+  SelectableBox,
+  Text,
+  TextInput,
+  Toggle,
+} from "components/common";
 import { Dimensions, FlatList, Image, StyleSheet } from "react-native";
 import React, { useState } from "react";
 import { constants, theme } from "shared";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
-import _Container from "components/common/Container";
-import _HeaderDivider from "components/common/HeaderDivider";
-import _Pills from "components/common/Pills";
-import _SelectableBox from "components/common/SelectableBox";
-import _Text from "components/common/Text";
-import _TextInput from "components/common/TextInput";
-import _Toggle from "components/common/Toggle";
 import moment from "moment";
-
-const Container: any = _Container;
-const Text: any = _Text;
-const HeaderDivider: any = _HeaderDivider;
-const TextInput: any = _TextInput;
-const Toggle: any = _Toggle;
-const Pills: any = _Pills;
-const SelectableBox: any = _SelectableBox;
 
 const { width } = Dimensions.get("window");
 
@@ -40,33 +35,10 @@ export default function RecurringPaymentComponent(props: any) {
   const { navigation } = props;
 
   const renderRecurringType = () => (
-    <FlatList
-      keyboardShouldPersistTaps={"handled"}
+    <PillsList
+      defaultSelected={constants.RECURRING_PAYMENT_TYPE.MONTH}
       data={paymentPeriods}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      renderItem={({ item }) => (
-        <Pills
-          label={item}
-          selectable
-          containerStyle={{
-            borderColor:
-              item === periodSelected
-                ? theme.colors.secondary
-                : theme.colors.offWhite,
-          }}
-          labelStyle={{
-            color:
-              item === periodSelected
-                ? theme.colors.secondary
-                : theme.colors.offWhite,
-          }}
-          handlePillSelected={(selected: string) => setPeriodSelected(selected)}
-        />
-      )}
-      keyExtractor={(item: any) => item}
-      snapToAlignment="center"
-      style={styles.periods}
+      handlePillSelected={(selected: string) => setPeriodSelected(selected)}
     />
   );
 

@@ -4,17 +4,12 @@ import { Animated, StyleSheet, TextInput } from "react-native";
 import React, { Component } from "react";
 import { TextInputProps, TextInputState } from "../../../types";
 
+import Button from "./Button";
+import Container from "./Container";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Button from "./Button";
-import _Container from "./Container";
-import _Text from "./Text";
 import moment from "moment";
 import { theme } from "shared";
-
-const Button: any = _Button;
-const Container: any = _Container;
-const Text: any = _Text;
 
 export default class Input extends Component<TextInputProps, TextInputState> {
   animatedIsFocused: Animated.Value;

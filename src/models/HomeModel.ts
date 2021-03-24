@@ -1,11 +1,16 @@
 export interface State {
-  user: {
+  showModal: boolean;
+  showDoneModal: boolean;
+}
+
+export interface Props {
+  userData: {
     email: string;
     password: string;
     phone: string;
     properties: Array<object>;
     firstName: string;
   };
-  showModal: boolean;
-  showDoneModal: boolean;
+  getPropertiesByIds?: any;
+  getUser?: any;
 }

@@ -16,7 +16,8 @@
       "@navigation": ["./navigation"],
       "@screens": ["./screens"],
       "@shared": ["./shared"],
-      "@models": ["./models"]
+      "@models": ["./models"],
+      "@reducks": ["./reducks"]
     }
   }
 }

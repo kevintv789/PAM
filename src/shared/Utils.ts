@@ -103,11 +103,15 @@ export const getPropertyImage = (image: any, type: string) => {
 export const formatNumber = (value: any) => {
   let newValue = value;
 
-  if (typeof value === "string") {
-    newValue = Number(value.replaceAll(",", ""));
+  if (value) {
+    if (typeof value === "string") {
+      newValue = Number(value.replaceAll(",", ""));
+    }
+
+    return newValue.toLocaleString();
   }
 
-  return newValue.toLocaleString();
+  return 0;
 };
 
 /**
@@ -199,5 +203,64 @@ export const getDataFromProperty = (ids: number[], dataToFilter: object[]) => {
     });
   }
 
-  return result;
+  return result.filter((res) => res !== undefined);
+};
+
+/**
+ * This function takes in 2 parameters, startDate and payPeriod and returns a
+ * moment calculated date based on selected time period.
+ * Example: If user selects "MONTHLY" as their pay period on 3/12/2021,
+ * then the next payment date will be calculated to 4/12/2021
+ *
+ * @param startDate
+ * @param payPeriod
+ */
+export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
+  let timeToAdd = -1;
+  let dateType: any;
+
+  switch (payPeriod) {
+    case constants.RECURRING_PAYMENT_TYPE.ONE_TIME:
+      timeToAdd = 0;
+      dateType = "days";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.DAILY:
+      timeToAdd = 1;
+      dateType = "days";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.WEEKLY:
+      timeToAdd = 7;
+      dateType = "days";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.BIWEEKLY:
+      timeToAdd = 14;
+      dateType = "days";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+      timeToAdd = 1;
+      dateType = "months";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.BIMONTHLY:
+      timeToAdd = 2;
+      dateType = "months";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.QUARTERLY:
+      timeToAdd = 3;
+      dateType = "months";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.SEMI_ANNUALLY:
+      timeToAdd = 6;
+      dateType = "months";
+      break;
+    case constants.RECURRING_PAYMENT_TYPE.ANNUALLY:
+      timeToAdd = 12;
+      dateType = "months";
+      break;
+    default:
+      break;
+  }
+
+  if (timeToAdd >= 0) {
+    return moment(startDate).add(timeToAdd, dateType).format("MM/DD/YYYY");
+  }
 };

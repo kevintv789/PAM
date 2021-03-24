@@ -1,4 +1,4 @@
-import { Button, Container, Text } from "components";
+import { Button, Container, Text } from "components/common";
 import { ImageBackground, StyleSheet } from "react-native";
 import React, { Component } from "react";
 

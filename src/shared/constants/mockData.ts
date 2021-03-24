@@ -281,8 +281,6 @@ export const Properties = [
     tenants: [4, 5],
     image: null,
     unitType: PropertyTypes[1],
-    income: 1860,
-    expenses: [1, 2, 3, 4],
     color: "#F2CC8F",
   },
   {
@@ -293,8 +291,6 @@ export const Properties = [
     tenants: [1, 2, 3],
     image: "",
     unitType: PropertyTypes[0],
-    income: 1000,
-    expenses: [1, 2, 3, 4, 5], // 500
     color: "#81B29A",
   },
   {
@@ -305,8 +301,6 @@ export const Properties = [
     tenants: [],
     image: "",
     unitType: PropertyTypes[2],
-    income: 0,
-    expenses: [1, 2, 3, 4, 5], // 2000
     color: "#E29578",
   },
   {
@@ -317,8 +311,6 @@ export const Properties = [
     tenants: [6, 7, 8, 9, 10],
     image: "",
     unitType: PropertyTypes[3],
-    income: 1000,
-    expenses: [1, 2, 3, 4], // 2500
     color: "#8ECAE6",
   },
 ];
@@ -327,6 +319,6 @@ export const User = {
   email: VALID_EMAIL,
   password: VALID_PASSWORD,
   phone: "1234567890",
-  properties: Properties,
+  properties: [1, 2, 3, 4],
   firstName: "Albert",
 };

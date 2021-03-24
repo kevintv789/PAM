@@ -5,38 +5,28 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
-import { animations, constants, mockData, theme } from "shared";
-import { findIndex, sortBy, sumBy } from "lodash";
+import { animations, constants, theme } from "shared";
+import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
+import { getExpense, getTenants } from "reducks/modules/property";
 
 import { Entypo } from "@expo/vector-icons";
+import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
-import _Container from "components/common/Container";
-import _PropertyContentComponent from "./PropertyContent/property.content.component";
-import _Text from "components/common/Text";
-import _VerticalDivider from "components/common/VerticalDivider";
+import { connect } from "react-redux";
 import moment from "moment";
-
-const Container: any = _Container;
-const Text: any = _Text;
-const VerticalDivider: any = _VerticalDivider;
-const PropertyContentComponent: any = _PropertyContentComponent;
 
 const { width } = Dimensions.get("window");
 
-const tenantData = mockData.Tenants;
-const expensesData = mockData.Expenses;
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(
-  TouchableOpacity
-);
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
@@ -53,7 +43,26 @@ class PropertyComponent extends Component<
       animatedContainerHeight: new Animated.Value(200),
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
+      expensesData: this.props.expenseData,
+      tenantData: this.props.tenantData,
+      propertyData: this.props.propertyData,
     };
+  }
+
+  componentDidMount() {
+    const { getExpense, getTenants } = this.props;
+    const { propertyData, expensesData } = this.state;
+
+    // This is where app needs to call action to read from Database
+    getExpense();
+    getTenants();
+
+    const filteredExpenses = filter(
+      expensesData,
+      (e: any) => e.propertyId === propertyData.id
+    );
+
+    this.setState({ expensesData: filteredExpenses });
   }
 
   togglePropertyContent = () => {
@@ -111,162 +120,186 @@ class PropertyComponent extends Component<
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
-      <AnimatedContainer
-        row
-        flex={false}
-        style={[
-          styles.headerContainer,
-          { backgroundColor: propertyData.color, height: animatedHeaderHeight },
-        ]}
+      <TouchableOpacity
+        style={styles.touchableArea}
+        onPress={() => this.togglePropertyContent()}
+        activeOpacity={0.9}
       >
-        <AnimatedImage
-          source={getPropertyImage(propertyData.image, propertyData.unitType)}
+        <AnimatedContainer
+          row
+          flex={false}
           style={[
-            styles.propertyImages,
+            styles.headerContainer,
             {
-              width: animatedHeaderImageWidth,
-              height: animatedHeaderImageHeight,
+              backgroundColor: propertyData.color,
+              height: animatedHeaderHeight,
             },
           ]}
-        />
-        <Container>
-          <AnimatedContainer
-            row
-            center
-            flex={1}
-            style={{ top: animatedHeaderPropertyAddressTop }}
-          >
-            <Image
-              source={iconImageData.imagePath}
-              style={[
-                styles.propIcons,
-                {
-                  width: iconImageData.newWidth
-                    ? iconImageData.newWidth / 1.8
-                    : 20,
-                  height: iconImageData.newHeight
-                    ? iconImageData.newHeight / 1.8
-                    : 20,
-                  marginTop: -5,
-                },
-              ]}
-            />
-            <Text accent light size={theme.fontSizes.medium}>
-              {propertyData.propertyAddress}
-            </Text>
-            <TouchableOpacity
-              style={{ position: "absolute", right: -5 }}
-              onPress={() => console.log("Edit Pressed...")}
+        >
+          <AnimatedImage
+            source={getPropertyImage(propertyData.image, propertyData.unitType)}
+            style={[
+              styles.propertyImages,
+              {
+                width: animatedHeaderImageWidth,
+                height: animatedHeaderImageHeight,
+              },
+            ]}
+          />
+          <Container>
+            <AnimatedContainer
+              row
+              center
+              flex={1}
+              style={{ top: animatedHeaderPropertyAddressTop }}
             >
-              <Container flex={false}>
-                <Entypo
-                  name="dots-three-vertical"
-                  size={18}
-                  color={theme.colors.accent}
-                />
-              </Container>
-            </TouchableOpacity>
-          </AnimatedContainer>
+              <Image
+                source={iconImageData.imagePath}
+                style={[
+                  styles.propIcons,
+                  {
+                    width: iconImageData.newWidth
+                      ? iconImageData.newWidth / 1.8
+                      : 20,
+                    height: iconImageData.newHeight
+                      ? iconImageData.newHeight / 1.8
+                      : 20,
+                    marginTop: -5,
+                  },
+                ]}
+              />
+              <Text accent light size={theme.fontSizes.medium}>
+                {propertyData.propertyAddress}
+              </Text>
+              <TouchableOpacity
+                style={{ position: "absolute", right: -5 }}
+                onPress={() => console.log("Edit Pressed...")}
+              >
+                <Container flex={false}>
+                  <Entypo
+                    name="dots-three-vertical"
+                    size={18}
+                    color={theme.colors.accent}
+                  />
+                </Container>
+              </TouchableOpacity>
+            </AnimatedContainer>
 
-          <Text accent semibold size={theme.fontSizes.medium}>
-            {!expanded && propertyData.propertyName}
-          </Text>
-        </Container>
-      </AnimatedContainer>
+            <Text accent semibold size={theme.fontSizes.medium}>
+              {!expanded && propertyData.propertyName}
+            </Text>
+          </Container>
+        </AnimatedContainer>
+      </TouchableOpacity>
     );
   };
 
   getOneTenantFromData = (index: number) => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const tenantIdToFind = propertyData.tenants[index];
-    return tenantData[findIndex(tenantData, (e) => e.id === tenantIdToFind)];
+    return tenantData[
+      findIndex(tenantData, (e: any) => e.id === tenantIdToFind)
+    ];
   };
 
   findEarliestMoveInDate = () => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
-    const earliestMoveIn = sortBy(tenants, (e) => moment(e.leaseStartDate))[0]
-      .leaseStartDate;
-    return moment(earliestMoveIn).format("MM/DD/YYYY");
+    if (tenants && tenants.length > 0) {
+      const earliestMoveIn = sortBy(tenants, (e: any) =>
+        moment(e.leaseStartDate)
+      )[0].leaseStartDate;
+      return moment(earliestMoveIn).format("MM/DD/YYYY");
+    }
   };
 
   sumExpenses = () => {
-    const { propertyData } = this.props;
-
-    const expenses = getDataFromProperty(propertyData.expenses, expensesData);
-    return sumBy(expenses, "amount");
+    const { expensesData } = this.state;
+    return sumBy(expensesData, "amount");
   };
 
   renderTenantNames = () => {
     const { propertyData } = this.props;
-    if (!propertyData.tenants.length) {
-      return (
-        <Text accent semibold size={theme.fontSizes.big}>
-          Vacant
-        </Text>
-      );
-    } else if (
-      propertyData.tenants.length > 0 &&
-      propertyData.tenants.length < 4
-    ) {
-      return (
-        <Container>
-          {propertyData.tenants.map((e: any, index: number) => (
-            <Container row space="between" middle key={index}>
-              <Text accent medium>
-                {this.getOneTenantFromData(index).name.split(" ")[0]}
-              </Text>
-              <Text light size={11} style={{ top: 2 }}>
-                From {this.getOneTenantFromData(index).leaseStartDate}
-              </Text>
-            </Container>
-          ))}
-        </Container>
-      );
-    } else {
-      return (
-        <Container>
-          <Text accent semibold>
-            {propertyData.tenants.length} Occupants
+
+    if (propertyData.tenants) {
+      if (!propertyData.tenants.length) {
+        return (
+          <Text accent semibold size={theme.fontSizes.big}>
+            Vacant
           </Text>
-          <Text light>From {this.findEarliestMoveInDate()}</Text>
-        </Container>
-      );
+        );
+      } else if (
+        propertyData.tenants.length > 0 &&
+        propertyData.tenants.length < 4
+      ) {
+        return (
+          <Container>
+            {propertyData.tenants.map((e: any, index: number) => {
+              if (this.getOneTenantFromData(index)) {
+                return (
+                  <Container row space="between" middle key={index}>
+                    <Text accent medium>
+                      {this.getOneTenantFromData(index).name.split(" ")[0]}
+                    </Text>
+                    <Text light size={11} style={{ top: 2 }}>
+                      From {this.getOneTenantFromData(index).leaseStartDate}
+                    </Text>
+                  </Container>
+                );
+              }
+            })}
+          </Container>
+        );
+      } else {
+        return (
+          <Container>
+            <Text accent semibold>
+              {propertyData.tenants.length} Occupants
+            </Text>
+            <Text light>From {this.findEarliestMoveInDate()}</Text>
+          </Container>
+        );
+      }
     }
   };
 
   sumAllTenantIncomeForTimePeriod = (timePeriod: string) => {
     const { propertyData } = this.props;
+    const { tenantData } = this.state;
     const date = new Date();
     const tenantInfo = getDataFromProperty(propertyData.tenants, tenantData);
     let totalIncome = 0;
 
-    switch (timePeriod) {
-      case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
-        const curMonth = date.getMonth() + 1;
-        const curDate = moment();
+    if (tenantInfo.length) {
+      switch (timePeriod) {
+        case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+          const curMonth = date.getMonth() + 1;
+          const curDate = moment();
 
-        tenantInfo.forEach((data: any) => {
-          const paidMonth = moment(data.lastPaymentDate).month() + 1;
-          const paidDate = moment(data.lastPaymentDate);
+          tenantInfo.forEach((data: any) => {
+            if (data.lastPaymentDate) {
+              const paidMonth = moment(data.lastPaymentDate).month() + 1;
+              const paidDate = moment(data.lastPaymentDate);
+              if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
+                totalIncome += data.rent;
+              }
+            }
+          });
 
-          if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
-            totalIncome += data.rent;
-          }
-        });
-
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
+      }
     }
 
     return totalIncome;
   };
 
   renderBottom = () => {
-    const { propertyData } = this.props;
     const expensesSum = this.sumExpenses();
     const totalIncome =
       this.sumAllTenantIncomeForTimePeriod(
@@ -368,34 +401,48 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const { propertyData } = this.props;
+    const { expensesData, tenantData } = this.state;
 
-    return (
-      <AnimatedTouchableOpacity
-        style={[styles.mainContainer, { height: animatedContainerHeight }]}
-        onPress={() => this.togglePropertyContent()}
-        activeOpacity={0.9}
-      >
-        {this.renderHeader()}
-        {!expanded && this.renderBottom()}
-        {expanded && (
-          <AnimatedContainer
-            style={{ opacity: animatedExpandedContentOpacity }}
-          >
-            <PropertyContentComponent
-              tenantData={getDataFromProperty(propertyData.tenants, tenantData)}
-              expenseData={getDataFromProperty(
-                propertyData.expenses,
-                expensesData
-              )}
-              propertyData={propertyData}
-              totalIncome={this.sumAllTenantIncomeForTimePeriod(
-                constants.RECURRING_PAYMENT_TYPE.MONTHLY
-              )}
-            />
-          </AnimatedContainer>
-        )}
-      </AnimatedTouchableOpacity>
-    );
+    // TODO -- add in an actual loading icon when state is finally being called from API
+    if (!propertyData || !tenantData.length) {
+      return (
+        <Container>
+          <Text offWhite>Loading...</Text>
+        </Container>
+      );
+    } else {
+      return (
+        <AnimatedContainer
+          style={[styles.mainContainer, { height: animatedContainerHeight }]}
+        >
+          {/* <AnimatedTouchableOpacity
+            style={[styles.mainContainer, { height: animatedContainerHeight }]}
+            onPress={() => this.togglePropertyContent()}
+            activeOpacity={0.9}
+          > */}
+          {this.renderHeader()}
+          {/* </AnimatedTouchableOpacity> */}
+          {!expanded && this.renderBottom()}
+          {expanded && (
+            <AnimatedContainer
+              style={{ opacity: animatedExpandedContentOpacity }}
+            >
+              <PropertyContentComponent
+                tenantData={getDataFromProperty(
+                  propertyData.tenants,
+                  tenantData
+                )}
+                expenseData={expensesData}
+                propertyData={propertyData}
+                totalIncome={this.sumAllTenantIncomeForTimePeriod(
+                  constants.RECURRING_PAYMENT_TYPE.MONTHLY
+                )}
+              />
+            </AnimatedContainer>
+          )}
+        </AnimatedContainer>
+      );
+    }
   }
 }
 
@@ -405,8 +452,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     height: 200,
-    // maxHeight: 600,
     marginBottom: theme.sizes.padding,
+  },
+  touchableArea: {
+    width: "100%",
   },
   headerContainer: {
     width: "100%",
@@ -448,4 +497,16 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PropertyComponent;
+const mapStateToProps = (state: any) => {
+  return {
+    expenseData: state.propertyState.expenses,
+    tenantData: state.propertyState.tenants,
+  };
+};
+
+const mapDispatchToprops = {
+  getExpense,
+  getTenants,
+};
+
+export default connect(mapStateToProps, mapDispatchToprops)(PropertyComponent);

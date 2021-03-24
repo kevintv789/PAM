@@ -1,11 +1,11 @@
+import { Dimensions, StyleSheet } from "react-native";
+
+import Container from "./Container";
 import React from "react";
-import { StyleSheet } from "react-native";
-import _Container from "./Container";
-import _Text from "./Text";
+import Text from "./Text";
 import { theme } from "shared";
 
-const Container: any = _Container;
-const Text: any = _Text;
+const { width } = Dimensions.get("window");
 
 const HeaderDivider = (props: any) => {
   const { title, style } = props;
@@ -13,7 +13,7 @@ const HeaderDivider = (props: any) => {
   const containerStyle = [styles.container, style];
 
   return (
-    <Container color="offWhite" style={containerStyle} middle>
+    <Container color="offWhite" style={containerStyle} middle flex={false}>
       <Text semibold accent style={{ paddingLeft: theme.sizes.base }}>
         {title}
       </Text>
@@ -24,7 +24,8 @@ const HeaderDivider = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     height: 47,
-    width: '100%'
+    width,
+    marginTop: theme.sizes.base,
   },
 });
 

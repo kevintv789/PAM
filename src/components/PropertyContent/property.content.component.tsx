@@ -1,3 +1,4 @@
+import { Button, Container, DataOutline, Text } from "components/common";
 import {
   Image,
   Modal,
@@ -13,20 +14,10 @@ import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
+import NotesComponent from "components/Modals/Notes/notes.component";
 import { PropertyContentModel } from "models";
-import _Button from "components/common/Button";
-import _Container from "components/common/Container";
-import _DataOutline from "components/common/DataOutline";
-import _NotesComponent from "components/modals/Notes/notes.component";
-import _Text from "components/common/Text";
 import moment from "moment";
-import { withNavigation } from 'react-navigation';
-
-const Text: any = _Text;
-const Container: any = _Container;
-const Button: any = _Button;
-const NotesComponent: any = _NotesComponent;
-const DataOutline: any = _DataOutline;
+import { withNavigation } from "react-navigation";
 
 const notesData = mockData.Notes;
 
@@ -44,33 +35,39 @@ class PropertyContentComponent extends Component<
     };
   }
 
-  renderTenantHeader = () => (
-    <Container row padding={10} style={styles.tenantheader} flex={false}>
-      <Image
-        source={require("assets/icons/key.png")}
-        style={{ width: theme.sizes.base, height: theme.sizes.base }}
-      />
-      <Text accent bold size={13}>
-        All Tenants {"  "}
-      </Text>
-      <Text light accent size={13}>
-        {moment(new Date()).format("MMMM DD, YYYY")}
-      </Text>
-      <Button
-        color="transparent"
-        style={styles.addTenantButton}
-        onPress={() => {}}
-      >
-        <Text light accent style={{ top: 2 }} size={13}>
-          Add Tenant
-        </Text>
+  renderTenantHeader = () => {
+    const { navigation, propertyData } = this.props;
+
+    return (
+      <Container row padding={10} style={styles.tenantheader} flex={false}>
         <Image
-          source={require("assets/icons/plus.png")}
-          style={{ width: 20, height: 20 }}
+          source={require("assets/icons/key.png")}
+          style={{ width: theme.sizes.base, height: theme.sizes.base }}
         />
-      </Button>
-    </Container>
-  );
+        <Text accent bold size={13}>
+          All Tenants {"  "}
+        </Text>
+        <Text light accent size={13}>
+          {moment(new Date()).format("MMMM DD, YYYY")}
+        </Text>
+        <Button
+          color="transparent"
+          style={styles.addTenantButton}
+          onPress={() =>
+            navigation.navigate("AddTenantModal", { propertyData })
+          }
+        >
+          <Text light accent style={{ top: 2 }} size={13}>
+            Add Tenant
+          </Text>
+          <Image
+            source={require("assets/icons/plus.png")}
+            style={{ width: 20, height: 20 }}
+          />
+        </Button>
+      </Container>
+    );
+  };
 
   renderDueDate = (tenant: any) => {
     const dueDate = getDaysDiffFrom(new Date(), tenant.nextPaymentDate);
@@ -119,6 +116,7 @@ class PropertyContentComponent extends Component<
 
   renderTenantInfo = () => {
     const { tenantData } = this.props;
+
     return (
       <Container
         onStartShouldSetResponder={() => true}
@@ -132,72 +130,83 @@ class PropertyContentComponent extends Component<
           horizontal={false}
           nestedScrollEnabled
         >
-          {tenantData.map((tenant: any) => {
-            return (
-              <Container style={styles.tenantInfoItem} key={tenant.id}>
-                <TouchableWithoutFeedback>
-                  <TouchableOpacity>
-                    <Container row space="between" padding={10}>
-                      <Text
-                        numberOfLines={1}
-                        semibold
-                        accent
-                        size={13}
-                        style={{ width: "33%" }}
-                      >
-                        {tenant.name}
-                      </Text>
-                      <Text semibold accent size={13} style={{ width: "31%" }}>
-                        Payment
-                      </Text>
-                      <Text semibold accent size={13} style={{ width: "32%" }}>
-                        Next Payment
-                      </Text>
-                      <Entypo
-                        name="chevron-small-right"
-                        size={24}
-                        color={theme.colors.accent}
-                        style={{ width: "5%", top: -4 }}
-                      />
-                    </Container>
-                    <Container
-                      row
-                      flex={false}
-                      padding={[0, 0, 0, 10]}
-                      style={{ top: -5 }}
-                    >
-                      <Text
-                        light
-                        accent
-                        size={theme.fontSizes.small}
-                        style={{ width: "32%" }}
-                      >
-                        From {tenant.leaseStartDate}
-                      </Text>
-                      <Text
-                        light
-                        style={{ width: "30%" }}
-                        size={theme.fontSizes.small}
-                      >
-                        {this.renderDueDate(tenant)}
-                      </Text>
-                      <Text
-                        light
-                        style={{ width: "38%" }}
-                        size={theme.fontSizes.small}
-                        numberOfLines={1}
-                      >
-                        <Text secondary medium>
-                          ${formatNumber(tenant.rent)}{" "}
+          {tenantData &&
+            tenantData.map((tenant: any) => {
+              return (
+                <Container style={styles.tenantInfoItem} key={tenant.id}>
+                  <TouchableWithoutFeedback>
+                    <TouchableOpacity>
+                      <Container row space="between" padding={10}>
+                        <Text
+                          numberOfLines={1}
+                          semibold
+                          accent
+                          size={13}
+                          style={{ width: "33%" }}
+                        >
+                          {tenant.name}
                         </Text>
-                        on {moment(tenant.nextPaymentDate).format("MM/DD")}
-                      </Text>
-                    </Container>
-                  </TouchableOpacity>
-                </TouchableWithoutFeedback>
-              </Container>
-            );
-          })}
+                        <Text
+                          semibold
+                          accent
+                          size={13}
+                          style={{ width: "31%" }}
+                        >
+                          Payment
+                        </Text>
+                        <Text
+                          semibold
+                          accent
+                          size={13}
+                          style={{ width: "32%" }}
+                        >
+                          Next Payment
+                        </Text>
+                        <Entypo
+                          name="chevron-small-right"
+                          size={24}
+                          color={theme.colors.accent}
+                          style={{ width: "5%", top: -4 }}
+                        />
+                      </Container>
+                      <Container
+                        row
+                        flex={false}
+                        padding={[0, 0, 0, 10]}
+                        style={{ top: -5 }}
+                      >
+                        <Text
+                          light
+                          accent
+                          size={theme.fontSizes.small}
+                          style={{ width: "32%" }}
+                        >
+                          From {tenant.leaseStartDate}
+                        </Text>
+                        <Text
+                          light
+                          style={{ width: "30%" }}
+                          size={theme.fontSizes.small}
+                        >
+                          {this.renderDueDate(tenant)}
+                        </Text>
+                        <Text
+                          light
+                          style={{ width: "38%" }}
+                          size={theme.fontSizes.small}
+                          numberOfLines={1}
+                        >
+                          <Text secondary medium>
+                            ${formatNumber(tenant.rent)}{" "}
+                          </Text>
+                          on {moment(tenant.nextPaymentDate).format("MM/DD")}
+                        </Text>
+                      </Container>
+                    </TouchableOpacity>
+                  </TouchableWithoutFeedback>
+                </Container>
+              );
+            })}
         </ScrollView>
       </Container>
     );
@@ -221,7 +230,11 @@ class PropertyContentComponent extends Component<
           <Button
             color="transparent"
             style={styles.addExpenseButton}
-            onPress={() => this.props.navigation.navigate("AddExpenseModal")}
+            onPress={() =>
+              this.props.navigation.navigate("AddExpenseModal", {
+                propertyId: this.props.propertyData.id,
+              })
+            }
           >
             <Text light accent style={{ top: 2, right: 4 }} size={13}>
               Add Expense
@@ -313,41 +326,45 @@ class PropertyContentComponent extends Component<
         horizontal={false}
         nestedScrollEnabled
       >
-        {filteredList.map((data: any) => (
-          <Container
-            key={`${data.id}-${data.type}`}
-            style={styles.expensesContainer}
-          >
-            <TouchableWithoutFeedback>
-              <TouchableOpacity onPress={() => console.log(data)}>
-                <Container row>
-                  <Text semibold accent>
-                    {data.name}
-                    {"  "}
-                  </Text>
-                  <Text accent light size={theme.fontSizes.small}>
-                    Paid {data.paidOn}
-                  </Text>
-                  <Container row style={{ right: 0, position: "absolute" }}>
-                    <Text
-                      color={data.type === "rent" ? "secondary" : "primary"}
-                      semibold
-                    >
-                      {this.formatAmount(data.amount, data.type)}
-                    </Text>
+        {filteredList.map((data: any) => {
+          if (data.paidOn) {
+            return (
+              <Container
+                key={`${data.id}-${data.type}`}
+                style={styles.expensesContainer}
+              >
+                <TouchableWithoutFeedback>
+                  <TouchableOpacity onPress={() => console.log(data)}>
+                    <Container row>
+                      <Text semibold accent>
+                        {data.name}
+                        {"  "}
+                      </Text>
+                      <Text accent light size={theme.fontSizes.small}>
+                        Paid {data.paidOn}
+                      </Text>
+                      <Container row style={{ right: 0, position: "absolute" }}>
+                        <Text
+                          color={data.type === "rent" ? "secondary" : "primary"}
+                          semibold
+                        >
+                          {this.formatAmount(data.amount, data.type)}
+                        </Text>
 
-                    <Entypo
-                      name="chevron-small-right"
-                      size={20}
-                      color={theme.colors.accent}
-                      style={{ top: -2 }}
-                    />
-                  </Container>
-                </Container>
-              </TouchableOpacity>
-            </TouchableWithoutFeedback>
-          </Container>
-        ))}
+                        <Entypo
+                          name="chevron-small-right"
+                          size={20}
+                          color={theme.colors.accent}
+                          style={{ top: -2 }}
+                        />
+                      </Container>
+                    </Container>
+                  </TouchableOpacity>
+                </TouchableWithoutFeedback>
+              </Container>
+            );
+          }
+        })}
       </ScrollView>
     );
   };

@@ -1,32 +1,29 @@
-import { Dimensions, Image, Modal, ScrollView, StyleSheet } from "react-native";
+import {
+  AddImageButton,
+  Button,
+  Container,
+  HeaderDivider,
+  Text,
+  TextInput,
+  Toggle,
+} from "components/common";
+import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import _Button from "components/common/Button";
-import _Container from "components/common/Container";
-import _HeaderDivider from "components/common/HeaderDivider";
-import _NotesComponent from "../Notes/notes.component";
-import _Text from "components/common/Text";
-import _TextInput from "components/common/TextInput";
-import _Toggle from "components/common/Toggle";
+import { addExpense } from "reducks/modules/property";
+import { connect } from "react-redux";
 import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
 
-const Text: any = _Text;
-const Container: any = _Container;
-const Button: any = _Button;
-const TextInput: any = _TextInput;
-const NotesComponent: any = _NotesComponent;
-const Toggle: any = _Toggle;
-const HeaderDivider: any = _HeaderDivider;
-
 const { width, height } = Dimensions.get("window");
 
-export default class AddExpenseComponent extends Component<
+class AddExpenseComponent extends Component<
   ExpenseModel.defaultProps,
   ExpenseModel.initialState
 > {
@@ -49,29 +46,41 @@ export default class AddExpenseComponent extends Component<
 
   renderImageSection = () => {
     return (
-      <Container center>
-        <TouchableOpacity
-          onPress={() => console.log("Adding an expense image")}
-        >
-          <Container
-            style={styles.imageContainer}
-            margin={[theme.sizes.padding]}
-            flex={false}
-            center
-            middle
-          >
-            <Image
-              source={require("assets/icons/camera.png")}
-              style={styles.cameraImage}
-            />
-          </Container>
-        </TouchableOpacity>
-
-        <Text offWhite light>
-          Add expense receipts or other related documents
-        </Text>
-      </Container>
+      <AddImageButton
+        handleOnPress={() => console.log("Adding an expense image")}
+        caption="Add expense receipts or other related documents"
+      />
     );
+  };
+
+  handleExpenseSave = () => {
+    const { navigation, addExpense } = this.props;
+    const {
+      expenseName,
+      amountFormatted,
+      expenseStatusDate,
+      expenseStatus,
+      recurring,
+    } = this.state;
+
+    // Call API to save expense to property
+    const payload = {
+      id: Math.floor(Math.random() * 1000),
+      amount: amountFormatted.replace("$", ""),
+      status: expenseStatus,
+      description: "",
+      paidOn: expenseStatusDate,
+      paymentDue: "",
+      recurring: recurring,
+      additionalNotes: "",
+      image: null,
+      propertyId: navigation.getParam("propertyId"),
+      name: expenseName,
+    };
+
+    addExpense(payload);
+
+    navigation.goBack();
   };
 
   renderNavigationButtons = () => {
@@ -102,7 +111,7 @@ export default class AddExpenseComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
+          onPress={() => this.handleExpenseSave()}
         >
           <Text offWhite center semibold>
             Save
@@ -163,16 +172,22 @@ export default class AddExpenseComponent extends Component<
           style={styles.input}
           value={amountFormatted}
           onChangeText={(value: any) => {
-            if (amountFormatted.length > value.length) {
+            if (
+              amountFormatted.length > value.length ||
+              (value.length === 1 && value === ".")
+            ) {
               this.setState({ amount: "", amountFormatted: "" });
             } else {
               this.setState({
                 amount: parseFloat(
                   formatCurrencyFromCents(value, amount).rawVal
                 ).toString(),
-                amountFormatted: `$${
-                  formatCurrencyFromCents(value, amount).formattedAmt
-                }`,
+                amountFormatted:
+                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
+                    ? `$${
+                        formatCurrencyFromCents(value, amount).formattedAmt
+                      }`.slice(0, -1)
+                    : `$${formatCurrencyFromCents(value, amount).formattedAmt}`,
               });
             }
           }}
@@ -386,3 +401,9 @@ const styles = StyleSheet.create({
     marginHorizontal: theme.sizes.padding,
   },
 });
+
+const mapDispatchToprops = {
+  addExpense,
+};
+
+export default connect(null, mapDispatchToprops)(AddExpenseComponent);

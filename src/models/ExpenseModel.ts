@@ -14,4 +14,5 @@ export interface initialState {
 export interface defaultProps {
   handleCancelClicked: any;
   navigation: any;
+  addExpense: any;
 }

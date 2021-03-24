@@ -9,4 +9,5 @@ export interface Props {
   propertyData: any;
   expenseData: any;
   totalIncome: number;
+  navigation: any;
 }
