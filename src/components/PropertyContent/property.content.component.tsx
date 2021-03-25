@@ -115,7 +115,27 @@ class PropertyContentComponent extends Component<
   };
 
   renderTenantInfo = () => {
-    const { tenantData } = this.props;
+    const { tenantData, navigation, propertyData } = this.props;
+
+    if (!tenantData.length) {
+      return (
+        <Container flex={false} center middle padding={[15, 0, 0]}>
+          <Text bold center>
+            This property is vacant
+          </Text>
+          <Button
+            style={styles.addTenantFromVacantButton}
+            onPress={() =>
+              navigation.navigate("AddTenantModal", { propertyData })
+            }
+          >
+            <Text center secondary bold>
+              + Add a tenant
+            </Text>
+          </Button>
+        </Container>
+      );
+    }
 
     return (
       <Container
@@ -558,6 +578,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "space-between",
     width: 95,
+  },
+  addTenantFromVacantButton: {
+    borderWidth: 1,
+    borderColor: theme.colors.secondary,
+    backgroundColor: "transparent",
+    marginTop: 10,
   },
   addExpenseButton: {
     flexDirection: "row",

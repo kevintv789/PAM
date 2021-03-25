@@ -74,6 +74,8 @@ class PropertyComponent extends Component<
       animatedContainerHeight,
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
+      propertyData,
+      expensesData,
     } = this.state;
 
     // animate header height
@@ -86,7 +88,26 @@ class PropertyComponent extends Component<
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
     // animate entire container height
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 750);
+    const totalIncome =
+      this.sumAllTenantIncomeForTimePeriod(
+        constants.RECURRING_PAYMENT_TYPE.MONTHLY
+      ) || 0;
+
+    let height = 750;
+
+    // TODO --- Super hacky conditional, find a better way to do this shiz
+    if (
+      (!propertyData.tenants.length && expensesData.length) ||
+      (propertyData.tenants.length && !expensesData.length && totalIncome === 0)
+    ) {
+      height = 600;
+    } else if (
+      (!propertyData.tenants.length && !expensesData.length) ||
+      totalIncome === 0
+    ) {
+      height = 550;
+    }
+    animations.animateOnToggle(animatedContainerHeight, expanded, 200, height);
 
     // animate property address on header
     animations.animateOnToggle(
@@ -413,15 +434,14 @@ class PropertyComponent extends Component<
     } else {
       return (
         <AnimatedContainer
-          style={[styles.mainContainer, { height: animatedContainerHeight }]}
+          style={[
+            styles.mainContainer,
+            {
+              height: animatedContainerHeight,
+            },
+          ]}
         >
-          {/* <AnimatedTouchableOpacity
-            style={[styles.mainContainer, { height: animatedContainerHeight }]}
-            onPress={() => this.togglePropertyContent()}
-            activeOpacity={0.9}
-          > */}
           {this.renderHeader()}
-          {/* </AnimatedTouchableOpacity> */}
           {!expanded && this.renderBottom()}
           {expanded && (
             <AnimatedContainer
@@ -451,7 +471,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.offWhite,
     borderRadius: 10,
     width: "90%",
-    height: 200,
+    minHeight: 200,
+    maxHeight: 750,
     marginBottom: theme.sizes.padding,
   },
   touchableArea: {
