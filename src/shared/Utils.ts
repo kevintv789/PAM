@@ -1,4 +1,5 @@
-import { constants } from ".";
+import { constants, theme } from ".";
+
 import { filter } from "lodash";
 import moment from "moment";
 
@@ -33,6 +34,10 @@ export const formatMobileNumber = (
       6
     )}-${currentValue.slice(6, 10)}`;
   }
+};
+
+export const hasErrors = (key: string, errors: string[]) => {
+  return errors.includes(key) ? { borderBottomColor: theme.colors.red } : null;
 };
 
 /**

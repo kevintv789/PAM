@@ -26,6 +26,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { addProperty } from "reducks/modules/property";
 import { connect } from "react-redux";
+import { hasErrors } from "shared/Utils";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,13 +39,14 @@ class AddPropertyComponent extends Component<
 
     this.state = {
       propertyTypes: constants.PROPERTY_TYPES_LIST,
-      typeSelected: "",
+      typeSelected: constants.PROPERTY_TYPES.SINGLE_FAM,
       propertyNickName: "",
       streetAddress: "",
       streetAddressResults: [],
       showKeyboard: true,
       showNotesModal: false,
       notesValue: null,
+      errors: [],
     };
   }
 
@@ -58,13 +60,14 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyTypeSelection = () => {
-    const { propertyTypes, typeSelected } = this.state;
+    const { propertyTypes } = this.state;
 
     return (
       <Container center margin={[theme.sizes.padding, 0, 0, 0]}>
         <HeaderDivider title="Property Type" style={styles.divider} />
         <PillsList
           data={propertyTypes}
+          defaultSelected={constants.PROPERTY_TYPES.SINGLE_FAM}
           handlePillSelected={(selected: string) =>
             this.setState({ typeSelected: selected })
           }
@@ -125,11 +128,16 @@ class AddPropertyComponent extends Component<
    * Currently, the ID is auto generated using a random number from 0 to 10000, this will be
    * completely rewritten when the API is built out
    *
-   * TODO -- Will need to add error handling in the future
    */
   handleSaveProperty = () => {
     const { handleNextClicked, addProperty } = this.props;
     const { typeSelected, propertyNickName, streetAddress } = this.state;
+
+    const errors = [];
+
+    if (!streetAddress.length) {
+      errors.push("streetAddress");
+    }
 
     const colorArray = ["#F2CC8F", "#8ECAE6", "#E29578", "#81B29A"];
 
@@ -144,10 +152,14 @@ class AddPropertyComponent extends Component<
       color: colorArray[Math.floor(Math.random() * 4)],
     };
 
-    addProperty(payload);
+    if (!errors.length) {
+      addProperty(payload);
 
-    // Calls parent component to show the Done Modal
-    handleNextClicked();
+      // Calls parent component to show the Done Modal
+      handleNextClicked();
+    }
+
+    this.setState({ errors });
   };
 
   renderNavigationButtons = () => {
@@ -189,7 +201,7 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
-    const { propertyNickName, notesValue } = this.state;
+    const { propertyNickName, notesValue, errors, streetAddress } = this.state;
 
     return (
       <Container center>
@@ -198,17 +210,27 @@ class AddPropertyComponent extends Component<
         {/* BUG -- Implement Auto scroll when lists are popped up */}
         <AddressInput
           handleSelect={(streetAddress: string) =>
-            this.setState({ streetAddress, showKeyboard: false })
+            this.setState({
+              streetAddress,
+              showKeyboard: false,
+              errors: errors.filter((e) => e !== "streetAddress"),
+            })
           }
-          handleResults={(streetAddressResults: Array<string>) => {
+          handleResults={(
+            text: string,
+            streetAddressResults: Array<string>
+          ) => {
             this.setState({
               streetAddressResults,
+              streetAddress: text.length > 0 ? streetAddress : "",
               // showKeyboard: streetAddressResults.length > 0 ? false : true,
             });
           }}
           onFocus={() =>
             this.setState({ streetAddressResults: [], showKeyboard: true })
           }
+          error={hasErrors("streetAddress", errors)}
+          textInputStyle={hasErrors("streetAddress", errors)}
         />
         <TextInput
           label="Property Nickname"

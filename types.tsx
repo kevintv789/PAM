@@ -76,7 +76,7 @@ export interface WelcomeScreenProps {
 
 export interface TextInputProps {
   label?: string;
-  error?: boolean;
+  error?: any;
   secure?: boolean;
   rightLabel?: string;
   rightStyle?: any;

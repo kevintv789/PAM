@@ -7,6 +7,7 @@ export interface State {
   showKeyboard: boolean;
   showNotesModal: boolean;
   notesValue: any;
+  errors: string[];
 }
 
 export interface Props {

@@ -10,6 +10,7 @@ import {
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
+import { formatCurrencyFromCents, hasErrors } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
 import { ExpenseModel } from "models";
@@ -18,7 +19,6 @@ import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { addExpense } from "reducks/modules/property";
 import { connect } from "react-redux";
-import { formatCurrencyFromCents } from "shared/Utils";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
@@ -41,6 +41,7 @@ class AddExpenseComponent extends Component<
       showNotesModal: false,
       showRecurringModal: false,
       recurringText: "",
+      errors: [],
     };
   }
 
@@ -63,6 +64,12 @@ class AddExpenseComponent extends Component<
       recurring,
     } = this.state;
 
+    const errors = [];
+
+    if (!expenseName.length) {
+      errors.push("expenseName");
+    }
+
     // Call API to save expense to property
     const payload = {
       id: Math.floor(Math.random() * 1000),
@@ -78,13 +85,16 @@ class AddExpenseComponent extends Component<
       name: expenseName,
     };
 
-    addExpense(payload);
+    if (!errors.length) {
+      addExpense(payload);
+      navigation.goBack();
+    }
 
-    navigation.goBack();
+    this.setState({ errors });
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked, navigation } = this.props;
+    const { navigation } = this.props;
 
     return (
       <Container
@@ -131,6 +141,7 @@ class AddExpenseComponent extends Component<
       expenseStatusDate,
       recurring,
       recurringText,
+      errors,
     } = this.state;
 
     const { navigation } = this.props;
@@ -161,10 +172,16 @@ class AddExpenseComponent extends Component<
       <Container center flex={false}>
         <TextInput
           required
+          error={hasErrors("expenseName", errors)}
           label="Expense Name"
-          style={styles.input}
+          style={[styles.input, hasErrors("expenseName", errors)]}
           value={expenseName}
-          onChangeText={(expenseName: string) => this.setState({ expenseName })}
+          onChangeText={(expenseName: string) =>
+            this.setState({
+              expenseName,
+              errors: errors.filter((e) => e !== "expenseName"),
+            })
+          }
         />
         <TextInput
           label="Amount"

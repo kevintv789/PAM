@@ -1,3 +1,5 @@
+import { RefObject } from "react";
+
 export interface State {
   primaryTenantName: string;
   phone: string;
@@ -15,6 +17,7 @@ export interface State {
   showNotesModal: boolean;
   lastPaymentDate: string;
   hasTenantPaidFirstRent: boolean;
+  errors: string[];
 }
 
 export interface Props {
