@@ -63,7 +63,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { propertyData } = this.props;
+    const { propertyData, navigation } = this.props;
 
     return (
       <ScrollView
@@ -84,7 +84,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
                 key={property.id}
                 // onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
               >
-                <PropertyComponent propertyData={property} />
+                <PropertyComponent propertyData={property} navigation={navigation}/>
               </Container>
             );
           })}

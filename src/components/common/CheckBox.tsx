@@ -6,12 +6,7 @@ import Text from "components/common/Text";
 import { theme } from "shared";
 
 export default function CheckBox(props: any) {
-  const {
-    rightLabel,
-    handleCheck,
-    defaultChecked = false,
-    touchAreaStyle,
-  } = props;
+  const { rightLabel, handleCheck, defaultChecked, touchAreaStyle } = props;
   const [checked, setChecked] = useState(defaultChecked);
 
   const handleTouch = () => {

@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Container from "components/common/Container";
 import Pills from "components/common/Pills";
@@ -18,10 +18,18 @@ export default function PillsList(props: any) {
     handlePillSelected(selected);
   };
 
-  let flatListRef: any;
+  // Note: useRef doesn't throw away any old refs that were once used
+  // This allows the ref to work even when another view wants to open this component
+  const flatListRef = useRef<FlatList<any>>();
 
   const goIndex = (index: number) => {
-    flatListRef.scrollToIndex({ animated: true, index, viewPosition: 0.5 });
+    if (flatListRef) {
+      flatListRef.current?.scrollToIndex({
+        animated: true,
+        index,
+        viewPosition: 0.5,
+      });
+    }
   };
 
   useEffect(() => {
@@ -45,9 +53,7 @@ export default function PillsList(props: any) {
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
-        ref={(ref) => {
-          flatListRef = ref;
-        }}
+        ref={flatListRef}
         onScrollToIndexFailed={(info) => {
           const wait = new Promise((resolve) => setTimeout(resolve, 500)); // If FlatList fails to scroll to index automatically, then wait for 500 ms and try again
           wait.then(() => {

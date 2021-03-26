@@ -8,6 +8,7 @@ export interface State {
   animatedContainerHeight: Animated.Value;
   animatedHeaderPropertyAddressTop: Animated.Value;
   animatedExpandedContentOpacity: Animated.Value;
+  animatedPropertyAddressWidth: Animated.Value;
   expensesData: any;
   tenantData: any;
   propertyData: any;
@@ -19,4 +20,5 @@ export interface Props {
   getTenants?: any;
   expenseData: any;
   tenantData: any;
+  navigation?: any;
 }

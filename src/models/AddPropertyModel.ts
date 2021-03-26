@@ -14,4 +14,5 @@ export interface State {
 export interface Props {
   navigation?: any;
   addProperty?: any;
+  updateProperty?: any;
 }
