@@ -2,20 +2,14 @@ import {
   AddImageButton,
   AddressInput,
   Button,
+  CheckBox,
   Container,
   HeaderDivider,
   PillsList,
   Text,
   TextInput,
 } from "components/common";
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  Keyboard,
-  Modal,
-  StyleSheet,
-} from "react-native";
+import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
@@ -47,6 +41,7 @@ class AddPropertyComponent extends Component<
       showNotesModal: false,
       notesValue: null,
       errors: [],
+      autoFill: true,
     };
   }
 
@@ -130,7 +125,7 @@ class AddPropertyComponent extends Component<
    *
    */
   handleSaveProperty = () => {
-    const { handleNextClicked, addProperty } = this.props;
+    const { addProperty, navigation } = this.props;
     const { typeSelected, propertyNickName, streetAddress } = this.state;
 
     const errors = [];
@@ -154,16 +149,15 @@ class AddPropertyComponent extends Component<
 
     if (!errors.length) {
       addProperty(payload);
-
-      // Calls parent component to show the Done Modal
-      handleNextClicked();
+      navigation.goBack();
+      navigation.navigate("AddPropertyDoneModal");
     }
 
     this.setState({ errors });
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked } = this.props;
+    const { navigation } = this.props;
 
     return (
       <Container
@@ -181,7 +175,7 @@ class AddPropertyComponent extends Component<
         <Button
           color="red"
           style={styles.navigationButtons}
-          onPress={() => handleCancelClicked()}
+          onPress={() => navigation.goBack()}
         >
           <Text offWhite center semibold>
             Cancel
@@ -201,36 +195,66 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
-    const { propertyNickName, notesValue, errors, streetAddress } = this.state;
-
+    const {
+      propertyNickName,
+      notesValue,
+      errors,
+      streetAddress,
+      autoFill,
+    } = this.state;
     return (
       <Container center>
         <HeaderDivider title="Property Details" style={styles.divider} />
 
         {/* BUG -- Implement Auto scroll when lists are popped up */}
-        <AddressInput
-          handleSelect={(streetAddress: string) =>
-            this.setState({
-              streetAddress,
-              showKeyboard: false,
-              errors: errors.filter((e) => e !== "streetAddress"),
-            })
+        {!autoFill && (
+          <TextInput
+            label="Street Address *"
+            style={[styles.input, hasErrors("streetAddress", errors)]}
+            value={streetAddress}
+            error={hasErrors("streetAddress", errors)}
+            onChangeText={(streetAddress: string) =>
+              this.setState({
+                streetAddress,
+                errors: errors.filter((e) => e !== "streetAddress"),
+              })
+            }
+          />
+        )}
+
+        {autoFill && (
+          <AddressInput
+            handleSelect={(streetAddress: string) =>
+              this.setState({
+                streetAddress,
+                showKeyboard: false,
+                errors: errors.filter((e) => e !== "streetAddress"),
+              })
+            }
+            handleResults={(
+              text: string,
+              streetAddressResults: Array<string>
+            ) => {
+              this.setState({
+                streetAddressResults,
+                streetAddress: text.length > 0 ? streetAddress : "",
+                // showKeyboard: streetAddressResults.length > 0 ? false : true,
+              });
+            }}
+            onFocus={() =>
+              this.setState({ streetAddressResults: [], showKeyboard: true })
+            }
+            error={hasErrors("streetAddress", errors)}
+            textInputStyle={hasErrors("streetAddress", errors)}
+          />
+        )}
+        <CheckBox
+          rightLabel="Autofill"
+          defaultChecked
+          handleCheck={(checked: boolean) =>
+            this.setState({ autoFill: !checked })
           }
-          handleResults={(
-            text: string,
-            streetAddressResults: Array<string>
-          ) => {
-            this.setState({
-              streetAddressResults,
-              streetAddress: text.length > 0 ? streetAddress : "",
-              // showKeyboard: streetAddressResults.length > 0 ? false : true,
-            });
-          }}
-          onFocus={() =>
-            this.setState({ streetAddressResults: [], showKeyboard: true })
-          }
-          error={hasErrors("streetAddress", errors)}
-          textInputStyle={hasErrors("streetAddress", errors)}
+          touchAreaStyle={styles.autoFill}
         />
         <TextInput
           label="Property Nickname"
@@ -379,6 +403,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     top: theme.sizes.base * 1.4,
+  },
+  autoFill: {
+    paddingRight: theme.sizes.padding,
+    justifyContent: "flex-end",
+    marginBottom: -10,
   },
 });
 

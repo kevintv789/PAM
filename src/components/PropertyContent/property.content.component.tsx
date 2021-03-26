@@ -124,6 +124,7 @@ class PropertyContentComponent extends Component<
             This property is vacant
           </Text>
           <Button
+            flat
             style={styles.addTenantFromVacantButton}
             onPress={() =>
               navigation.navigate("AddTenantModal", { propertyData })
@@ -495,6 +496,7 @@ class PropertyContentComponent extends Component<
         ) : (
           <Container center padding={[theme.sizes.padding]}>
             <Button
+              flat
               style={styles.createNotesButton}
               onPress={() => this.setState({ showNotesModal: true })}
             >

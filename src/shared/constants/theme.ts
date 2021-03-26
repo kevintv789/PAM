@@ -60,4 +60,18 @@ const fonts = {
   },
 };
 
-export { colors, sizes, fonts, fontSizes };
+const sharedStyles = {
+  shadowEffect: {
+    // The following was created through ethercreative's shadow generator
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
+  },
+};
+
+export { colors, sizes, fonts, fontSizes, sharedStyles };

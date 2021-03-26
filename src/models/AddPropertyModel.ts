@@ -8,11 +8,10 @@ export interface State {
   showNotesModal: boolean;
   notesValue: any;
   errors: string[];
+  autoFill: boolean;
 }
 
 export interface Props {
-  handleCancelClicked: any;
   navigation?: any;
-  handleNextClicked: any;
   addProperty?: any;
 }

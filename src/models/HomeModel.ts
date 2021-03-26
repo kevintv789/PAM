@@ -1,6 +1,4 @@
 export interface State {
-  showModal: boolean;
-  showDoneModal: boolean;
 }
 
 export interface Props {
@@ -13,4 +11,6 @@ export interface Props {
   };
   getPropertiesByIds?: any;
   getUser?: any;
+  navigation?: any;
+  propertyData?: any;
 }

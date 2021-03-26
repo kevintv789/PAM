@@ -142,7 +142,7 @@ class PropertyComponent extends Component<
 
     return (
       <TouchableOpacity
-        style={styles.touchableArea}
+        style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
         onPress={() => this.togglePropertyContent()}
         activeOpacity={0.9}
       >

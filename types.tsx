@@ -68,6 +68,7 @@ export interface ButtonProps {
   locations?: any;
   shadow?: any;
   onPress?: any;
+  flat?: boolean;
 }
 
 export interface WelcomeScreenProps {
