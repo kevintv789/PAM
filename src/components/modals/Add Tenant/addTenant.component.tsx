@@ -13,7 +13,11 @@ import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { addTenant, updateProperty } from "reducks/modules/property";
 import { constants, theme } from "shared";
-import { formatCurrencyFromCents, formatMobileNumber } from "shared/Utils";
+import {
+  formatCurrencyFromCents,
+  formatMobileNumber,
+  hasErrors,
+} from "shared/Utils";
 
 import { AddTenantModel } from "models";
 import { Entypo } from "@expo/vector-icons";
@@ -31,6 +35,8 @@ class AddTenantComponent extends Component<
   AddTenantModel.Props,
   AddTenantModel.State
 > {
+  private scrollViewRef: any;
+
   constructor(props: AddTenantModel.Props) {
     super(props);
 
@@ -51,7 +57,10 @@ class AddTenantComponent extends Component<
       showNotesModal: false,
       lastPaymentDate: moment().format("MM/DD/YYYY"),
       hasTenantPaidFirstRent: false,
+      errors: [],
     };
+
+    this.scrollViewRef = React.createRef();
   }
 
   handleAddTenant = () => {
@@ -71,12 +80,17 @@ class AddTenantComponent extends Component<
       hasTenantPaidFirstRent,
     } = this.state;
 
+    const errors = [];
     const propertyData = navigation.getParam("propertyData");
     const rentToInt =
       rentFormatted !== ""
         ? parseFloat(rentFormatted.replace("$", "").replace(",", ""))
         : 0;
     const tenantId = Math.floor(10 + Math.random() * 10000);
+
+    if (!primaryTenantName.length) {
+      errors.push("tenantName");
+    }
 
     const tenantPayload = {
       id: tenantId,
@@ -100,9 +114,15 @@ class AddTenantComponent extends Component<
       tenants: { $push: [tenantId] },
     });
 
-    addTenant(tenantPayload);
-    updateProperty(propertyPayload);
-    navigation.goBack();
+    if (!errors.length) {
+      addTenant(tenantPayload);
+      updateProperty(propertyPayload);
+      navigation.goBack();
+    } else {
+      this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
+    }
+
+    this.setState({ errors });
   };
 
   renderImageSection = () => {
@@ -115,18 +135,22 @@ class AddTenantComponent extends Component<
   };
 
   renderTenantInfo = () => {
-    const { primaryTenantName, phone, email } = this.state;
+    const { primaryTenantName, phone, email, errors } = this.state;
 
     return (
       <Container center flex={false}>
         <TextInput
           required
+          error={hasErrors("tenantName", errors)}
           label="Name"
           value={primaryTenantName}
           onChangeText={(primaryTenantName: string) =>
-            this.setState({ primaryTenantName })
+            this.setState({
+              primaryTenantName,
+              errors: errors.filter((e) => e !== "tenantName"),
+            })
           }
-          style={styles.input}
+          style={[styles.input, hasErrors("tenantName", errors)]}
         />
         <TextInput
           keyboardType="phone-pad"
@@ -414,14 +438,20 @@ class AddTenantComponent extends Component<
 
   render() {
     return (
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        scrollEnabled={true}
+      <ScrollView
         keyboardShouldPersistTaps={"handled"}
-        enableAutomaticScroll={true}
+        ref={this.scrollViewRef}
+        nestedScrollEnabled
+        scrollEnabled
       >
         <Container center color="accent" padding={[0, 0, theme.sizes.padding]}>
-          <ScrollView keyboardShouldPersistTaps={"handled"}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            scrollEnabled={true}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps={"handled"}
+            enableAutomaticScroll={true}
+          >
             <Text
               h1
               offWhite
@@ -437,9 +467,9 @@ class AddTenantComponent extends Component<
             {this.renderLeaseInfo()}
             {this.renderNavigationButtons()}
             {this.renderNotesModal()}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </Container>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     );
   }
 }
@@ -472,7 +502,6 @@ const styles = StyleSheet.create({
   toggle: {
     minWidth: 145,
     maxWidth: 145,
-    // marginHorizontal: theme.sizes.base,
   },
 });
 

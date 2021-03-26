@@ -5,7 +5,7 @@ import { constants, theme } from "shared";
 import React from "react";
 
 const AddPropertyDoneComponent = (props: any) => {
-  const { handleFinishedClick } = props;
+  const { navigation } = props;
 
   return (
     <Container center color="accent" style={styles.mainContainer}>
@@ -28,7 +28,7 @@ const AddPropertyDoneComponent = (props: any) => {
       <Button
         color="secondary"
         style={styles.button}
-        onPress={() => handleFinishedClick()}
+        onPress={() => navigation.goBack()}
       >
         <Text offWhite center bold>
           Take Me Home

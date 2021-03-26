@@ -4,6 +4,8 @@ import {
 } from "react-navigation-stack";
 
 import AddExpenseComponent from "components/Modals/AddExpense/addExpense.component";
+import AddPropertyComponent from "components/Modals/AddProperty/addProperty.component";
+import AddPropertyDoneComponent from "components/Modals/AddPropertyDone/addPropertyDone.component";
 import AddTenantComponent from "components/Modals/Add Tenant/addTenant.component";
 import { BottomTabNavigator } from "./BottomTabNavigator";
 import { Image } from "react-native";
@@ -73,6 +75,14 @@ const RootStack = createStackNavigator(
       navigationOptions: {
         headerShown: false,
       },
+    },
+    AddPropertyModal: {
+      screen: AddPropertyComponent,
+      navigationOptions: defaultModalNavOptions,
+    },
+    AddPropertyDoneModal: {
+      screen: AddPropertyDoneComponent,
+      navigationOptions: defaultModalNavOptions,
     },
     AddExpenseModal: {
       screen: AddExpenseComponent,

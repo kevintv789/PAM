@@ -8,7 +8,7 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
+import { filter, findIndex, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
@@ -27,6 +27,7 @@ const { width } = Dimensions.get("window");
 
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
+const AnimatedText = Animated.createAnimatedComponent(Text);
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
@@ -43,6 +44,7 @@ class PropertyComponent extends Component<
       animatedContainerHeight: new Animated.Value(200),
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
+      animatedPropertyAddressWidth: new Animated.Value(180),
       expensesData: this.props.expenseData,
       tenantData: this.props.tenantData,
       propertyData: this.props.propertyData,
@@ -74,6 +76,9 @@ class PropertyComponent extends Component<
       animatedContainerHeight,
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
+      animatedPropertyAddressWidth,
+      propertyData,
+      expensesData,
     } = this.state;
 
     // animate header height
@@ -86,7 +91,35 @@ class PropertyComponent extends Component<
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
     // animate entire container height
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, 750);
+    const totalIncome =
+      this.sumAllTenantIncomeForTimePeriod(
+        constants.RECURRING_PAYMENT_TYPE.MONTHLY
+      ) || 0;
+
+    let height = 750;
+
+    // TODO --- Super hacky conditional, find a better way to do this shiz
+    if (
+      (!propertyData.tenants.length && expensesData.length) ||
+      (propertyData.tenants.length && !expensesData.length && totalIncome === 0)
+    ) {
+      height = 600;
+    } else if (
+      (!propertyData.tenants.length && !expensesData.length) ||
+      totalIncome === 0
+    ) {
+      height = 550;
+    }
+
+    animations.animateOnToggle(animatedContainerHeight, expanded, 200, height);
+
+    // animate property address width
+    animations.animateOnToggle(
+      animatedPropertyAddressWidth,
+      expanded,
+      180,
+      215
+    );
 
     // animate property address on header
     animations.animateOnToggle(
@@ -109,19 +142,20 @@ class PropertyComponent extends Component<
   };
 
   renderHeader = () => {
-    const { propertyData } = this.props;
+    const { propertyData, navigation } = this.props;
     const {
       animatedHeaderHeight,
       animatedHeaderImageWidth,
       animatedHeaderImageHeight,
       animatedHeaderPropertyAddressTop,
+      animatedPropertyAddressWidth,
       expanded,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
       <TouchableOpacity
-        style={styles.touchableArea}
+        style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
         onPress={() => this.togglePropertyContent()}
         activeOpacity={0.9}
       >
@@ -168,12 +202,23 @@ class PropertyComponent extends Component<
                   },
                 ]}
               />
-              <Text accent light size={theme.fontSizes.medium}>
+              <AnimatedText
+                accent
+                light
+                size={theme.fontSizes.medium}
+                numberOfLines={1}
+                style={{ width: animatedPropertyAddressWidth }}
+              >
                 {propertyData.propertyAddress}
-              </Text>
+              </AnimatedText>
               <TouchableOpacity
                 style={{ position: "absolute", right: -5 }}
-                onPress={() => console.log("Edit Pressed...")}
+                onPress={() =>
+                  navigation.navigate("AddPropertyModal", {
+                    editting: true,
+                    propertyData,
+                  })
+                }
               >
                 <Container flex={false}>
                   <Entypo
@@ -413,15 +458,14 @@ class PropertyComponent extends Component<
     } else {
       return (
         <AnimatedContainer
-          style={[styles.mainContainer, { height: animatedContainerHeight }]}
+          style={[
+            styles.mainContainer,
+            {
+              height: animatedContainerHeight,
+            },
+          ]}
         >
-          {/* <AnimatedTouchableOpacity
-            style={[styles.mainContainer, { height: animatedContainerHeight }]}
-            onPress={() => this.togglePropertyContent()}
-            activeOpacity={0.9}
-          > */}
           {this.renderHeader()}
-          {/* </AnimatedTouchableOpacity> */}
           {!expanded && this.renderBottom()}
           {expanded && (
             <AnimatedContainer
@@ -451,7 +495,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.offWhite,
     borderRadius: 10,
     width: "90%",
-    height: 200,
+    minHeight: 200,
+    maxHeight: 750,
     marginBottom: theme.sizes.padding,
   },
   touchableArea: {

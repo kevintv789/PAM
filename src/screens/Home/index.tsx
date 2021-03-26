@@ -1,25 +1,18 @@
 import { Button, Container, Text } from "components/common";
-import { Image, Modal, StyleSheet } from "react-native";
+import { Image, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "shared";
 
-import AddPropertyComponent from "components/Modals/AddProperty/addProperty.component";
-import AddPropertyDoneComponent from "components/Modals/AddPropertyDone/addPropertyDone.component";
 import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
 import { ScrollView } from "react-native-gesture-handler";
 import { connect } from "react-redux";
 import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
+import { theme } from "shared";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   constructor(props: any) {
     super(props);
-
-    this.state = {
-      showModal: false,
-      showDoneModal: false,
-    };
   }
 
   componentDidMount() {
@@ -69,53 +62,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     );
   };
 
-  handleCancelModalClicked = () => {
-    this.setState({ showModal: false });
-  };
-
-  handleNextClicked = () => {
-    this.setState({ showModal: false, showDoneModal: true });
-  };
-
-  renderAddPropertyModal = () => {
-    const { showModal } = this.state;
-    return (
-      <Container flex={1}>
-        <Modal
-          visible={showModal}
-          presentationStyle="formSheet"
-          animationType="slide"
-          onDismiss={() => this.setState({ showModal: false })}
-        >
-          <AddPropertyComponent
-            handleCancelClicked={() => this.handleCancelModalClicked()}
-            handleNextClicked={() => this.handleNextClicked()}
-          />
-        </Modal>
-      </Container>
-    );
-  };
-
-  renderAddPropertyDoneModal = () => {
-    const { showDoneModal } = this.state;
-    return (
-      <Container>
-        <Modal
-          visible={showDoneModal}
-          presentationStyle="pageSheet"
-          animationType="fade"
-          onDismiss={() => this.setState({ showDoneModal: false })}
-        >
-          <AddPropertyDoneComponent
-            handleFinishedClick={() => this.setState({ showDoneModal: false })}
-          />
-        </Modal>
-      </Container>
-    );
-  };
-
   renderProperties = () => {
-    const { propertyData } = this.props;
+    const { propertyData, navigation } = this.props;
 
     return (
       <ScrollView
@@ -136,7 +84,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
                 key={property.id}
                 // onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
               >
-                <PropertyComponent propertyData={property} />
+                <PropertyComponent propertyData={property} navigation={navigation}/>
               </Container>
             );
           })}
@@ -146,7 +94,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderContent = () => {
-    const { userData } = this.props;
+    const { userData, navigation } = this.props;
 
     return (
       <Container color="accent" style={{}}>
@@ -163,7 +111,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
           <Button
             color="transparent"
             style={styles.addPropButton}
-            onPress={() => this.setState({ showModal: true })}
+            onPress={() => navigation.navigate("AddPropertyModal")}
           >
             <Image
               source={require("assets/icons/plus.png")}
@@ -174,8 +122,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         {!userData.properties.length
           ? this.renderDefaultMessage()
           : this.renderProperties()}
-        {this.renderAddPropertyModal()}
-        {this.renderAddPropertyDoneModal()}
       </Container>
     );
   };

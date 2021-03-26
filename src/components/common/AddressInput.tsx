@@ -7,7 +7,10 @@ import { StyleSheet } from "react-native";
 import { theme } from "shared";
 
 const AddressInput = (props: any) => {
-  const { handleSelect, handleResults, onFocus } = props;
+  const { handleSelect, handleResults, onFocus, textInputStyle, error } = props;
+
+  const textStyle = [styles.input, textInputStyle];
+
   return (
     <PlacesInput
       googleApiKey={environment.GOOGLE_MAPS_API_KEY}
@@ -15,11 +18,11 @@ const AddressInput = (props: any) => {
       resultRender={(place: any) => place.structured_formatting.main_text}
       queryFields="name"
       requiredTimeBeforeSearch={100}
-      onChangeText={(_: any, value: any) => handleResults(value.state.places)}
+      onChangeText={(text: string, value: any) => handleResults(text, value.state.places)}
       textInputProps={{
-        style: styles.input,
+        style: textStyle,
         placeholder: "Street Address *",
-        placeholderTextColor: theme.colors.gray,
+        placeholderTextColor: error ? theme.colors.red : theme.colors.gray,
         onFocus,
         returnKeyType: "next",
       }}

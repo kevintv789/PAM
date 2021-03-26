@@ -19,6 +19,7 @@ class Button extends Component<ButtonProps> {
       locations,
       shadow,
       children,
+      flat = false,
       ...props
     } = this.props;
 
@@ -29,6 +30,10 @@ class Button extends Component<ButtonProps> {
       color && !styles[color] && { backgroundColor: color }, // custom backgroundColor
       style,
     ];
+
+    if (!flat) {
+      buttonStyles.push(theme.sharedStyles.shadowEffect);
+    }
 
     return (
       <TouchableOpacity
@@ -54,7 +59,7 @@ export const styles = StyleSheet.create({
     height: theme.sizes.base * 3,
     justifyContent: "center",
     marginVertical: theme.sizes.padding / 3,
-    width: width * 0.75
+    width: width * 0.75,
   },
   shadow: {
     shadowColor: theme.colors.black,
@@ -70,7 +75,7 @@ export const styles = StyleSheet.create({
   white: { backgroundColor: theme.colors.white },
   gray: { backgroundColor: theme.colors.gray },
   gray2: { backgroundColor: theme.colors.gray2 },
-  offWhite: { backgroundColor: theme.colors.offWhite }
+  offWhite: { backgroundColor: theme.colors.offWhite },
 });
 
 export default Button;

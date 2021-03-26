@@ -9,6 +9,7 @@ export interface initialState {
   showNotesModal: boolean;
   showRecurringModal: boolean;
   recurringText: string;
+  errors: string[];
 }
 
 export interface defaultProps {

@@ -2,30 +2,25 @@ import {
   AddImageButton,
   AddressInput,
   Button,
+  CheckBox,
   Container,
   HeaderDivider,
   PillsList,
   Text,
   TextInput,
 } from "components/common";
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  Keyboard,
-  Modal,
-  StyleSheet,
-} from "react-native";
+import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import { addProperty, updateProperty } from "reducks/modules/property";
 import { constants, theme } from "shared";
 
 import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
-import { addProperty } from "reducks/modules/property";
 import { connect } from "react-redux";
+import { hasErrors } from "shared/Utils";
 
 const { width, height } = Dimensions.get("window");
 
@@ -33,19 +28,42 @@ class AddPropertyComponent extends Component<
   AddPropertyModel.Props,
   AddPropertyModel.State
 > {
-  constructor(props: any) {
+  constructor(
+    props: any,
+    private scrollViewRef: React.RefObject<ScrollView>,
+    private routePropertyData: any,
+    private isEditting: boolean
+  ) {
     super(props);
 
     this.state = {
       propertyTypes: constants.PROPERTY_TYPES_LIST,
-      typeSelected: "",
+      typeSelected: constants.PROPERTY_TYPES.SINGLE_FAM,
       propertyNickName: "",
       streetAddress: "",
       streetAddressResults: [],
-      showKeyboard: true,
       showNotesModal: false,
       notesValue: null,
+      errors: [],
+      autoFill: true,
+      showKeyboard: true,
     };
+
+    this.scrollViewRef = React.createRef();
+    this.routePropertyData = this.props.navigation.getParam("propertyData");
+    this.isEditting = this.props.navigation.getParam("editting");
+  }
+
+  componentDidMount() {
+    if (this.isEditting && this.routePropertyData) {
+      this.setState({
+        streetAddress: this.routePropertyData.propertyAddress,
+        autoFill: false,
+        propertyNickName: this.routePropertyData.propertyName,
+        typeSelected: this.routePropertyData.unitType
+        // TODO -- Add notes later
+      });
+    }
   }
 
   renderImageSection = () => {
@@ -58,13 +76,17 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyTypeSelection = () => {
-    const { propertyTypes, typeSelected } = this.state;
-
+    const { propertyTypes } = this.state;
     return (
-      <Container center margin={[theme.sizes.padding, 0, 0, 0]}>
+      <Container center>
         <HeaderDivider title="Property Type" style={styles.divider} />
         <PillsList
           data={propertyTypes}
+          defaultSelected={
+            this.isEditting
+              ? this.routePropertyData.unitType
+              : constants.PROPERTY_TYPES.SINGLE_FAM
+          }
           handlePillSelected={(selected: string) =>
             this.setState({ typeSelected: selected })
           }
@@ -125,11 +147,16 @@ class AddPropertyComponent extends Component<
    * Currently, the ID is auto generated using a random number from 0 to 10000, this will be
    * completely rewritten when the API is built out
    *
-   * TODO -- Will need to add error handling in the future
    */
   handleSaveProperty = () => {
-    const { handleNextClicked, addProperty } = this.props;
+    const { addProperty, navigation, updateProperty } = this.props;
     const { typeSelected, propertyNickName, streetAddress } = this.state;
+
+    const errors = [];
+
+    if (!streetAddress.length) {
+      errors.push("streetAddress");
+    }
 
     const colorArray = ["#F2CC8F", "#8ECAE6", "#E29578", "#81B29A"];
 
@@ -144,14 +171,27 @@ class AddPropertyComponent extends Component<
       color: colorArray[Math.floor(Math.random() * 4)],
     };
 
-    addProperty(payload);
+    if (!errors.length) {
+      if (!this.isEditting) {
+        addProperty(payload);
+        navigation.goBack();
+        navigation.navigate("AddPropertyDoneModal");
+      } else {
+        const { id, notesId, color, tenants } = this.routePropertyData;
+        payload.id = id;
+        payload.notesId = notesId;
+        payload.color = color;
+        payload.tenants = tenants;
+        updateProperty(payload);
+        navigation.goBack();
+      }
+    }
 
-    // Calls parent component to show the Done Modal
-    handleNextClicked();
+    this.setState({ errors });
   };
 
   renderNavigationButtons = () => {
-    const { handleCancelClicked } = this.props;
+    const { navigation } = this.props;
 
     return (
       <Container
@@ -169,7 +209,7 @@ class AddPropertyComponent extends Component<
         <Button
           color="red"
           style={styles.navigationButtons}
-          onPress={() => handleCancelClicked()}
+          onPress={() => navigation.goBack()}
         >
           <Text offWhite center semibold>
             Cancel
@@ -189,35 +229,72 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
-    const { propertyNickName, notesValue } = this.state;
+    const {
+      propertyNickName,
+      notesValue,
+      errors,
+      streetAddress,
+      autoFill,
+    } = this.state;
 
     return (
       <Container center>
         <HeaderDivider title="Property Details" style={styles.divider} />
 
-        {/* BUG -- Implement Auto scroll when lists are popped up */}
-        <AddressInput
-          handleSelect={(streetAddress: string) =>
-            this.setState({ streetAddress, showKeyboard: false })
+        {!autoFill && (
+          <TextInput
+            label="Street Address *"
+            style={[styles.input, hasErrors("streetAddress", errors)]}
+            value={streetAddress}
+            error={hasErrors("streetAddress", errors)}
+            onChangeText={(streetAddress: string) =>
+              this.setState({
+                streetAddress,
+                errors: errors.filter((e) => e !== "streetAddress"),
+              })
+            }
+          />
+        )}
+
+        {autoFill && (
+          <AddressInput
+            handleSelect={(streetAddress: string) =>
+              this.setState({
+                streetAddress,
+                showKeyboard: false,
+                errors: errors.filter((e) => e !== "streetAddress"),
+              })
+            }
+            handleResults={(
+              text: string,
+              streetAddressResults: Array<string>
+            ) => {
+              this.setState({
+                streetAddressResults,
+                streetAddress: text.length > 0 ? streetAddress : "",
+              });
+            }}
+            onFocus={() => this.setState({ showKeyboard: true })}
+            error={hasErrors("streetAddress", errors)}
+            textInputStyle={hasErrors("streetAddress", errors)}
+          />
+        )}
+        <CheckBox
+          rightLabel="Autofill"
+          defaultChecked={!this.isEditting}
+          handleCheck={(checked: boolean) =>
+            this.setState({ autoFill: !checked })
           }
-          handleResults={(streetAddressResults: Array<string>) => {
-            this.setState({
-              streetAddressResults,
-              // showKeyboard: streetAddressResults.length > 0 ? false : true,
-            });
-          }}
-          onFocus={() =>
-            this.setState({ streetAddressResults: [], showKeyboard: true })
-          }
+          touchAreaStyle={styles.autoFill}
         />
         <TextInput
           label="Property Nickname"
           style={styles.input}
           value={propertyNickName}
+          onFocus={() => this.setState({ showKeyboard: true })}
           onChangeText={(propertyNickName: string) =>
             this.setState({
               propertyNickName,
-              showKeyboard: true,
             })
           }
         />
@@ -268,38 +345,54 @@ class AddPropertyComponent extends Component<
     );
   };
 
+  scrollToBottom = () => {
+    if (this.scrollViewRef) {
+      this.scrollViewRef.current?.scrollTo({
+        x: 0,
+        y: 300,
+        animated: true,
+      });
+    }
+  };
+
   render() {
-    const { showKeyboard } = this.state;
+    const { streetAddressResults, autoFill, showKeyboard } = this.state;
+
+    if (streetAddressResults.length > 0 && autoFill) {
+      this.scrollToBottom();
+    }
 
     if (!showKeyboard) {
       Keyboard.dismiss();
     }
 
     return (
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flex: 1 }}
-        scrollEnabled={true}
+      <ScrollView
         keyboardShouldPersistTaps={"handled"}
-        enableAutomaticScroll={true}
+        ref={this.scrollViewRef}
       >
         <Container center color="accent">
-          <ScrollView keyboardShouldPersistTaps={"handled"}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{ flex: 1 }}
+            scrollEnabled={false}
+            keyboardShouldPersistTaps={"handled"}
+          >
             <Text
               h1
               offWhite
               center
               style={{ paddingTop: theme.sizes.padding }}
             >
-              Add Property
+              {this.isEditting ? "Edit Property" : "Add Property"}
             </Text>
             {this.renderImageSection()}
             {this.renderPropertyTypeSelection()}
             {this.renderPropertyDetails()}
             {this.renderNavigationButtons()}
             {this.renderNotesModal()}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </Container>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     );
   }
 }
@@ -358,10 +451,16 @@ const styles = StyleSheet.create({
     right: 0,
     top: theme.sizes.base * 1.4,
   },
+  autoFill: {
+    paddingRight: theme.sizes.padding,
+    justifyContent: "flex-end",
+    marginBottom: -10,
+  },
 });
 
 const mapDispatchToProps = {
   addProperty,
+  updateProperty,
 };
 
 export default connect(null, mapDispatchToProps)(AddPropertyComponent);

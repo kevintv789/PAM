@@ -68,6 +68,7 @@ export interface ButtonProps {
   locations?: any;
   shadow?: any;
   onPress?: any;
+  flat?: boolean;
 }
 
 export interface WelcomeScreenProps {
@@ -76,7 +77,8 @@ export interface WelcomeScreenProps {
 
 export interface TextInputProps {
   label?: string;
-  error?: boolean;
+  onFocus?: any;
+  error?: any;
   secure?: boolean;
   rightLabel?: string;
   rightStyle?: any;
