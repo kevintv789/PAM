@@ -28,6 +28,8 @@ class AddPropertyComponent extends Component<
   AddPropertyModel.Props,
   AddPropertyModel.State
 > {
+  private scrollViewRef: React.RefObject<ScrollView>;
+
   constructor(props: any) {
     super(props);
 
@@ -37,12 +39,14 @@ class AddPropertyComponent extends Component<
       propertyNickName: "",
       streetAddress: "",
       streetAddressResults: [],
-      showKeyboard: true,
       showNotesModal: false,
       notesValue: null,
       errors: [],
       autoFill: true,
+      showKeyboard: true,
     };
+
+    this.scrollViewRef = React.createRef();
   }
 
   renderImageSection = () => {
@@ -58,7 +62,7 @@ class AddPropertyComponent extends Component<
     const { propertyTypes } = this.state;
 
     return (
-      <Container center margin={[theme.sizes.padding, 0, 0, 0]}>
+      <Container center>
         <HeaderDivider title="Property Type" style={styles.divider} />
         <PillsList
           data={propertyTypes}
@@ -238,12 +242,9 @@ class AddPropertyComponent extends Component<
               this.setState({
                 streetAddressResults,
                 streetAddress: text.length > 0 ? streetAddress : "",
-                // showKeyboard: streetAddressResults.length > 0 ? false : true,
               });
             }}
-            onFocus={() =>
-              this.setState({ streetAddressResults: [], showKeyboard: true })
-            }
+            onFocus={() => this.setState({ showKeyboard: true })}
             error={hasErrors("streetAddress", errors)}
             textInputStyle={hasErrors("streetAddress", errors)}
           />
@@ -263,7 +264,6 @@ class AddPropertyComponent extends Component<
           onChangeText={(propertyNickName: string) =>
             this.setState({
               propertyNickName,
-              showKeyboard: true,
             })
           }
         />
@@ -314,22 +314,36 @@ class AddPropertyComponent extends Component<
     );
   };
 
+  scrollToBottom = () => {
+    this.scrollViewRef.current?.scrollTo({
+      x: 0,
+      y: 300,
+      animated: true,
+    });
+  };
+
   render() {
-    const { showKeyboard } = this.state;
+    const { streetAddressResults, autoFill, showKeyboard } = this.state;
+
+    if (streetAddressResults.length > 0 && autoFill) {
+      this.scrollToBottom();
+    }
 
     if (!showKeyboard) {
       Keyboard.dismiss();
     }
 
     return (
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flex: 1 }}
-        scrollEnabled={true}
+      <ScrollView
         keyboardShouldPersistTaps={"handled"}
-        enableAutomaticScroll={true}
+        ref={this.scrollViewRef}
       >
         <Container center color="accent">
-          <ScrollView keyboardShouldPersistTaps={"handled"}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{ flex: 1 }}
+            scrollEnabled={false}
+            keyboardShouldPersistTaps={"handled"}
+          >
             <Text
               h1
               offWhite
@@ -343,9 +357,9 @@ class AddPropertyComponent extends Component<
             {this.renderPropertyDetails()}
             {this.renderNavigationButtons()}
             {this.renderNotesModal()}
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </Container>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     );
   }
 }

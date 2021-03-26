@@ -4,11 +4,11 @@ export interface State {
   propertyNickName: string;
   streetAddress: string;
   streetAddressResults: Array<String>;
-  showKeyboard: boolean;
   showNotesModal: boolean;
   notesValue: any;
   errors: string[];
   autoFill: boolean;
+  showKeyboard: boolean;
 }
 
 export interface Props {
