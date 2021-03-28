@@ -1,5 +1,6 @@
 import { filter } from "lodash";
 import { mockData } from "shared"; // remove when we get real data
+import { updateArrayOfObjects } from "shared/Utils";
 
 // Action Types/Action Creators
 const GET_EXPENSE = "GET_EXPENSE";
@@ -9,6 +10,7 @@ const ADD_EXPENSE = "ADD_EXPENSE";
 const ADD_PROPERTY = "ADD_PROPERTY";
 const ADD_TENANT = "ADD_TENANT";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
+const UPDATE_TENANT = "UPDATE_TENANT";
 
 export const getExpense = () => {
   return (dispatch: any) => {
@@ -25,6 +27,10 @@ export const addProperty = (payload: any) => ({ type: ADD_PROPERTY, payload });
 export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
 export const updateProperty = (payload: any) => ({
   type: UPDATE_PROPERTY,
+  payload,
+});
+export const updateTenant = (payload: any) => ({
+  type: UPDATE_TENANT,
   payload,
 });
 
@@ -63,13 +69,17 @@ export const propertyReducer = (state = initialState, action: any) => {
       const properties: any[] = state.properties;
 
       // find which property to update
-      properties.map((p: any, index: number) => {
-        if (p.id === propertyToUpdate.id) {
-          properties[index] = propertyToUpdate;
-        }
-      });
+      updateArrayOfObjects(propertyToUpdate, properties);
 
       return { ...state, properties };
+    case UPDATE_TENANT:
+      const tenantToUpdate = action.payload;
+      const tenants: any[] = state.tenants;
+
+      // find which property to update
+      updateArrayOfObjects(tenantToUpdate, tenants);
+
+      return { ...state, tenants };
     default:
       return state;
   }

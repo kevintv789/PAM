@@ -10,7 +10,7 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, sumBy } from "lodash";
+import { orderBy, property, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
@@ -156,7 +156,14 @@ class PropertyContentComponent extends Component<
               return (
                 <Container style={styles.tenantInfoItem} key={tenant.id}>
                   <TouchableWithoutFeedback>
-                    <TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate("AddTenantModal", {
+                          tenantData: tenant,
+                          isEditting: true,
+                        })
+                      }
+                    >
                       <Container row space="between" padding={10}>
                         <Text
                           numberOfLines={1}

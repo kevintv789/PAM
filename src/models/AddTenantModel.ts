@@ -2,7 +2,7 @@ import { RefObject } from "react";
 
 export interface State {
   primaryTenantName: string;
-  phone: string;
+  phone: string | undefined;
   email: string;
   leaseType: string;
   leaseStartDate: string;
@@ -24,4 +24,5 @@ export interface Props {
   navigation?: any;
   addTenant?: any;
   updateProperty?: any;
+  updateTenant?: any;
 }

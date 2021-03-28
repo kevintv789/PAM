@@ -11,7 +11,11 @@ import {
 } from "components/common";
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { addTenant, updateProperty } from "reducks/modules/property";
+import {
+  addTenant,
+  updateProperty,
+  updateTenant,
+} from "reducks/modules/property";
 import { constants, theme } from "shared";
 import {
   formatCurrencyFromCents,
@@ -36,6 +40,8 @@ class AddTenantComponent extends Component<
   AddTenantModel.State
 > {
   private scrollViewRef: any;
+  private isEditting: boolean = false;
+  private tenantInfo: any;
 
   constructor(props: AddTenantModel.Props) {
     super(props);
@@ -61,10 +67,37 @@ class AddTenantComponent extends Component<
     };
 
     this.scrollViewRef = React.createRef();
+    const { navigation } = this.props;
+    this.isEditting = navigation.getParam("isEditting");
+    this.tenantInfo = navigation.getParam("tenantData");
+  }
+
+  componentDidMount() {
+    // Sets default state on edit of an existing tenant
+    if (this.isEditting && this.tenantInfo) {
+      this.setState({
+        primaryTenantName: this.tenantInfo.name,
+        phone: formatMobileNumber(this.tenantInfo.phone, ""),
+        email: this.tenantInfo.email,
+        leaseType: this.tenantInfo.leaseType,
+        leaseStartDate: this.tenantInfo.leaseStartDate,
+        leaseEndDate: moment(this.tenantInfo.leaseEndDate).isValid()
+          ? this.tenantInfo.leaseEndDate
+          : "",
+        rentPaidPeriod: this.tenantInfo.recurringPaymentType,
+        rent: this.tenantInfo.rent,
+        rentFormatted: "$" + this.tenantInfo.rent,
+        deposit: this.tenantInfo.securityDeposit,
+        depositFormatted: "$" + this.tenantInfo.securityDeposit,
+        totalOccupants: this.tenantInfo.totalOccupants,
+        lastPaymentDate: this.tenantInfo.lastPaymentDate,
+        hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate !== "",
+      });
+    }
   }
 
   handleAddTenant = () => {
-    const { navigation, addTenant, updateProperty } = this.props;
+    const { navigation, addTenant, updateProperty, updateTenant } = this.props;
     const {
       primaryTenantName,
       phone,
@@ -86,7 +119,9 @@ class AddTenantComponent extends Component<
       rentFormatted !== ""
         ? parseFloat(rentFormatted.replace("$", "").replace(",", ""))
         : 0;
-    const tenantId = Math.floor(10 + Math.random() * 10000);
+    const tenantId = this.isEditting
+      ? this.tenantInfo.id
+      : Math.floor(10 + Math.random() * 10000);
 
     if (!primaryTenantName.length) {
       errors.push("tenantName");
@@ -94,7 +129,9 @@ class AddTenantComponent extends Component<
 
     const tenantPayload = {
       id: tenantId,
-      properties: [propertyData.id],
+      properties: this.isEditting
+        ? this.tenantInfo.properties
+        : [propertyData.id],
       name: primaryTenantName,
       phone,
       email,
@@ -107,16 +144,24 @@ class AddTenantComponent extends Component<
       rent: rentToInt,
       collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
       lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : undefined,
-      nextPaymentDate: getNextPaymentDate(leaseStartDate, rentPaidPeriod),
+      nextPaymentDate: this.isEditting
+        ? this.tenantInfo.nextPaymentDate
+        : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
     };
 
-    const propertyPayload = update(propertyData, {
-      tenants: { $push: [tenantId] },
-    });
-
     if (!errors.length) {
-      addTenant(tenantPayload);
-      updateProperty(propertyPayload);
+      if (!this.isEditting) {
+        addTenant(tenantPayload);
+
+        const propertyPayload = update(propertyData, {
+          tenants: { $push: [tenantId] },
+        });
+
+        updateProperty(propertyPayload);
+      } else {
+        updateTenant(tenantPayload);
+      }
+
       navigation.goBack();
     } else {
       this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
@@ -230,16 +275,24 @@ class AddTenantComponent extends Component<
         />
 
         {/* ------ RENT IS PAID TOGGLE ------ */}
-        <Container flex={false} row space="between" center>
+        <Container
+          flex={false}
+          row
+          space="between"
+          center
+          margin={[0, 10, 0, 0]}
+        >
           <Container left padding={[18, 0, 0, 11]}>
             <Text semibold tertiary>
-              Has tenant paid first rent?
+              Has tenant already paid rent?
             </Text>
           </Container>
 
           <Toggle
             options={options}
-            initialIndex={0}
+            initialIndex={
+              this.isEditting && this.tenantInfo.lastPaymentDate !== "" ? 1 : 0
+            }
             handleToggled={(value: boolean) => {
               this.setState({ hasTenantPaidFirstRent: value });
             }}
@@ -458,7 +511,7 @@ class AddTenantComponent extends Component<
               center
               style={{ paddingTop: theme.sizes.padding }}
             >
-              Add Tenant
+              {this.isEditting ? "Edit Tenant" : "Add Tenant"}
             </Text>
             {this.renderImageSection()}
             <HeaderDivider title="Primary Tenant Information" />
@@ -500,14 +553,15 @@ const styles = StyleSheet.create({
     top: theme.sizes.base * 1.4,
   },
   toggle: {
-    minWidth: 145,
-    maxWidth: 145,
+    minWidth: 140,
+    maxWidth: 140,
   },
 });
 
 const mapDispatchToProps = {
   addTenant,
   updateProperty,
+  updateTenant,
 };
 
 export default connect(null, mapDispatchToProps)(AddTenantComponent);
