@@ -21,6 +21,13 @@ export default class NotesComponent extends Component<
     };
   }
 
+  componentDidMount() {
+    const { notesData } = this.props;
+    if (notesData && notesData.text.length) {
+      this.setState({ value: notesData.text });
+    }
+  }
+
   formatCurrentDate = () => {
     return (
       moment().format("MMMM DD, YYYY") + " at " + moment().format("h:mm A")

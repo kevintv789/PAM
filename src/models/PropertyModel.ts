@@ -9,7 +9,7 @@ export interface State {
   animatedHeaderPropertyAddressTop: Animated.Value;
   animatedExpandedContentOpacity: Animated.Value;
   animatedPropertyAddressWidth: Animated.Value;
-  expensesData: any;
+  financesData: any;
   tenantData: any;
   propertyData: any;
 }
@@ -18,7 +18,7 @@ export interface Props {
   propertyData: any;
   getExpense?: any;
   getTenants?: any;
-  expenseData: any;
+  financesData?: any;
   tenantData: any;
   navigation?: any;
 }

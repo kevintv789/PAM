@@ -6,12 +6,12 @@ import { updateArrayOfObjects } from "shared/Utils";
 const GET_EXPENSE = "GET_EXPENSE";
 const GET_TENANTS = "GET_TENANTS";
 const GET_PROPERTIES = "GET_PROPERTIES";
-const ADD_EXPENSE = "ADD_EXPENSE";
+const ADD_FINANCES = "ADD_FINANCES";
 const ADD_PROPERTY = "ADD_PROPERTY";
 const ADD_TENANT = "ADD_TENANT";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 const UPDATE_TENANT = "UPDATE_TENANT";
-const UPDATE_EXPENSE = "UPDATE_EXPENSE";
+const UPDATE_FINANCES = "UPDATE_FINANCES";
 
 export const getExpense = () => {
   return (dispatch: any) => {
@@ -23,7 +23,7 @@ export const getPropertiesByIds = (propertyIds: number[]) => ({
   type: GET_PROPERTIES,
   propertyIds,
 });
-export const addExpense = (payload: any) => ({ type: ADD_EXPENSE, payload });
+export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });
 export const addProperty = (payload: any) => ({ type: ADD_PROPERTY, payload });
 export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
 export const updateProperty = (payload: any) => ({
@@ -34,15 +34,15 @@ export const updateTenant = (payload: any) => ({
   type: UPDATE_TENANT,
   payload,
 });
-export const updateExpense = (payload: any) => ({
-  type: UPDATE_EXPENSE,
+export const updateFinances = (payload: any) => ({
+  type: UPDATE_FINANCES,
   payload,
 });
 
 // State & Reducer
 const initialState = {
   properties: [],
-  expenses: mockData.PropertyFinances,
+  finances: mockData.PropertyFinances,
   tenants: mockData.Tenants,
 };
 
@@ -63,8 +63,8 @@ export const propertyReducer = (state = initialState, action: any) => {
       return { ...state };
     case GET_TENANTS:
       return { ...state };
-    case ADD_EXPENSE:
-      return { ...state, expenses: [...state.expenses, action.payload] };
+    case ADD_FINANCES:
+      return { ...state, finances: [...state.finances, action.payload] };
     case ADD_PROPERTY:
       return { ...state, properties: [...state.properties, action.payload] };
     case ADD_TENANT:
@@ -85,14 +85,14 @@ export const propertyReducer = (state = initialState, action: any) => {
       updateArrayOfObjects(tenantToUpdate, tenants);
 
       return { ...state, tenants };
-    case UPDATE_EXPENSE:
-      const expenseToUpdate = action.payload;
-      const expenses: any[] = state.expenses;
+    case UPDATE_FINANCES:
+      const financeToUpdate = action.payload;
+      const finances: any[] = state.finances;
 
       // find which expense to update
-      updateArrayOfObjects(expenseToUpdate, expenses);
-
-      return { ...state, expenses };
+      updateArrayOfObjects(financeToUpdate, finances);
+      
+      return { ...state, finances };
     default:
       return state;
   }

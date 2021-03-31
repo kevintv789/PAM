@@ -10,7 +10,7 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, property, sumBy } from "lodash";
+import { orderBy, sumBy } from "lodash";
 
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
@@ -286,23 +286,6 @@ class PropertyContentComponent extends Component<
     );
   };
 
-  flattenList = (list: any[]) => {
-    return list.map((e) => {
-      return {
-        id: e.id,
-        propertyId: e.propertyId,
-        recurring: e.recurring,
-        name: e.name,
-        amount: e.rent || e.amount,
-        type: e.rent ? "income" : "expense",
-        paidOn:
-          (e.paidOn && moment(e.paidOn).format("MM/DD/YYYY")) ||
-          (e.lastPaymentDate && moment(e.lastPaymentDate).format("MM/DD/YYYY")),
-        paymentDue: e.paymentDue,
-      };
-    });
-  };
-
   getReportForTimePeriod = (list: any[], timePeriod: string) => {
     let newList: any[] = [];
 
@@ -336,15 +319,11 @@ class PropertyContentComponent extends Component<
   };
 
   renderReportDetailsSection = () => {
-    const { expenseData, tenantData, navigation } = this.props;
-
-    // combine tenantData and expenseData and sort on paidDate/lastPaymentDate
-    const combinedData = [...expenseData, ...tenantData];
-    const flattenList = this.flattenList(combinedData);
+    const { financesData, navigation, propertyData } = this.props;
 
     // further filters out array based on selected time period
     const filteredList = this.getReportForTimePeriod(
-      flattenList,
+      financesData,
       constants.RECURRING_PAYMENT_TYPE.MONTHLY
     );
 
@@ -368,7 +347,8 @@ class PropertyContentComponent extends Component<
                     onPress={() =>
                       navigation.navigate("AddPropertyFinances", {
                         reportData: data,
-                        isEditting: true
+                        isEditting: true,
+                        propertyId: propertyData.id,
                       })
                     }
                   >
@@ -409,7 +389,8 @@ class PropertyContentComponent extends Component<
   };
 
   renderReport = () => {
-    const { propertyData, expenseData, totalIncome } = this.props;
+    const { financesData, totalIncome } = this.props;
+    const expenseData = financesData.filter((f: any) => f.type === "expense");
     const totalExpense = sumBy(expenseData, "amount");
     const profit = totalIncome - totalExpense;
 

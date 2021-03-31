@@ -20,7 +20,7 @@ import { connect } from "react-redux";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
-class ExpenseComponent extends Component<
+class IncomeComponent extends Component<
   FinancesModel.defaultProps,
   FinancesModel.initialState
 > {
@@ -33,19 +33,17 @@ class ExpenseComponent extends Component<
       amountFormatted: "",
       expenseStatusDate: moment().format("MM/DD/YYYY"),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
-      recurring: false,
       notes: null,
       showNotesModal: false,
       showRecurringModal: false,
-      recurringText: "",
       errors: [],
     };
   }
 
   componentDidMount() {
     const { reportData, isEditting } = this.props;
-    if (isEditting && reportData && reportData.type === "expense") {
-      const { amount, name, paidOn, status, recurring } = reportData;
+    if (isEditting && reportData && reportData.type === "income") {
+      const { amount, name, paidOn, status } = reportData;
 
       this.setState({
         name,
@@ -53,7 +51,6 @@ class ExpenseComponent extends Component<
         amountFormatted: "$" + amount,
         expenseStatusDate: paidOn,
         expenseStatus: status,
-        recurring,
       });
     }
   }
@@ -62,10 +59,10 @@ class ExpenseComponent extends Component<
     const {
       navigation,
       addFinances,
+      updateFinances,
+      propertyId,
       isEditting,
       reportData,
-      updateFinances,
-      propertyId
     } = this.props;
     const {
       name,
@@ -89,22 +86,20 @@ class ExpenseComponent extends Component<
       description: "",
       paidOn: expenseStatusDate,
       paymentDue: "",
-      recurring,
+      recurring: recurring,
       additionalNotes: "",
       image: null,
       propertyId,
       name,
-      type: "expense",
+      type: "income",
     };
 
     if (!errors.length) {
       if (!isEditting) {
         addFinances(payload);
       } else {
-        console.log(payload)
         updateFinances(payload);
       }
-
       navigation.goBack();
     }
 
@@ -119,8 +114,6 @@ class ExpenseComponent extends Component<
       notes,
       expenseStatus,
       expenseStatusDate,
-      recurring,
-      recurringText,
       errors,
     } = this.state;
 
@@ -204,24 +197,6 @@ class ExpenseComponent extends Component<
               topLabel="Status"
             />
           </Container>
-
-          <Toggle
-            options={expenseRecurringOptions}
-            initialIndex={0}
-            handleToggled={(recurring: boolean) => {
-              if (recurring) {
-                navigation.navigate("RecurringPaymentModal", {
-                  onGoBack: (value: any) =>
-                    this.setState({ recurringText: value.recurringText }),
-                });
-              }
-              this.setState({ recurring });
-            }}
-            containerStyle={styles.expenseStatus}
-            borderRadius={13}
-            height={48}
-            topLabel="Recurring?"
-          />
         </Container>
 
         {expenseStatus === constants.EXPENSE_STATUS_TYPE.PAID ? (
@@ -246,31 +221,6 @@ class ExpenseComponent extends Component<
               this.setState({ expenseStatusDate })
             }
           />
-        )}
-
-        {recurring && (
-          <TouchableOpacity
-            style={[styles.addNotesButton, { marginBottom: 10 }]}
-            onPress={() =>
-              navigation.navigate("RecurringPaymentModal", {
-                onGoBack: (value: any) =>
-                  this.setState({ recurringText: value.recurringText }),
-              })
-            }
-          >
-            <TextInput
-              label="Expense Due Every"
-              style={styles.input}
-              value={recurringText}
-              editable={false}
-            />
-            <Entypo
-              name="chevron-small-right"
-              size={26}
-              color={theme.colors.gray}
-              style={styles.notesChevron}
-            />
-          </TouchableOpacity>
         )}
 
         <TouchableOpacity
@@ -345,7 +295,7 @@ class ExpenseComponent extends Component<
         onDismiss={() => this.setState({ showNotesModal: false })}
       >
         <NotesComponent
-          label="New Expense"
+          label="New Income"
           handleBackClick={(notes: string) =>
             this.setState({ notes, showNotesModal: false })
           }
@@ -357,7 +307,7 @@ class ExpenseComponent extends Component<
   render() {
     return (
       <Container>
-        <HeaderDivider title="Expense Details" style={styles.divider} />
+        <HeaderDivider title="Income Details" style={styles.divider} />
         {this.renderTextInputs()}
         {this.renderNavigationButtons()}
         {this.renderNotesModal()}
@@ -404,7 +354,7 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = {
   addFinances,
-  updateFinances,
+  updateFinances
 };
 
-export default connect(null, mapDispatchToProps)(ExpenseComponent);
+export default connect(null, mapDispatchToProps)(IncomeComponent);
