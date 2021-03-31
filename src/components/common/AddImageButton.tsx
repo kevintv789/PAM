@@ -7,9 +7,9 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { theme } from "shared";
 
 const AddImageButton = (props: any) => {
-  const { handleOnPress, caption } = props;
+  const { handleOnPress, caption, containerStyle } = props;
   return (
-    <Container center>
+    <Container center style={containerStyle}>
       <TouchableOpacity onPress={() => handleOnPress()}>
         <Container
           style={styles.imageContainer}

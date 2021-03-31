@@ -1,12 +1,12 @@
 import * as AddPropertyModel from "./AddPropertyModel";
-import * as ExpenseModel from './ExpenseModel';
+import * as AddTenantModel from './AddTenantModel';
+import * as FinancesModel from './FinancesModel';
 import * as HomeModel from "./HomeModel";
 import * as LoginModel from "./LoginModel";
 import * as NotesModel from './NotesModel';
 import * as PropertyContentModel from "./PropertyContentModel";
 import * as PropertyModel from "./PropertyModel";
 import * as SignUpModel from "./SignUpModel";
-import * as AddTenantModel from './AddTenantModel';
 
 export {
   LoginModel,
@@ -16,6 +16,6 @@ export {
   PropertyModel,
   PropertyContentModel,
   NotesModel,
-  ExpenseModel
+  FinancesModel,
   AddTenantModel
 };

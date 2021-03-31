@@ -269,3 +269,20 @@ export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
     return moment(startDate).add(timeToAdd, dateType).format("MM/DD/YYYY");
   }
 };
+
+/**
+ * This function only updates an object on an array of objects
+ * This will most likely be removed when the API gets built
+ * @param objectToUpdate
+ * @param originalArray
+ */
+export const updateArrayOfObjects = (
+  objectToUpdate: any,
+  originalArray: any[]
+) => {
+  return originalArray.map((p: any, index: number) => {
+    if (p.id === objectToUpdate.id) {
+      originalArray[index] = objectToUpdate;
+    }
+  });
+};

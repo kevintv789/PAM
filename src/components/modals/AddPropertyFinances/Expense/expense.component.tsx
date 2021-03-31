@@ -1,5 +1,4 @@
 import {
-  AddImageButton,
   Button,
   Container,
   HeaderDivider,
@@ -7,31 +6,29 @@ import {
   TextInput,
   Toggle,
 } from "components/common";
-import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
+import { Dimensions, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { addFinances, updateFinances } from "reducks/modules/property";
 import { constants, theme } from "shared";
 import { formatCurrencyFromCents, hasErrors } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
-import { ExpenseModel } from "models";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { addExpense } from "reducks/modules/property";
 import { connect } from "react-redux";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
-
-class AddExpenseComponent extends Component<
-  ExpenseModel.defaultProps,
-  ExpenseModel.initialState
+class ExpenseComponent extends Component<
+  FinancesModel.defaultProps,
+  FinancesModel.initialState
 > {
-  constructor(props: ExpenseModel.defaultProps) {
+  constructor(props: FinancesModel.defaultProps) {
     super(props);
 
     this.state = {
-      expenseName: "",
+      name: "",
       amount: "",
       amountFormatted: "",
       expenseStatusDate: moment().format("MM/DD/YYYY"),
@@ -45,19 +42,33 @@ class AddExpenseComponent extends Component<
     };
   }
 
-  renderImageSection = () => {
-    return (
-      <AddImageButton
-        handleOnPress={() => console.log("Adding an expense image")}
-        caption="Add expense receipts or other related documents"
-      />
-    );
-  };
+  componentDidMount() {
+    const { reportData, isEditting } = this.props;
+    if (isEditting && reportData && reportData.type === "expense") {
+      const { amount, name, paidOn, status, recurring } = reportData;
+
+      this.setState({
+        name,
+        amount,
+        amountFormatted: "$" + amount,
+        expenseStatusDate: paidOn,
+        expenseStatus: status,
+        recurring,
+      });
+    }
+  }
 
   handleExpenseSave = () => {
-    const { navigation, addExpense } = this.props;
     const {
-      expenseName,
+      navigation,
+      addFinances,
+      isEditting,
+      reportData,
+      updateFinances,
+      propertyId
+    } = this.props;
+    const {
+      name,
       amountFormatted,
       expenseStatusDate,
       expenseStatus,
@@ -66,74 +77,43 @@ class AddExpenseComponent extends Component<
 
     const errors = [];
 
-    if (!expenseName.length) {
-      errors.push("expenseName");
+    if (!name.length) {
+      errors.push("name");
     }
 
     // Call API to save expense to property
     const payload = {
-      id: Math.floor(Math.random() * 1000),
-      amount: amountFormatted.replace("$", ""),
+      id: isEditting ? reportData.id : Math.floor(Math.random() * 1000),
+      amount: parseFloat(amountFormatted.replace("$", "").replace(",", "")),
       status: expenseStatus,
       description: "",
       paidOn: expenseStatusDate,
       paymentDue: "",
-      recurring: recurring,
+      recurring,
       additionalNotes: "",
       image: null,
-      propertyId: navigation.getParam("propertyId"),
-      name: expenseName,
+      propertyId,
+      name,
+      type: "expense",
     };
 
     if (!errors.length) {
-      addExpense(payload);
+      if (!isEditting) {
+        addFinances(payload);
+      } else {
+        console.log(payload)
+        updateFinances(payload);
+      }
+
       navigation.goBack();
     }
 
     this.setState({ errors });
   };
 
-  renderNavigationButtons = () => {
-    const { navigation } = this.props;
-
-    return (
-      <Container
-        row
-        space="between"
-        flex={false}
-        padding={[
-          theme.sizes.padding / 1.3,
-          theme.sizes.padding / 1.3,
-          0,
-          theme.sizes.padding / 1.3,
-        ]}
-        style={{ height: height / 4.8 }}
-      >
-        <Button
-          color="red"
-          style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
-        >
-          <Text offWhite center semibold>
-            Cancel
-          </Text>
-        </Button>
-        <Button
-          color="secondary"
-          style={styles.navigationButtons}
-          onPress={() => this.handleExpenseSave()}
-        >
-          <Text offWhite center semibold>
-            Save
-          </Text>
-        </Button>
-      </Container>
-    );
-  };
-
   renderTextInputs = () => {
     const {
-      expenseName,
+      name,
       amount,
       amountFormatted,
       notes,
@@ -172,14 +152,14 @@ class AddExpenseComponent extends Component<
       <Container center flex={false}>
         <TextInput
           required
-          error={hasErrors("expenseName", errors)}
-          label="Expense Name"
-          style={[styles.input, hasErrors("expenseName", errors)]}
-          value={expenseName}
-          onChangeText={(expenseName: string) =>
+          error={hasErrors("name", errors)}
+          label="Name"
+          style={[styles.input, hasErrors("name", errors)]}
+          value={name}
+          onChangeText={(name: string) =>
             this.setState({
-              expenseName,
-              errors: errors.filter((e) => e !== "expenseName"),
+              name,
+              errors: errors.filter((e) => e !== "name"),
             })
           }
         />
@@ -210,22 +190,20 @@ class AddExpenseComponent extends Component<
           }}
         />
 
-        <Container
-          row
-          space="between"
-          padding={[theme.sizes.padding * 0.9, 0, 10, 0]}
-        >
-          <Toggle
-            options={expenseStatusOptions}
-            initialIndex={1}
-            handleToggled={(expenseStatus: string) =>
-              this.setState({ expenseStatus })
-            }
-            containerStyle={styles.expenseStatus}
-            borderRadius={13}
-            height={48}
-            topLabel="Status"
-          />
+        <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
+          <Container left>
+            <Toggle
+              options={expenseStatusOptions}
+              initialIndex={1}
+              handleToggled={(expenseStatus: string) =>
+                this.setState({ expenseStatus })
+              }
+              containerStyle={styles.expenseStatus}
+              borderRadius={13}
+              height={48}
+              topLabel="Status"
+            />
+          </Container>
 
           <Toggle
             options={expenseRecurringOptions}
@@ -319,6 +297,44 @@ class AddExpenseComponent extends Component<
     );
   };
 
+  renderNavigationButtons = () => {
+    const { navigation } = this.props;
+
+    return (
+      <Container
+        row
+        space="between"
+        flex={false}
+        padding={[
+          theme.sizes.padding / 1.3,
+          theme.sizes.padding / 1.3,
+          0,
+          theme.sizes.padding / 1.3,
+        ]}
+        style={{ height: height / 4.8 }}
+      >
+        <Button
+          color="red"
+          style={styles.navigationButtons}
+          onPress={() => navigation.goBack()}
+        >
+          <Text offWhite center semibold>
+            Cancel
+          </Text>
+        </Button>
+        <Button
+          color="secondary"
+          style={styles.navigationButtons}
+          onPress={() => this.handleExpenseSave()}
+        >
+          <Text offWhite center semibold>
+            Save
+          </Text>
+        </Button>
+      </Container>
+    );
+  };
+
   renderNotesModal = () => {
     const { showNotesModal } = this.state;
 
@@ -340,68 +356,23 @@ class AddExpenseComponent extends Component<
 
   render() {
     return (
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flex: 1 }}
-        scrollEnabled={true}
-        keyboardShouldPersistTaps={"handled"}
-        enableAutomaticScroll={true}
-      >
-        <Container center color="accent">
-          <ScrollView
-            keyboardShouldPersistTaps={"handled"}
-            contentContainerStyle={{
-              flexGrow: 1,
-            }}
-          >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
-            >
-              Add Expense
-            </Text>
-            {this.renderImageSection()}
-            <HeaderDivider title="Expense Details" style={styles.divider} />
-            {this.renderTextInputs()}
-            {this.renderNavigationButtons()}
-            {this.renderNotesModal()}
-          </ScrollView>
-        </Container>
-      </KeyboardAwareScrollView>
+      <Container>
+        <HeaderDivider title="Expense Details" style={styles.divider} />
+        {this.renderTextInputs()}
+        {this.renderNavigationButtons()}
+        {this.renderNotesModal()}
+      </Container>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    backgroundColor: theme.colors.offWhite,
-    borderRadius: 100,
-    width: 90,
-    height: 90,
-  },
-  cameraImage: {
-    width: 61,
-    height: 61,
-  },
   divider: {
     width,
-    marginTop: theme.sizes.base,
-  },
-  navigationButtons: {
-    width: theme.sizes.padding * 5.5,
+    marginTop: 0,
   },
   input: {
     width: width * 0.87,
-  },
-  addNotesButton: {
-    backgroundColor: "transparent",
-    minWidth: "87%",
-    maxWidth: "87%",
-    overflow: "hidden",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.colors.offWhite,
-    height: 63,
   },
   addNotesButtonText: {
     maxWidth: "93%",
@@ -417,10 +388,23 @@ const styles = StyleSheet.create({
     maxWidth: 145,
     marginHorizontal: theme.sizes.padding,
   },
+  addNotesButton: {
+    backgroundColor: "transparent",
+    minWidth: "87%",
+    maxWidth: "87%",
+    overflow: "hidden",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.offWhite,
+    height: 63,
+  },
+  navigationButtons: {
+    width: theme.sizes.padding * 5.5,
+  },
 });
 
-const mapDispatchToprops = {
-  addExpense,
+const mapDispatchToProps = {
+  addFinances,
+  updateFinances,
 };
 
-export default connect(null, mapDispatchToprops)(AddExpenseComponent);
+export default connect(null, mapDispatchToProps)(ExpenseComponent);

@@ -8,7 +8,7 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, sortBy, sumBy } from "lodash";
+import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
 import {
   formatNumber,
   getDataFromProperty,
@@ -33,6 +33,7 @@ class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
+
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -45,7 +46,7 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
       animatedPropertyAddressWidth: new Animated.Value(180),
-      expensesData: this.props.expenseData,
+      financesData: this.props.financesData,
       tenantData: this.props.tenantData,
       propertyData: this.props.propertyData,
     };
@@ -53,18 +54,18 @@ class PropertyComponent extends Component<
 
   componentDidMount() {
     const { getExpense, getTenants } = this.props;
-    const { propertyData, expensesData } = this.state;
+    const { propertyData, financesData } = this.state;
 
     // This is where app needs to call action to read from Database
     getExpense();
     getTenants();
 
     const filteredExpenses = filter(
-      expensesData,
+      financesData,
       (e: any) => e.propertyId === propertyData.id
     );
 
-    this.setState({ expensesData: filteredExpenses });
+    this.setState({ financesData: filteredExpenses });
   }
 
   togglePropertyContent = () => {
@@ -78,7 +79,7 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
       animatedPropertyAddressWidth,
       propertyData,
-      expensesData,
+      financesData,
     } = this.state;
 
     // animate header height
@@ -92,20 +93,19 @@ class PropertyComponent extends Component<
 
     // animate entire container height
     const totalIncome =
-      this.sumAllTenantIncomeForTimePeriod(
-        constants.RECURRING_PAYMENT_TYPE.MONTHLY
-      ) || 0;
+      this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
+      0;
 
     let height = 750;
 
     // TODO --- Super hacky conditional, find a better way to do this shiz
     if (
-      (!propertyData.tenants.length && expensesData.length) ||
-      (propertyData.tenants.length && !expensesData.length && totalIncome === 0)
+      (!propertyData.tenants.length && financesData.length) ||
+      (propertyData.tenants.length && !financesData.length && totalIncome === 0)
     ) {
       height = 600;
     } else if (
-      (!propertyData.tenants.length && !expensesData.length) ||
+      (!propertyData.tenants.length && !financesData.length) ||
       totalIncome === 0
     ) {
       height = 550;
@@ -263,8 +263,9 @@ class PropertyComponent extends Component<
   };
 
   sumExpenses = () => {
-    const { expensesData } = this.state;
-    return sumBy(expensesData, "amount");
+    const { financesData } = this.state;
+    const expenseData = financesData.filter((f: any) => f.type === "expense");
+    return sumBy(expenseData, "amount");
   };
 
   renderTenantNames = () => {
@@ -312,25 +313,29 @@ class PropertyComponent extends Component<
     }
   };
 
-  sumAllTenantIncomeForTimePeriod = (timePeriod: string) => {
-    const { propertyData } = this.props;
-    const { tenantData } = this.state;
+  sumIncomeForTimePeriod = (timePeriod: string) => {
+    const { financesData } = this.state;
     const date = new Date();
-    const tenantInfo = getDataFromProperty(propertyData.tenants, tenantData);
     let totalIncome = 0;
 
-    if (tenantInfo.length) {
+    // filter to type of income only
+    const filteredFinancesData = financesData.filter(
+      (i: any) => i.type === "income"
+    );
+
+    if (filteredFinancesData.length) {
       switch (timePeriod) {
         case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
           const curMonth = date.getMonth() + 1;
           const curDate = moment();
 
-          tenantInfo.forEach((data: any) => {
-            if (data.lastPaymentDate) {
-              const paidMonth = moment(data.lastPaymentDate).month() + 1;
-              const paidDate = moment(data.lastPaymentDate);
+          filteredFinancesData.forEach((data: any) => {
+            if (data.paidOn) {
+              const paidMonth = moment(data.paidOn).month() + 1;
+              const paidDate = moment(data.paidOn);
+
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
-                totalIncome += data.rent;
+                totalIncome += data.amount;
               }
             }
           });
@@ -347,9 +352,8 @@ class PropertyComponent extends Component<
   renderBottom = () => {
     const expensesSum = this.sumExpenses();
     const totalIncome =
-      this.sumAllTenantIncomeForTimePeriod(
-        constants.RECURRING_PAYMENT_TYPE.MONTHLY
-      ) || 0;
+      this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
+      0;
     const totalProfit = totalIncome - expensesSum;
 
     return (
@@ -446,7 +450,7 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const { propertyData } = this.props;
-    const { expensesData, tenantData } = this.state;
+    const { financesData, tenantData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
     if (!propertyData || !tenantData.length) {
@@ -476,9 +480,9 @@ class PropertyComponent extends Component<
                   propertyData.tenants,
                   tenantData
                 )}
-                expenseData={expensesData}
+                financesData={financesData}
                 propertyData={propertyData}
-                totalIncome={this.sumAllTenantIncomeForTimePeriod(
+                totalIncome={this.sumIncomeForTimePeriod(
                   constants.RECURRING_PAYMENT_TYPE.MONTHLY
                 )}
               />
@@ -544,7 +548,7 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state: any) => {
   return {
-    expenseData: state.propertyState.expenses,
+    financesData: state.propertyState.finances,
     tenantData: state.propertyState.tenants,
   };
 };
