@@ -25,4 +25,5 @@ export interface Props {
   addTenant?: any;
   updateProperty?: any;
   updateTenant?: any;
+  addFinances?: any;
 }

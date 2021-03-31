@@ -12,6 +12,7 @@ import {
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import {
+  addFinances,
   addTenant,
   updateProperty,
   updateTenant,
@@ -129,9 +130,9 @@ class AddTenantComponent extends Component<
 
     const tenantPayload = {
       id: tenantId,
-      properties: this.isEditting
-        ? this.tenantInfo.properties
-        : [propertyData.id],
+      propertyId: this.isEditting
+        ? this.tenantInfo.propertyId
+        : propertyData.id,
       name: primaryTenantName,
       phone,
       email,
@@ -158,6 +159,7 @@ class AddTenantComponent extends Component<
         });
 
         updateProperty(propertyPayload);
+        this.addToPropertyFinances(tenantPayload);
       } else {
         updateTenant(tenantPayload);
       }
@@ -168,6 +170,29 @@ class AddTenantComponent extends Component<
     }
 
     this.setState({ errors });
+  };
+
+  addToPropertyFinances = (payload: any) => {
+    if (payload.lastPaymentDate) {
+      const { addFinances } = this.props;
+
+      const financePayload = {
+        id: Math.floor(Math.random() * 1000),
+        amount: payload.rent,
+        status: constants.EXPENSE_STATUS_TYPE.PAID,
+        description: "",
+        paidOn: payload.lastPaymentDate,
+        paymentDue: "",
+        recurring: undefined,
+        additionalNotes: "",
+        image: null,
+        propertyId: payload.propertyId,
+        name: payload.name,
+        type: "income",
+      };
+
+      addFinances(financePayload);
+    }
   };
 
   renderImageSection = () => {
@@ -562,6 +587,7 @@ const mapDispatchToProps = {
   addTenant,
   updateProperty,
   updateTenant,
+  addFinances,
 };
 
 export default connect(null, mapDispatchToProps)(AddTenantComponent);
