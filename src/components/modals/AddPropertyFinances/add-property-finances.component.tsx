@@ -1,3 +1,5 @@
+import * as EvaUI from "@ui-kitten/components";
+
 import {
   AddImageButton,
   Button,
@@ -9,6 +11,7 @@ import {
 } from "components/common";
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { Tab, TabView } from "@ui-kitten/components";
 import { constants, theme } from "shared";
 import { formatCurrencyFromCents, hasErrors } from "shared/Utils";
 
@@ -23,10 +26,14 @@ import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
 
-class AddExpenseComponent extends Component<
+class AddPropertyFinancesComponent extends Component<
   ExpenseModel.defaultProps,
   ExpenseModel.initialState
 > {
+  private reportData: any;
+  private isEditting = false;
+  private isIncomeType = false;
+
   constructor(props: ExpenseModel.defaultProps) {
     super(props);
 
@@ -42,14 +49,40 @@ class AddExpenseComponent extends Component<
       showRecurringModal: false,
       recurringText: "",
       errors: [],
+      activeTabIndex: 0,
     };
+
+    const { navigation } = this.props;
+    this.isEditting = navigation.getParam("isEditting");
+    this.reportData = navigation.getParam("reportData");
+    this.isIncomeType = this.reportData && this.reportData.type === "income";
+  }
+
+  componentDidMount() {
+    // console.log(this.reportData);
+
+    if (this.isEditting && this.reportData) {
+      const { amount, name, paidOn, recurring } = this.reportData;
+
+      this.setState({
+        expenseName: name,
+        amount,
+        amountFormatted: "$" + amount,
+        expenseStatusDate: paidOn,
+        expenseStatus: paidOn
+          ? constants.EXPENSE_STATUS_TYPE.PAID
+          : constants.EXPENSE_STATUS_TYPE.UNPAID,
+        recurring,
+        notes: null,
+      });
+    }
   }
 
   renderImageSection = () => {
     return (
       <AddImageButton
         handleOnPress={() => console.log("Adding an expense image")}
-        caption="Add expense receipts or other related documents"
+        caption="Add receipts or other related documents"
       />
     );
   };
@@ -173,7 +206,7 @@ class AddExpenseComponent extends Component<
         <TextInput
           required
           error={hasErrors("expenseName", errors)}
-          label="Expense Name"
+          label={this.isIncomeType ? "Income Name" : "Expense Name"}
           style={[styles.input, hasErrors("expenseName", errors)]}
           value={expenseName}
           onChangeText={(expenseName: string) =>
@@ -210,40 +243,40 @@ class AddExpenseComponent extends Component<
           }}
         />
 
-        <Container
-          row
-          space="between"
-          padding={[theme.sizes.padding * 0.9, 0, 10, 0]}
-        >
-          <Toggle
-            options={expenseStatusOptions}
-            initialIndex={1}
-            handleToggled={(expenseStatus: string) =>
-              this.setState({ expenseStatus })
-            }
-            containerStyle={styles.expenseStatus}
-            borderRadius={13}
-            height={48}
-            topLabel="Status"
-          />
-
-          <Toggle
-            options={expenseRecurringOptions}
-            initialIndex={0}
-            handleToggled={(recurring: boolean) => {
-              if (recurring) {
-                navigation.navigate("RecurringPaymentModal", {
-                  onGoBack: (value: any) =>
-                    this.setState({ recurringText: value.recurringText }),
-                });
+        <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
+          <Container left>
+            <Toggle
+              options={expenseStatusOptions}
+              initialIndex={1}
+              handleToggled={(expenseStatus: string) =>
+                this.setState({ expenseStatus })
               }
-              this.setState({ recurring });
-            }}
-            containerStyle={styles.expenseStatus}
-            borderRadius={13}
-            height={48}
-            topLabel="Recurring?"
-          />
+              containerStyle={styles.expenseStatus}
+              borderRadius={13}
+              height={48}
+              topLabel="Status"
+            />
+          </Container>
+
+          {(!this.isIncomeType || !this.isEditting) && (
+            <Toggle
+              options={expenseRecurringOptions}
+              initialIndex={0}
+              handleToggled={(recurring: boolean) => {
+                if (recurring) {
+                  navigation.navigate("RecurringPaymentModal", {
+                    onGoBack: (value: any) =>
+                      this.setState({ recurringText: value.recurringText }),
+                  });
+                }
+                this.setState({ recurring });
+              }}
+              containerStyle={styles.expenseStatus}
+              borderRadius={13}
+              height={48}
+              topLabel="Recurring?"
+            />
+          )}
         </Container>
 
         {expenseStatus === constants.EXPENSE_STATUS_TYPE.PAID ? (
@@ -339,14 +372,15 @@ class AddExpenseComponent extends Component<
   };
 
   render() {
+    const { activeTabIndex } = this.state;
     return (
       <KeyboardAwareScrollView
-        contentContainerStyle={{ flex: 1 }}
+        // contentContainerStyle={{ flex: 1 }}
         scrollEnabled={true}
         keyboardShouldPersistTaps={"handled"}
         enableAutomaticScroll={true}
       >
-        <Container center color="accent">
+        <Container color="accent">
           <ScrollView
             keyboardShouldPersistTaps={"handled"}
             contentContainerStyle={{
@@ -359,13 +393,62 @@ class AddExpenseComponent extends Component<
               center
               style={{ paddingTop: theme.sizes.padding }}
             >
-              Add Expense
+              {this.isEditting ? "Edit" : "Add"}{" "}
+              {this.isIncomeType ? "Income" : "Expense"}
             </Text>
             {this.renderImageSection()}
-            <HeaderDivider title="Expense Details" style={styles.divider} />
-            {this.renderTextInputs()}
-            {this.renderNavigationButtons()}
-            {this.renderNotesModal()}
+
+            <TabView
+              selectedIndex={activeTabIndex}
+              onSelect={(index) => this.setState({ activeTabIndex: index })}
+              tabBarStyle={{
+                backgroundColor: "transparent",
+                height: 40,
+                marginTop: theme.sizes.base,
+              }}
+              indicatorStyle={{ backgroundColor: theme.colors.secondary }}
+            >
+              <Tab
+                title={(evaProps) => (
+                  <EvaUI.Text
+                    {...evaProps}
+                    style={
+                      activeTabIndex === 0
+                        ? styles.activeTab
+                        : styles.inactiveTab
+                    }
+                  >
+                    Expense
+                  </EvaUI.Text>
+                )}
+              >
+                <Container flex={false}>
+                  <HeaderDivider
+                    title={
+                      this.isIncomeType ? "Income Details" : "Expense Details"
+                    }
+                    style={styles.divider}
+                  />
+                  {this.renderTextInputs()}
+                  {this.renderNavigationButtons()}
+                  {this.renderNotesModal()}
+                </Container>
+              </Tab>
+              <Tab
+                title={(evaProps) => (
+                  <EvaUI.Text
+                    {...evaProps}
+                    style={
+                      activeTabIndex === 1
+                        ? styles.activeTab
+                        : styles.inactiveTab
+                    }
+                  >
+                    Income
+                  </EvaUI.Text>
+                )}
+              ></Tab>
+            </TabView>
           </ScrollView>
         </Container>
       </KeyboardAwareScrollView>
@@ -386,7 +469,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     width,
-    marginTop: theme.sizes.base,
+    marginTop: 0,
   },
   navigationButtons: {
     width: theme.sizes.padding * 5.5,
@@ -417,10 +500,19 @@ const styles = StyleSheet.create({
     maxWidth: 145,
     marginHorizontal: theme.sizes.padding,
   },
+  activeTab: {
+    color: theme.colors.offWhite,
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  inactiveTab: {
+    color: theme.colors.gray2,
+    fontSize: 16,
+  },
 });
 
 const mapDispatchToprops = {
   addExpense,
 };
 
-export default connect(null, mapDispatchToprops)(AddExpenseComponent);
+export default connect(null, mapDispatchToprops)(AddPropertyFinancesComponent);

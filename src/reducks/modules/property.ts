@@ -11,6 +11,7 @@ const ADD_PROPERTY = "ADD_PROPERTY";
 const ADD_TENANT = "ADD_TENANT";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 const UPDATE_TENANT = "UPDATE_TENANT";
+const UPDATE_EXPENSE = "UPDATE_EXPENSE";
 
 export const getExpense = () => {
   return (dispatch: any) => {
@@ -33,11 +34,15 @@ export const updateTenant = (payload: any) => ({
   type: UPDATE_TENANT,
   payload,
 });
+export const updateExpense = (payload: any) => ({
+  type: UPDATE_EXPENSE,
+  payload,
+});
 
 // State & Reducer
 const initialState = {
   properties: [],
-  expenses: mockData.Expenses,
+  expenses: mockData.PropertyFinances,
   tenants: mockData.Tenants,
 };
 
@@ -76,10 +81,18 @@ export const propertyReducer = (state = initialState, action: any) => {
       const tenantToUpdate = action.payload;
       const tenants: any[] = state.tenants;
 
-      // find which property to update
+      // find which tenant to update
       updateArrayOfObjects(tenantToUpdate, tenants);
 
       return { ...state, tenants };
+    case UPDATE_EXPENSE:
+      const expenseToUpdate = action.payload;
+      const expenses: any[] = state.expenses;
+
+      // find which expense to update
+      updateArrayOfObjects(expenseToUpdate, expenses);
+
+      return { ...state, expenses };
     default:
       return state;
   }

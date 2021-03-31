@@ -14,7 +14,7 @@ export const PropertyTypes = [
 export const Tenants = [
   {
     id: 1,
-    properties: [2],
+    propertyId: 2,
     name: "Elizabeth Olsen",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -32,7 +32,7 @@ export const Tenants = [
   },
   {
     id: 2,
-    properties: [2],
+    propertyId: 2,
     name: "Lady Gaga",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -50,7 +50,7 @@ export const Tenants = [
   },
   {
     id: 3,
-    properties: [2],
+    propertyId: 1,
     name: "Ed Sheeran",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -68,7 +68,7 @@ export const Tenants = [
   },
   {
     id: 4,
-    properties: [1],
+    propertyId: 1,
     name: "Sam Smith",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -86,7 +86,7 @@ export const Tenants = [
   },
   {
     id: 5,
-    properties: [1],
+    propertyId: 4,
     name: "Ashton Kutcher",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -104,7 +104,7 @@ export const Tenants = [
   },
   {
     id: 6,
-    properties: [4],
+    propertyId: 4,
     name: "Mariah Carey",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -122,7 +122,7 @@ export const Tenants = [
   },
   {
     id: 7,
-    properties: [4],
+    propertyId: 4,
     name: "Miley Cyrus",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -140,7 +140,7 @@ export const Tenants = [
   },
   {
     id: 8,
-    properties: [4],
+    propertyId: 4,
     name: "Elizabeth Wiley",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -158,7 +158,7 @@ export const Tenants = [
   },
   {
     id: 9,
-    properties: [4],
+    propertyId: 4,
     name: "Cody Sprouse",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -176,7 +176,7 @@ export const Tenants = [
   },
   {
     id: 10,
-    properties: [4],
+    propertyId: 4,
     name: "Zach Sprouse",
     phone: "1234567890",
     email: "eliza@gmail.com",
@@ -194,7 +194,7 @@ export const Tenants = [
   },
 ];
 
-export const Expenses = [
+export const PropertyFinances = [
   {
     id: 1,
     amount: 100,
@@ -207,6 +207,7 @@ export const Expenses = [
     image: null,
     propertyId: 1,
     name: "Gas",
+    type: 'expense'
   },
   {
     id: 2,
@@ -220,6 +221,7 @@ export const Expenses = [
     image: null,
     propertyId: 1,
     name: "Electricity",
+    type: 'expense'
   },
   {
     id: 3,
@@ -233,6 +235,7 @@ export const Expenses = [
     image: null,
     propertyId: 1,
     name: "Water",
+    type: 'expense'
   },
   {
     id: 4,
@@ -246,6 +249,7 @@ export const Expenses = [
     image: null,
     propertyId: 1,
     name: "Repairs",
+    type: 'expense'
   },
   {
     id: 5,
@@ -259,6 +263,21 @@ export const Expenses = [
     image: null,
     propertyId: 1,
     name: "Mortgage",
+    type: 'expense'
+  },
+  {
+    id: 6,
+    amount: 1000,
+    status: "paid",
+    description: "",
+    paidOn: "3/1/2021",
+    paymentDue: "",
+    recurring: false,
+    additionalNotes: "",
+    image: null,
+    propertyId: 1,
+    name: "Sam Smith",
+    type: "income"
   },
 ];
 

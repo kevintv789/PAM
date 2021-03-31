@@ -31,7 +31,6 @@ class PropertyContentComponent extends Component<
     this.state = {
       showNotesModal: false,
       notesValue: null,
-      showAddExpenseModal: false,
     };
   }
 
@@ -257,16 +256,16 @@ class PropertyContentComponent extends Component<
         <Container row style={{}} flex={1}>
           <Button
             color="transparent"
-            style={styles.addExpenseButton}
+            style={styles.addFinanceButton}
             onPress={() =>
-              this.props.navigation.navigate("AddExpenseModal", {
+              this.props.navigation.navigate("AddPropertyFinances", {
                 propertyId: this.props.propertyData.id,
               })
             }
           >
-            <Text light accent style={{ top: 2, right: 4 }} size={13}>
+            {/* <Text light accent style={{ top: 2, right: 4 }} size={13}>
               Add Expense
-            </Text>
+            </Text> */}
             <Image
               source={require("assets/icons/plus.png")}
               style={{ width: 20, height: 20 }}
@@ -291,12 +290,15 @@ class PropertyContentComponent extends Component<
     return list.map((e) => {
       return {
         id: e.id,
+        propertyId: e.propertyId,
+        recurring: e.recurring,
         name: e.name,
         amount: e.rent || e.amount,
-        type: e.rent ? "rent" : "expense",
+        type: e.rent ? "income" : "expense",
         paidOn:
           (e.paidOn && moment(e.paidOn).format("MM/DD/YYYY")) ||
           (e.lastPaymentDate && moment(e.lastPaymentDate).format("MM/DD/YYYY")),
+        paymentDue: e.paymentDue,
       };
     });
   };
@@ -334,7 +336,7 @@ class PropertyContentComponent extends Component<
   };
 
   renderReportDetailsSection = () => {
-    const { expenseData, tenantData } = this.props;
+    const { expenseData, tenantData, navigation } = this.props;
 
     // combine tenantData and expenseData and sort on paidDate/lastPaymentDate
     const combinedData = [...expenseData, ...tenantData];
@@ -362,7 +364,14 @@ class PropertyContentComponent extends Component<
                 style={styles.expensesContainer}
               >
                 <TouchableWithoutFeedback>
-                  <TouchableOpacity onPress={() => console.log(data)}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("AddPropertyFinances", {
+                        reportData: data,
+                        isEditting: true
+                      })
+                    }
+                  >
                     <Container row>
                       <Text semibold accent>
                         {data.name}
@@ -373,7 +382,9 @@ class PropertyContentComponent extends Component<
                       </Text>
                       <Container row style={{ right: 0, position: "absolute" }}>
                         <Text
-                          color={data.type === "rent" ? "secondary" : "primary"}
+                          color={
+                            data.type === "income" ? "secondary" : "primary"
+                          }
                           semibold
                         >
                           {this.formatAmount(data.amount, data.type)}
@@ -594,12 +605,10 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     marginTop: 10,
   },
-  addExpenseButton: {
+  addFinanceButton: {
     flexDirection: "row",
-    left: 12,
+    paddingRight: 90,
     bottom: 10,
-    justifyContent: "space-between",
-    width: 100,
   },
   filterButton: {
     position: "absolute",
