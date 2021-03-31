@@ -16,6 +16,7 @@ import { constants, theme } from "shared";
 import { formatCurrencyFromCents, hasErrors } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
+import ExpenseComponent from "./Expense/expense.component";
 import { ExpenseModel } from "models";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
@@ -206,7 +207,7 @@ class AddPropertyFinancesComponent extends Component<
         <TextInput
           required
           error={hasErrors("expenseName", errors)}
-          label={this.isIncomeType ? "Income Name" : "Expense Name"}
+          label="Name"
           style={[styles.input, hasErrors("expenseName", errors)]}
           value={expenseName}
           onChangeText={(expenseName: string) =>
@@ -373,9 +374,10 @@ class AddPropertyFinancesComponent extends Component<
 
   render() {
     const { activeTabIndex } = this.state;
+    const { navigation } = this.props;
     return (
       <KeyboardAwareScrollView
-        // contentContainerStyle={{ flex: 1 }}
+        contentContainerStyle={{ flex: 1 }}
         scrollEnabled={true}
         keyboardShouldPersistTaps={"handled"}
         enableAutomaticScroll={true}
@@ -423,15 +425,7 @@ class AddPropertyFinancesComponent extends Component<
                 )}
               >
                 <Container flex={false}>
-                  <HeaderDivider
-                    title={
-                      this.isIncomeType ? "Income Details" : "Expense Details"
-                    }
-                    style={styles.divider}
-                  />
-                  {this.renderTextInputs()}
-                  {this.renderNavigationButtons()}
-                  {this.renderNotesModal()}
+                  <ExpenseComponent navigation={navigation} />
                 </Container>
               </Tab>
               <Tab
@@ -447,7 +441,17 @@ class AddPropertyFinancesComponent extends Component<
                     Income
                   </EvaUI.Text>
                 )}
-              ></Tab>
+              >
+                <Container flex={false}>
+                  <HeaderDivider
+                    title="Income Details"
+                    style={styles.divider}
+                  />
+                  {this.renderTextInputs()}
+                  {this.renderNavigationButtons()}
+                  {this.renderNotesModal()}
+                </Container>
+              </Tab>
             </TabView>
           </ScrollView>
         </Container>

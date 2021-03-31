@@ -10,7 +10,7 @@ export interface initialState {
   showRecurringModal: boolean;
   recurringText: string;
   errors: string[];
-  activeTabIndex: number;
+  activeTabIndex?: number;
 }
 
 export interface defaultProps {
