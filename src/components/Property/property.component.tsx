@@ -33,7 +33,6 @@ class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
-
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -69,6 +68,7 @@ class PropertyComponent extends Component<
   }
 
   togglePropertyContent = () => {
+    const { onPropertySelect } = this.props;
     const {
       animatedHeaderHeight,
       expanded,
@@ -101,7 +101,8 @@ class PropertyComponent extends Component<
     // TODO --- Super hacky conditional, find a better way to do this shiz
     if (
       (!propertyData.tenants.length && financesData.length) ||
-      (propertyData.tenants.length && !financesData.length && totalIncome === 0)
+      (propertyData.tenants.length && !financesData.length && totalIncome === 0) ||
+      (propertyData.tenants.length && financesData.length && totalIncome === 0)
     ) {
       height = 600;
     } else if (
@@ -138,6 +139,7 @@ class PropertyComponent extends Component<
       800
     );
 
+    onPropertySelect();
     this.setState({ expanded: !expanded });
   };
 
