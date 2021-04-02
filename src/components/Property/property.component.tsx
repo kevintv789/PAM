@@ -10,6 +10,7 @@ import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
 import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
 import {
+  filterArrayForTimePeriod,
   formatNumber,
   getDataFromProperty,
   getPropertyImage,
@@ -67,7 +68,7 @@ class PropertyComponent extends Component<
     this.setState({ financesData: filteredExpenses });
   }
 
-  togglePropertyContent = () => {
+  togglePropertyContent = (timePeriod: string) => {
     const { onPropertySelect } = this.props;
     const {
       animatedHeaderHeight,
@@ -105,6 +106,14 @@ class PropertyComponent extends Component<
       (propertyData.tenants.length && financesData.length && totalIncome === 0)
     ) {
       height = 600;
+
+      const reportDetailsLength = filterArrayForTimePeriod(financesData, 'paidOn', timePeriod)?.length;
+      if (reportDetailsLength) {
+        if (reportDetailsLength > 0 && reportDetailsLength < 6) {
+          height += 40 * reportDetailsLength;
+        }
+      }
+
     } else if (
       (!propertyData.tenants.length && !financesData.length) ||
       totalIncome === 0
@@ -158,7 +167,7 @@ class PropertyComponent extends Component<
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
-        onPress={() => this.togglePropertyContent()}
+        onPress={() => this.togglePropertyContent(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
         activeOpacity={0.9}
       >
         <AnimatedContainer
@@ -264,10 +273,31 @@ class PropertyComponent extends Component<
     }
   };
 
-  sumExpenses = () => {
+  sumExpenseForTimePeriod = (timePeriod: string) => {
     const { financesData } = this.state;
+    const date = new Date();
     const expenseData = financesData.filter((f: any) => f.type === "expense");
-    return sumBy(expenseData, "amount");
+    let totalExpense = 0;
+
+    switch (timePeriod) {
+      case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+        const curMonth = date.getMonth() + 1;
+        const curDate = moment();
+
+        expenseData.forEach((data: any) => {
+          const paidMonth = moment(data.paidOn).month() + 1;
+          const paidDate = moment(data.paidOn);
+
+          if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
+            totalExpense += data.amount;
+          }
+        });
+        break;
+      default:
+        break;
+    }
+
+    return totalExpense;
   };
 
   renderTenantNames = () => {
@@ -352,7 +382,7 @@ class PropertyComponent extends Component<
   };
 
   renderBottom = () => {
-    const expensesSum = this.sumExpenses();
+    const expensesSum = this.sumExpenseForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY);
     const totalIncome =
       this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
       0;
