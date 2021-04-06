@@ -1,10 +1,9 @@
 import * as EvaUI from "@ui-kitten/components";
 
 import { AddImageButton, Container, Text } from "components/common";
+import { Keyboard, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { ScrollView, StyleSheet } from "react-native";
 import { Tab, TabView } from "@ui-kitten/components";
-import { constants, theme } from "shared";
 
 import ExpenseComponent from "./Expense/expense.component";
 import { FinancesModel } from "models";
@@ -12,7 +11,7 @@ import IncomeComponent from "./Income/income.component";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { addFinances } from "reducks/modules/property";
 import { connect } from "react-redux";
-import moment from "moment";
+import { theme } from "shared";
 
 class AddPropertyFinancesComponent extends Component<
   FinancesModel.defaultProps,
@@ -53,7 +52,10 @@ class AddPropertyFinancesComponent extends Component<
     return (
       <TabView
         selectedIndex={activeTabIndex}
-        onSelect={(index) => this.setState({ activeTabIndex: index })}
+        onSelect={(index) => {
+          this.setState({ activeTabIndex: index });
+          Keyboard.dismiss();
+        }}
         tabBarStyle={styles.tabBar}
         indicatorStyle={styles.tabIndicator}
       >
