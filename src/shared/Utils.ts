@@ -286,3 +286,19 @@ export const updateArrayOfObjects = (
     }
   });
 };
+
+export const filterArrayForTimePeriod = (
+  array: any[],
+  prop: string,
+  timePeriod: string
+) => {
+  switch (timePeriod) {
+    case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
+      const curMonth = new Date().getMonth() + 1;
+      return array.filter(
+        (item) => moment(item[prop]).month() + 1 === curMonth
+      );
+    default:
+      return;
+  }
+};

@@ -21,4 +21,5 @@ export interface Props {
   financesData?: any;
   tenantData: any;
   navigation?: any;
+  onPropertySelect: () => void;
 }

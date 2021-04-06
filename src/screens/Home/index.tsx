@@ -11,8 +11,11 @@ import { getUser } from "reducks/modules/user";
 import { theme } from "shared";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
+  private scrollViewRef: React.RefObject<ScrollView>;
   constructor(props: any) {
     super(props);
+
+    this.scrollViewRef = React.createRef();
   }
 
   componentDidMount() {
@@ -73,24 +76,42 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         }}
         nestedScrollEnabled
         style={styles.propertiesScrollView}
+        ref={this.scrollViewRef}
         keyboardShouldPersistTaps={"handled"}
         showsVerticalScrollIndicator={false}
       >
         <Container center>
           {propertyData.map((property: any) => {
             // this is returning a property id
+            let positionY = 0;
             return (
               <Container
                 key={property.id}
-                // onLayout={(event) => {}} // TODO -- perhaps use onlayout to calculate the new position for scrollTo
+                onLayout={(event: any) =>
+                  (positionY = event.nativeEvent.layout.y)
+                }
               >
-                <PropertyComponent propertyData={property} navigation={navigation}/>
+                <PropertyComponent
+                  propertyData={property}
+                  navigation={navigation}
+                  onPropertySelect={() => this.scrollToProperty(positionY)}
+                />
               </Container>
             );
           })}
         </Container>
       </ScrollView>
     );
+  };
+
+  scrollToProperty = (positionY: number) => {
+    setTimeout(() => {
+      this.scrollViewRef.current?.scrollTo({
+        x: 0,
+        y: positionY,
+        animated: true,
+      });
+    }, 400);
   };
 
   renderContent = () => {

@@ -178,26 +178,26 @@ export default class Input extends Component<TextInputProps, TextInputState> {
     this.setState({ datePickerShow: false });
   };
 
-  render() {
+  showInput = () => {
     const {
-      email,
-      phone,
-      number,
+      dateTime,
+      currencyInput,
       secure,
       error,
       style,
-      dateTime,
-      ...props
+      email,
+      number,
+      phone,
     } = this.props;
-
-    const { toggleSecure, datePickerShow } = this.state;
-    const isSecure = toggleSecure ? false : secure;
+    const { toggleSecure } = this.state;
 
     const inputStyles = [
       styles.input,
       error && { borderColor: theme.colors.accent },
       style,
     ];
+
+    const isSecure = toggleSecure ? false : secure;
 
     const inputType = email
       ? "email-address"
@@ -207,12 +207,30 @@ export default class Input extends Component<TextInputProps, TextInputState> {
       ? "phone-pad"
       : "default";
 
+    if (dateTime) {
+      return this.renderDateTimeInput(inputStyles);
+    } else {
+      return this.renderNormalInput(inputStyles, inputType, isSecure);
+    }
+  };
+
+  render() {
+    const {
+      email,
+      phone,
+      number,
+      secure,
+      error,
+      style,
+      dateTime,
+      currencyInput,
+      ...props
+    } = this.props;
+
     return (
       <Container flex={false} margin={[theme.sizes.base / 2, 0]}>
         {this.renderLabel()}
-        {dateTime
-          ? this.renderDateTimeInput(inputStyles)
-          : this.renderNormalInput(inputStyles, inputType, isSecure)}
+        {this.showInput()}
 
         {this.renderToggle()}
         {this.renderRight()}
