@@ -148,6 +148,8 @@ class PropertyComponent extends Component<
       800
     );
 
+    // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
+    // to help the auto scroll function
     onPropertySelect();
     this.setState({ expanded: !expanded });
   };

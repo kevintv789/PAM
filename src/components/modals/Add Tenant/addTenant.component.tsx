@@ -3,6 +3,7 @@ import {
   Button,
   Container,
   Counter,
+  CurrencyInput,
   HeaderDivider,
   PillsList,
   Text,
@@ -55,10 +56,8 @@ class AddTenantComponent extends Component<
       leaseStartDate: moment(new Date()).format("MM/DD/YYYY"),
       leaseEndDate: "",
       rentPaidPeriod: "Monthly",
-      rent: "",
-      rentFormatted: "",
-      deposit: "",
-      depositFormatted: "",
+      rent: 0,
+      deposit: 0,
       totalOccupants: 1,
       notes: undefined,
       showNotesModal: false,
@@ -87,9 +86,7 @@ class AddTenantComponent extends Component<
           : "",
         rentPaidPeriod: this.tenantInfo.recurringPaymentType,
         rent: this.tenantInfo.rent,
-        rentFormatted: "$" + this.tenantInfo.rent,
         deposit: this.tenantInfo.securityDeposit,
-        depositFormatted: "$" + this.tenantInfo.securityDeposit,
         totalOccupants: this.tenantInfo.totalOccupants,
         lastPaymentDate: this.tenantInfo.lastPaymentDate,
         hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate !== "",
@@ -109,17 +106,14 @@ class AddTenantComponent extends Component<
       deposit,
       rentPaidPeriod,
       totalOccupants,
-      rentFormatted,
       lastPaymentDate,
       hasTenantPaidFirstRent,
+      rent,
     } = this.state;
 
     const errors = [];
     const propertyData = navigation.getParam("propertyData");
-    const rentToInt =
-      rentFormatted !== ""
-        ? parseFloat(rentFormatted.replace("$", "").replace(",", ""))
-        : 0;
+
     const tenantId = this.isEditting
       ? this.tenantInfo.id
       : Math.floor(10 + Math.random() * 10000);
@@ -142,7 +136,7 @@ class AddTenantComponent extends Component<
       securityDeposit: deposit,
       recurringPaymentType: rentPaidPeriod, // monthly, quarterly, annually, etc. this will be used to calculate next expected payment
       totalOccupants,
-      rent: rentToInt,
+      rent,
       collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
       lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : undefined,
       nextPaymentDate: this.isEditting
@@ -250,9 +244,7 @@ class AddTenantComponent extends Component<
       leaseEndDate,
       rentPaidPeriod,
       rent,
-      rentFormatted,
       deposit,
-      depositFormatted,
       notes,
       hasTenantPaidFirstRent,
       lastPaymentDate,
@@ -349,59 +341,19 @@ class AddTenantComponent extends Component<
             this.setState({ rentPaidPeriod })
           }
         />
-        <TextInput
+
+        <CurrencyInput
           label={`Rent / ${rentPaidPeriod}`}
-          keyboardType="numeric"
-          style={styles.input}
-          value={rentFormatted}
-          onChangeText={(value: any) => {
-            if (
-              rentFormatted.length > value.length ||
-              (value.length === 1 && value === ".")
-            ) {
-              this.setState({ rent: "", rentFormatted: "" });
-            } else {
-              this.setState({
-                rent: parseFloat(
-                  formatCurrencyFromCents(value, rent).rawVal
-                ).toString(),
-                rentFormatted:
-                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
-                    ? `$${
-                        formatCurrencyFromCents(value, rent).formattedAmt
-                      }`.slice(0, -1)
-                    : `$${formatCurrencyFromCents(value, rent).formattedAmt}`,
-              });
-            }
-          }}
+          handleChange={(rent: number) => this.setState({ rent })}
+          value={rent}
+          textFieldWidth={350}
         />
-        <TextInput
+
+        <CurrencyInput
           label="Deposit paid"
-          keyboardType="numeric"
-          style={styles.input}
-          value={depositFormatted}
-          onChangeText={(value: any) => {
-            if (
-              depositFormatted.length > value.length ||
-              (value.length === 1 && value === ".")
-            ) {
-              this.setState({ deposit: "", depositFormatted: "" });
-            } else {
-              this.setState({
-                deposit: parseFloat(
-                  formatCurrencyFromCents(value, deposit).rawVal
-                ).toString(),
-                depositFormatted:
-                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
-                    ? `$${
-                        formatCurrencyFromCents(value, deposit).formattedAmt
-                      }`.slice(0, -1)
-                    : `$${
-                        formatCurrencyFromCents(value, deposit).formattedAmt
-                      }`,
-              });
-            }
-          }}
+          handleChange={(deposit: number) => this.setState({ deposit })}
+          value={deposit}
+          textFieldWidth={350}
         />
 
         {/* ------- TOTAL OCCUPANTS COUNTER ------- */}

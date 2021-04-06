@@ -99,7 +99,9 @@ export interface TextInputProps {
   keyboardType?: string;
   gray?: any;
   size?: number;
-  numberOfLines?: number
+  numberOfLines?: number;
+  currencyInput?: boolean;
+  isSecure?: boolean;
 }
 
 export interface TextInputState {

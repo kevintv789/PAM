@@ -8,12 +8,10 @@ export interface State {
   leaseStartDate: string;
   leaseEndDate: string;
   rentPaidPeriod: string;
-  rent: string;
-  deposit: string;
+  rent: number;
+  deposit: number;
   totalOccupants: number;
   notes: any;
-  rentFormatted: string;
-  depositFormatted: string;
   showNotesModal: boolean;
   lastPaymentDate: string;
   hasTenantPaidFirstRent: boolean;

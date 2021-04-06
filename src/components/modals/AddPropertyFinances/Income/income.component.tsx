@@ -1,6 +1,7 @@
 import {
   Button,
   Container,
+  CurrencyInput,
   HeaderDivider,
   Text,
   TextInput,
@@ -10,13 +11,13 @@ import { Dimensions, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { addFinances, updateFinances } from "reducks/modules/property";
 import { constants, theme } from "shared";
-import { formatCurrencyFromCents, hasErrors } from "shared/Utils";
 
 import { Entypo } from "@expo/vector-icons";
 import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { connect } from "react-redux";
+import { hasErrors } from "shared/Utils";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
@@ -29,8 +30,7 @@ class IncomeComponent extends Component<
 
     this.state = {
       name: "",
-      amount: "",
-      amountFormatted: "",
+      amount: 0,
       expenseStatusDate: moment().format("MM/DD/YYYY"),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
       notes: null,
@@ -48,7 +48,6 @@ class IncomeComponent extends Component<
       this.setState({
         name,
         amount,
-        amountFormatted: "$" + amount,
         expenseStatusDate: paidOn,
         expenseStatus: status,
       });
@@ -66,7 +65,7 @@ class IncomeComponent extends Component<
     } = this.props;
     const {
       name,
-      amountFormatted,
+      amount,
       expenseStatusDate,
       expenseStatus,
       recurring,
@@ -81,7 +80,7 @@ class IncomeComponent extends Component<
     // Call API to save expense to property
     const payload = {
       id: isEditting ? reportData.id : Math.floor(Math.random() * 1000),
-      amount: parseFloat(amountFormatted.replace("$", "").replace(",", "")),
+      amount,
       status: expenseStatus,
       description: "",
       paidOn: expenseStatusDate,
@@ -110,14 +109,11 @@ class IncomeComponent extends Component<
     const {
       name,
       amount,
-      amountFormatted,
       notes,
       expenseStatus,
       expenseStatusDate,
       errors,
     } = this.state;
-
-    const { navigation } = this.props;
 
     const expenseStatusOptions = [
       {
@@ -127,17 +123,6 @@ class IncomeComponent extends Component<
       {
         label: "Paid",
         value: constants.EXPENSE_STATUS_TYPE.PAID,
-      },
-    ];
-
-    const expenseRecurringOptions = [
-      {
-        label: "No",
-        value: false,
-      },
-      {
-        label: "Yes",
-        value: true,
       },
     ];
 
@@ -156,31 +141,11 @@ class IncomeComponent extends Component<
             })
           }
         />
-        <TextInput
+
+        <CurrencyInput
           label="Amount"
-          keyboardType="numeric"
-          style={styles.input}
-          value={amountFormatted}
-          onChangeText={(value: any) => {
-            if (
-              amountFormatted.length > value.length ||
-              (value.length === 1 && value === ".")
-            ) {
-              this.setState({ amount: "", amountFormatted: "" });
-            } else {
-              this.setState({
-                amount: parseFloat(
-                  formatCurrencyFromCents(value, amount).rawVal
-                ).toString(),
-                amountFormatted:
-                  value.lastIndexOf(".") + 1 === value.length // checks whether the last index is a decimal, if it is then remove it
-                    ? `$${
-                        formatCurrencyFromCents(value, amount).formattedAmt
-                      }`.slice(0, -1)
-                    : `$${formatCurrencyFromCents(value, amount).formattedAmt}`,
-              });
-            }
-          }}
+          handleChange={(amount: number) => this.setState({ amount })}
+          value={amount}
         />
 
         <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
@@ -354,7 +319,7 @@ const styles = StyleSheet.create({
 
 const mapDispatchToProps = {
   addFinances,
-  updateFinances
+  updateFinances,
 };
 
 export default connect(null, mapDispatchToProps)(IncomeComponent);

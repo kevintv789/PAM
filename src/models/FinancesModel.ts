@@ -1,7 +1,6 @@
 export interface initialState {
   name: string;
-  amount: string;
-  amountFormatted: string;
+  amount: number;
   expenseStatusDate: string;
   expenseStatus: string;
   recurring?: boolean;

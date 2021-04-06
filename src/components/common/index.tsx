@@ -4,6 +4,7 @@ import Button from "./Button";
 import CheckBox from "./CheckBox";
 import Container from "./Container";
 import Counter from "./Counter";
+import CurrencyInput from "./CurrencyInput";
 import DataOutline from "./DataOutline";
 import HeaderDivider from "./HeaderDivider";
 import Pills from "./Pills";
@@ -30,4 +31,5 @@ export {
   PillsList,
   Counter,
   CheckBox,
+  CurrencyInput,
 };
