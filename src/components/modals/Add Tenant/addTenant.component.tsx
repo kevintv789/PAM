@@ -89,7 +89,7 @@ class AddTenantComponent extends Component<
         deposit: this.tenantInfo.securityDeposit,
         totalOccupants: this.tenantInfo.totalOccupants,
         lastPaymentDate: this.tenantInfo.lastPaymentDate,
-        hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate !== "",
+        hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate != null,
       });
     }
   }
@@ -167,7 +167,7 @@ class AddTenantComponent extends Component<
   };
 
   addToPropertyFinances = (payload: any) => {
-    if (payload.lastPaymentDate) {
+    if (moment(payload.lastPaymentDate).isValid() && payload.lastPaymentDate) {
       const { addFinances } = this.props;
 
       const financePayload = {
@@ -248,6 +248,7 @@ class AddTenantComponent extends Component<
       notes,
       hasTenantPaidFirstRent,
       lastPaymentDate,
+      leaseType,
     } = this.state;
 
     const leaseTypes = Object.values(constants.LEASE_TYPE);
@@ -265,7 +266,11 @@ class AddTenantComponent extends Component<
       <Container center>
         <PillsList
           label="Select a lease type:"
-          defaultSelected={constants.LEASE_TYPE.FIXED_TERM}
+          defaultSelected={
+            this.isEditting
+              ? this.tenantInfo.leaseType
+              : constants.LEASE_TYPE.FIXED_TERM
+          }
           data={leaseTypes}
           handlePillSelected={(leaseType: string) =>
             this.setState({ leaseType })
@@ -308,7 +313,7 @@ class AddTenantComponent extends Component<
           <Toggle
             options={options}
             initialIndex={
-              this.isEditting && this.tenantInfo.lastPaymentDate !== "" ? 1 : 0
+              this.isEditting && this.tenantInfo.lastPaymentDate != null ? 1 : 0
             }
             handleToggled={(value: boolean) => {
               this.setState({ hasTenantPaidFirstRent: value });
@@ -324,10 +329,12 @@ class AddTenantComponent extends Component<
           <TextInput
             dateTime
             label="Rent paid on"
-            value={lastPaymentDate}
+            value={hasTenantPaidFirstRent ? lastPaymentDate : ""}
             style={styles.input}
             onChangeDate={(lastPaymentDate: string) =>
-              this.setState({ lastPaymentDate })
+              hasTenantPaidFirstRent
+                ? this.setState({ lastPaymentDate })
+                : this.setState({ lastPaymentDate: "" })
             }
           />
         )}
@@ -335,7 +342,11 @@ class AddTenantComponent extends Component<
         {/* ------ RENT IS PAID PILLS LIST ------ */}
         <PillsList
           label="Rent is paid:"
-          defaultSelected={constants.RECURRING_PAYMENT_TYPE.MONTHLY}
+          defaultSelected={
+            this.isEditting
+              ? this.tenantInfo.recurringPaymentType
+              : constants.RECURRING_PAYMENT_TYPE.MONTHLY
+          }
           data={rentPeriods}
           handlePillSelected={(rentPaidPeriod: string) =>
             this.setState({ rentPaidPeriod })
@@ -375,6 +386,9 @@ class AddTenantComponent extends Component<
 
           <Container right flex={false}>
             <Counter
+              defaultValue={
+                this.isEditting ? this.tenantInfo.totalOccupants : null
+              }
               min={1}
               max={99}
               onCountChange={(count: number) =>

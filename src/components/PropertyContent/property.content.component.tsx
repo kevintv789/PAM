@@ -141,11 +141,10 @@ class PropertyContentComponent extends Component<
       <Container
         onStartShouldSetResponder={() => true}
         style={{ maxHeight: 150, paddingTop: 5 }}
-        flex={1}
+        flex={false}
       >
         <ScrollView
           keyboardShouldPersistTaps={"handled"}
-          //   contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={true}
           horizontal={false}
           nestedScrollEnabled
@@ -307,7 +306,13 @@ class PropertyContentComponent extends Component<
         break;
     }
 
-    return orderBy(newList, "paidOn", ["desc"]);
+    return orderBy(
+      newList,
+      (e: any) => {
+        return moment(e.paidOn).format("YYYYMMDD");
+      },
+      ["desc"]
+    );
   };
 
   formatAmount = (amount: number, type: string) => {

@@ -9,9 +9,7 @@ import { theme } from "shared";
 export default function PillsList(props: any) {
   const { handlePillSelected, data, defaultSelected, label } = props;
 
-  const [pillSelected, setPillSelected] = useState(
-    defaultSelected ? defaultSelected : null
-  );
+  const [pillSelected, setPillSelected] = useState(defaultSelected);
 
   const handleSelected = (selected: any) => {
     setPillSelected(selected);

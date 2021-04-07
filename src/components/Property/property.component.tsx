@@ -8,7 +8,7 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
+import { filter, findIndex, isEqual, property, sortBy, sumBy } from "lodash";
 import {
   filterArrayForTimePeriod,
   formatNumber,
@@ -81,6 +81,7 @@ class PropertyComponent extends Component<
       animatedPropertyAddressWidth,
       propertyData,
       financesData,
+      tenantData,
     } = this.state;
 
     // animate header height
@@ -102,18 +103,28 @@ class PropertyComponent extends Component<
     // TODO --- Super hacky conditional, find a better way to do this shiz
     if (
       (!propertyData.tenants.length && financesData.length) ||
-      (propertyData.tenants.length && !financesData.length && totalIncome === 0) ||
-      (propertyData.tenants.length && financesData.length && totalIncome === 0)
+      (propertyData.tenants.length &&
+        !financesData.length &&
+        totalIncome === 0) ||
+      (propertyData.tenants.length &&
+        financesData.length &&
+        totalIncome === 0) ||
+      (propertyData.tenants &&
+        propertyData.tenants.length > 0 &&
+        propertyData.tenants.length < 4)
     ) {
       height = 600;
 
-      const reportDetailsLength = filterArrayForTimePeriod(financesData, 'paidOn', timePeriod)?.length;
+      const reportDetailsLength = filterArrayForTimePeriod(
+        financesData,
+        "paidOn",
+        timePeriod
+      )?.length;
       if (reportDetailsLength) {
         if (reportDetailsLength > 0 && reportDetailsLength < 6) {
           height += 40 * reportDetailsLength;
         }
       }
-
     } else if (
       (!propertyData.tenants.length && !financesData.length) ||
       totalIncome === 0
@@ -169,7 +180,9 @@ class PropertyComponent extends Component<
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
-        onPress={() => this.togglePropertyContent(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
+        onPress={() =>
+          this.togglePropertyContent(constants.RECURRING_PAYMENT_TYPE.MONTHLY)
+        }
         activeOpacity={0.9}
       >
         <AnimatedContainer
@@ -384,7 +397,9 @@ class PropertyComponent extends Component<
   };
 
   renderBottom = () => {
-    const expensesSum = this.sumExpenseForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY);
+    const expensesSum = this.sumExpenseForTimePeriod(
+      constants.RECURRING_PAYMENT_TYPE.MONTHLY
+    );
     const totalIncome =
       this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
       0;
