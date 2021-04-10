@@ -81,7 +81,6 @@ class PropertyComponent extends Component<
       animatedPropertyAddressWidth,
       propertyData,
       financesData,
-      tenantData,
     } = this.state;
 
     // animate header height
@@ -120,10 +119,8 @@ class PropertyComponent extends Component<
         "paidOn",
         timePeriod
       )?.length;
-      if (reportDetailsLength) {
-        if (reportDetailsLength > 0 && reportDetailsLength < 6) {
-          height += 40 * reportDetailsLength;
-        }
+      if (reportDetailsLength && reportDetailsLength > 0) {
+        height += 40 * reportDetailsLength;
       }
     } else if (
       (!propertyData.tenants.length && !financesData.length) ||

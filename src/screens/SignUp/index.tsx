@@ -10,6 +10,8 @@ import { formatMobileNumber, validateEmail } from "../../shared/Utils";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SignUpModel } from "../../models";
+import SignUpService from "services/signup.service";
+import { User } from "models/User.model";
 import { theme } from "../../shared";
 
 const { width, height } = Dimensions.get("window");
@@ -18,6 +20,7 @@ export default class SignUpScreen extends Component<
   SignUpModel.Props,
   SignUpModel.State
 > {
+  private signupService = new SignUpService();
   constructor(props: any) {
     super(props);
     this.state = {
@@ -29,7 +32,7 @@ export default class SignUpScreen extends Component<
     };
   }
 
-  handleSignIn = () => {
+  handleSignUp = () => {
     const { email, password, phone, firstName } = this.state;
     const { navigation } = this.props;
 
@@ -52,7 +55,14 @@ export default class SignUpScreen extends Component<
     }
 
     if (!errors.length) {
-      navigation.navigate("HomeScreen");
+      const userObj: User = {
+        email,
+        password,
+        phone,
+        name: firstName,
+      };
+
+      this.signupService.handleSignUp(userObj, navigation);
     } else {
       // TODO: Add warning pop up or something to give notice to user that there are errors
     }
@@ -136,7 +146,7 @@ export default class SignUpScreen extends Component<
             </Container>
 
             <Container flex={1} paddingBottom={theme.sizes.base * 10}>
-              <Button onPress={() => this.handleSignIn()}>
+              <Button onPress={() => this.handleSignUp()}>
                 <Text center offWhite size={theme.fontSizes.medium}>
                   Get Started
                 </Text>
