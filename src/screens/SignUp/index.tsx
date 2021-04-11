@@ -8,9 +8,9 @@ import {
 import React, { Component } from "react";
 import { formatMobileNumber, validateEmail } from "../../shared/Utils";
 
+import AuthService from "services/auth.service";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SignUpModel } from "../../models";
-import SignUpService from "services/signup.service";
 import { User } from "models/User.model";
 import { theme } from "../../shared";
 
@@ -20,7 +20,7 @@ export default class SignUpScreen extends Component<
   SignUpModel.Props,
   SignUpModel.State
 > {
-  private signupService = new SignUpService();
+  private authService = new AuthService();
   constructor(props: any) {
     super(props);
     this.state = {
@@ -62,9 +62,15 @@ export default class SignUpScreen extends Component<
         name: firstName,
       };
 
-      this.signupService.handleSignUp(userObj, navigation);
-    } else {
-      // TODO: Add warning pop up or something to give notice to user that there are errors
+      this.authService
+        .handleSignUpWithEmailAndPassword(userObj, navigation)
+        .then(() => {
+          navigation.navigate("HomeScreen");
+        })
+        .catch((error) => {
+          console.log(error);
+          // TODO: Add warning pop up or something to give notice to user that there are errors
+        });
     }
 
     this.setState({ email, password, phone, firstName, errors });

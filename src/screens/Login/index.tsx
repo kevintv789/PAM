@@ -10,7 +10,9 @@ import {
 import React, { Component } from "react";
 import { mockData, theme } from "../../shared";
 
+import AuthService from "services/auth.service";
 import { LoginModel } from "../../models";
+import { User } from "models/User.model";
 import { validateEmail } from "../../shared/Utils";
 
 const { width } = Dimensions.get("window");
@@ -19,11 +21,12 @@ export default class LoginScreen extends Component<
   LoginModel.Props,
   LoginModel.State
 > {
+  private authService = new AuthService();
   constructor(props: any) {
     super(props);
     this.state = {
-      email: mockData.VALID_EMAIL,
-      password: mockData.VALID_PASSWORD,
+      email: "test@test.com",
+      password: "pamisthebest",
       errors: [],
     };
   }
@@ -32,20 +35,32 @@ export default class LoginScreen extends Component<
     const { email, password } = this.state;
     const { navigation } = this.props;
 
-    const errors = [];
+    const errors: string[] = [];
 
-    if (!validateEmail(email) || email !== mockData.VALID_EMAIL) {
+    if (!validateEmail(email)) {
       errors.push("email");
     }
 
-    if (password !== mockData.VALID_PASSWORD) {
+    if (!password.length) {
       errors.push("password");
     }
 
     if (!errors.length) {
-      navigation.navigate("HomeScreen");
-    } else {
-      // TODO: Add warning pop up or something to give notice to user that there are errors
+      const userObj: User = {
+        email,
+        password,
+      };
+
+      // TODO -- Add loading indicator
+      this.authService
+        .handleSignInWithEmailAndPassword(userObj)
+        .then(() => navigation.navigate("HomeScreen"))
+        .catch(() => {
+          errors.push("wrongCredentials");
+          errors.push("password");
+          errors.push("email");
+          this.setState({ errors });
+        });
     }
 
     this.setState({ email, errors });
@@ -82,6 +97,12 @@ export default class LoginScreen extends Component<
               />
             </Container>
           </KeyboardAvoidingView>
+
+          {hasErrors("wrongCredentials") && (
+            <Container flex={false} margin={[-theme.sizes.base * 2, 0, theme.sizes.base * 2, 0]}>
+              <Text red>Incorrect email or password, please try again.</Text>
+            </Container>
+          )}
 
           <Container flex={1.4}>
             <Button onPress={() => this.handleSignIn()}>
