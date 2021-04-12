@@ -19,23 +19,21 @@ import {
   updateTenant,
 } from "reducks/modules/property";
 import { constants, theme } from "shared";
-import {
-  formatCurrencyFromCents,
-  formatMobileNumber,
-  hasErrors,
-} from "shared/Utils";
+import { formatMobileNumber, hasErrors } from "shared/Utils";
 
 import { AddTenantModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import PropertyService from "services/property.service";
+import TenantService from "services/tenant.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { connect } from "react-redux";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
-import update from "react-addons-update";
 
 const { width, height } = Dimensions.get("window");
+const date = Date.now();
 
 class AddTenantComponent extends Component<
   AddTenantModel.Props,
@@ -44,6 +42,8 @@ class AddTenantComponent extends Component<
   private scrollViewRef: any;
   private isEditting: boolean = false;
   private tenantInfo: any;
+  private tenantService = new TenantService();
+  private propertyService = new PropertyService();
 
   constructor(props: AddTenantModel.Props) {
     super(props);
@@ -53,7 +53,9 @@ class AddTenantComponent extends Component<
       phone: "",
       email: "",
       leaseType: "",
-      leaseStartDate: moment(new Date()).format("MM/DD/YYYY"),
+      leaseStartDate: moment(new Date(date), moment.ISO_8601).format(
+        "MM/DD/YYYY"
+      ),
       leaseEndDate: "",
       rentPaidPeriod: "Monthly",
       rent: 0,
@@ -61,7 +63,9 @@ class AddTenantComponent extends Component<
       totalOccupants: 1,
       notes: undefined,
       showNotesModal: false,
-      lastPaymentDate: moment().format("MM/DD/YYYY"),
+      lastPaymentDate: moment(new Date(date), moment.ISO_8601).format(
+        "MM/DD/YYYY"
+      ),
       hasTenantPaidFirstRent: false,
       errors: [],
     };
@@ -95,7 +99,7 @@ class AddTenantComponent extends Component<
   }
 
   handleAddTenant = () => {
-    const { navigation, addTenant, updateProperty, updateTenant } = this.props;
+    const { navigation, updateTenant } = this.props;
     const {
       primaryTenantName,
       phone,
@@ -114,16 +118,11 @@ class AddTenantComponent extends Component<
     const errors = [];
     const propertyData = navigation.getParam("propertyData");
 
-    const tenantId = this.isEditting
-      ? this.tenantInfo.id
-      : Math.floor(10 + Math.random() * 10000);
-
     if (!primaryTenantName.length) {
       errors.push("tenantName");
     }
 
     const tenantPayload = {
-      id: tenantId,
       propertyId: this.isEditting
         ? this.tenantInfo.propertyId
         : propertyData.id,
@@ -138,7 +137,7 @@ class AddTenantComponent extends Component<
       totalOccupants,
       rent,
       collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
-      lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : undefined,
+      lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : null,
       nextPaymentDate: this.isEditting
         ? this.tenantInfo.nextPaymentDate
         : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
@@ -146,14 +145,24 @@ class AddTenantComponent extends Component<
 
     if (!errors.length) {
       if (!this.isEditting) {
-        addTenant(tenantPayload);
+        const tenantDocRef = this.tenantService.createNewTenantId();
 
-        const propertyPayload = update(propertyData, {
-          tenants: { $push: [tenantId] },
-        });
+        this.tenantService
+          .handleCreateTenant(tenantPayload, tenantDocRef)
+          .then(() => {
+            // Update property on the backend with the new tenant ID
+            this.propertyService.addTenantIdToProperty(
+              tenantDocRef.id,
+              tenantPayload.propertyId
+            );
 
-        updateProperty(propertyPayload);
-        this.addToPropertyFinances(tenantPayload);
+            // Add tenant's income/rent to finances
+          })
+          .catch((error: any) =>
+            console.log("ERROR in creating a new tenant: ", error)
+          );
+
+        // this.addToPropertyFinances(tenantPayload);
       } else {
         updateTenant(tenantPayload);
       }
@@ -281,7 +290,7 @@ class AddTenantComponent extends Component<
           label="Lease starts on"
           style={styles.input}
           value={leaseStartDate}
-          dateValue={moment(leaseStartDate).toDate()}
+          dateValue={moment(leaseStartDate, moment.ISO_8601).toDate()}
           onChangeDate={(leaseStartDate: string) =>
             this.setState({ leaseStartDate })
           }

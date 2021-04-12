@@ -1,5 +1,7 @@
 import { PROPERTIES_DOC, USER_DOC } from "shared/constants/databaseConsts";
 
+import { Dispatch } from "react";
+import { TENANTS_DOC } from "./../../shared/constants/databaseConsts";
 import { filter } from "lodash";
 import firebase from "firebase";
 import { mockData } from "shared"; // remove when we get real data
@@ -21,7 +23,21 @@ export const getExpense = () => {
     dispatch({ type: GET_EXPENSE });
   };
 };
-export const getTenants = () => ({ type: GET_TENANTS });
+
+export const getTenants = (tenantIds: string[]) => {
+  return (dispatch: any) => {
+    firebase
+      .firestore()
+      .collection(TENANTS_DOC)
+      .where(firebase.firestore.FieldPath.documentId(), "in", tenantIds)
+      .onSnapshot((snapshot) => {
+        if (snapshot.docs && snapshot.docs.length > 0) {
+          const tenants = snapshot.docs.map((i) => i.data());
+          dispatch({ type: GET_TENANTS, payload: tenants });
+        }
+      });
+  };
+};
 
 export const getPropertiesByIds = (propertyIds: any[]) => {
   return (dispatch: any) => {
@@ -57,7 +73,7 @@ export const updateFinances = (payload: any) => ({
 const initialState = {
   properties: [],
   finances: mockData.PropertyFinances,
-  tenants: mockData.Tenants,
+  tenants: [],
 };
 
 export const propertyReducer = (state = initialState, action: any) => {
@@ -67,7 +83,7 @@ export const propertyReducer = (state = initialState, action: any) => {
     case GET_EXPENSE:
       return { ...state };
     case GET_TENANTS:
-      return { ...state };
+      return { ...state, tenants: action.payload };
     case ADD_FINANCES:
       return { ...state, finances: [...state.finances, action.payload] };
     case ADD_TENANT:

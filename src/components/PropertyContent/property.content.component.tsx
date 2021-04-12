@@ -16,6 +16,9 @@ import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PropertyContentModel } from "models";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import { getTenants } from "reducks/modules/property";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
 
@@ -33,6 +36,14 @@ class PropertyContentComponent extends Component<
       showNotesModal: false,
       notesValue: null,
     };
+  }
+
+  componentDidMount() {
+    const { propertyData, getTenants } = this.props;
+
+    if (propertyData.tenants.length > 0) {
+      getTenants(propertyData.tenants);
+    }
   }
 
   renderTenantHeader = () => {
@@ -70,7 +81,7 @@ class PropertyContentComponent extends Component<
   };
 
   renderDueDate = (tenant: any) => {
-    const dueDate = getDaysDiffFrom(new Date(), tenant.nextPaymentDate);
+    const dueDate = getDaysDiffFrom(new Date(date), tenant.nextPaymentDate);
     let text;
 
     if (dueDate === 0) {
@@ -185,7 +196,7 @@ class PropertyContentComponent extends Component<
                           semibold
                           accent
                           size={13}
-                          style={{ width: "32%" }}
+                          style={{ width: "32%", left: 8 }}
                         >
                           Next Payment
                         </Text>
@@ -219,14 +230,14 @@ class PropertyContentComponent extends Component<
                         </Text>
                         <Text
                           light
-                          style={{ width: "38%" }}
+                          style={{ width: "38%", left: 8 }}
                           size={theme.fontSizes.small}
                           numberOfLines={1}
                         >
                           <Text secondary medium>
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
-                          on {moment(tenant.nextPaymentDate, moment.ISO_8601).format("MM/DD")}
+                          on {moment(tenant.nextPaymentDate).format("MM/DD")}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -251,7 +262,8 @@ class PropertyContentComponent extends Component<
           }}
         />
         <Text accent size={13} bold>
-          Monthly Report for {moment(new Date(date), moment.ISO_8601).format("MMMM")}
+          Monthly Report for{" "}
+          {moment(new Date(date), moment.ISO_8601).format("MMMM")}
         </Text>
         <Container row style={{}} flex={1}>
           <Button
@@ -624,4 +636,13 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withNavigation(PropertyContentComponent);
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getTenants,
+    },
+    dispatch
+  );
+};
+
+export default withNavigation(connect(null, mapDispatchToProps)(PropertyContentComponent));

@@ -21,6 +21,7 @@ import { getExpense, getTenants } from "reducks/modules/property";
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import moment from "moment";
 
@@ -48,7 +49,6 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity: new Animated.Value(0),
       animatedPropertyAddressWidth: new Animated.Value(180),
       financesData: this.props.financesData,
-      tenantData: this.props.tenantData,
       propertyData: this.props.propertyData,
     };
   }
@@ -59,7 +59,10 @@ class PropertyComponent extends Component<
 
     // This is where app needs to call action to read from Database
     getExpense();
-    getTenants();
+
+    if (propertyData.tenants.length > 0) {
+      getTenants(propertyData.tenants);
+    }
 
     const filteredExpenses = filter(
       financesData,
@@ -264,8 +267,7 @@ class PropertyComponent extends Component<
   };
 
   getOneTenantFromData = (index: number) => {
-    const { propertyData } = this.props;
-    const { tenantData } = this.state;
+    const { propertyData, tenantData } = this.props;
     const tenantIdToFind = propertyData.tenants[index];
     return tenantData[
       findIndex(tenantData, (e: any) => e.id === tenantIdToFind)
@@ -273,8 +275,7 @@ class PropertyComponent extends Component<
   };
 
   findEarliestMoveInDate = () => {
-    const { propertyData } = this.props;
-    const { tenantData } = this.state;
+    const { propertyData, tenantData } = this.props;
     const tenants = getDataFromProperty(propertyData.tenants, tenantData);
 
     // sort on leaseStartDate
@@ -376,7 +377,8 @@ class PropertyComponent extends Component<
 
           filteredFinancesData.forEach((data: any) => {
             if (data.paidOn) {
-              const paidMonth = moment(data.paidOn, moment.ISO_8601).month() + 1;
+              const paidMonth =
+                moment(data.paidOn, moment.ISO_8601).month() + 1;
               const paidDate = moment(data.paidOn, moment.ISO_8601);
 
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
@@ -433,7 +435,8 @@ class PropertyComponent extends Component<
               }}
             />
             <Text light accent>
-              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")} Report
+              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")}{" "}
+              Report
             </Text>
           </Container>
           <Container
@@ -496,11 +499,11 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
     } = this.state;
 
-    const { propertyData } = this.props;
-    const { financesData, tenantData } = this.state;
+    const { propertyData, tenantData } = this.props;
+    const { financesData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
-    if (!propertyData || !tenantData.length) {
+    if (!propertyData) {
       return (
         <Container>
           <Text offWhite>Loading...</Text>
@@ -523,10 +526,7 @@ class PropertyComponent extends Component<
               style={{ opacity: animatedExpandedContentOpacity }}
             >
               <PropertyContentComponent
-                tenantData={getDataFromProperty(
-                  propertyData.tenants,
-                  tenantData
-                )}
+                tenantData={tenantData}
                 financesData={financesData}
                 propertyData={propertyData}
                 totalIncome={this.sumIncomeForTimePeriod(
@@ -590,9 +590,14 @@ const mapStateToProps = (state: any) => {
   };
 };
 
-const mapDispatchToprops = {
-  getExpense,
-  getTenants,
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getExpense,
+      getTenants,
+    },
+    dispatch
+  );
 };
 
-export default connect(mapStateToProps, mapDispatchToprops)(PropertyComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(PropertyComponent);
