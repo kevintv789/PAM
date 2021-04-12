@@ -12,15 +12,16 @@ import {
 import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import { addProperty, updateProperty } from "reducks/modules/property";
 import { constants, theme } from "shared";
 
 import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import PropertyService from "services/property.service";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
+import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,6 +29,7 @@ class AddPropertyComponent extends Component<
   AddPropertyModel.Props,
   AddPropertyModel.State
 > {
+  private propertyService = new PropertyService();
   constructor(
     props: any,
     private scrollViewRef: React.RefObject<ScrollView>,
@@ -60,7 +62,7 @@ class AddPropertyComponent extends Component<
         streetAddress: this.routePropertyData.propertyAddress,
         autoFill: false,
         propertyNickName: this.routePropertyData.propertyName,
-        typeSelected: this.routePropertyData.unitType
+        typeSelected: this.routePropertyData.unitType,
         // TODO -- Add notes later
       });
     }
@@ -149,7 +151,7 @@ class AddPropertyComponent extends Component<
    *
    */
   handleSaveProperty = () => {
-    const { addProperty, navigation, updateProperty } = this.props;
+    const { navigation, updateProperty } = this.props;
     const { typeSelected, propertyNickName, streetAddress } = this.state;
 
     const errors = [];
@@ -161,10 +163,9 @@ class AddPropertyComponent extends Component<
     const colorArray = ["#F2CC8F", "#8ECAE6", "#E29578", "#81B29A"];
 
     const payload = {
-      id: Math.floor(Math.random() * 10000),
       propertyName: propertyNickName,
       propertyAddress: streetAddress,
-      notesId: undefined,
+      notesId: "",
       tenants: [],
       image: null,
       unitType: typeSelected,
@@ -173,17 +174,37 @@ class AddPropertyComponent extends Component<
 
     if (!errors.length) {
       if (!this.isEditting) {
-        addProperty(payload);
-        navigation.goBack();
-        navigation.navigate("AddPropertyDoneModal");
+        const propertiesCollection = this.propertyService.createNewPropertyId();
+        this.propertyService
+          .handleCreateProperty(payload, propertiesCollection)
+          .then(() => {
+            const propertyId = propertiesCollection.id;
+
+            // After creating property, set its ID onto the user document
+            this.propertyService
+              .updateUserDataWithProperty(propertyId)
+              .then(() => {
+                navigation.goBack();
+                navigation.navigate("AddPropertyDoneModal");
+              })
+              .catch((error) =>
+                console.log(
+                  "ERROR failed to update property ID onto the user doc",
+                  error
+                )
+              );
+          })
+          .catch((error: any) => console.log(error));
       } else {
         const { id, notesId, color, tenants } = this.routePropertyData;
-        payload.id = id;
         payload.notesId = notesId;
         payload.color = color;
         payload.tenants = tenants;
-        updateProperty(payload);
-        navigation.goBack();
+
+        this.propertyService
+          .updateProperty(payload, id)
+          .then(() => navigation.goBack())
+          .catch((error) => console.log("ERROR in updating property: ", error));
       }
     }
 
@@ -459,7 +480,6 @@ const styles = StyleSheet.create({
 });
 
 const mapDispatchToProps = {
-  addProperty,
   updateProperty,
 };
 

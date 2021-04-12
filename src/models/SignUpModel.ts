@@ -3,7 +3,7 @@ export interface State {
   password: string;
   errors: Array<string>;
   phone: string;
-  firstName: string;
+  name: string;
 }
 
 export interface Props {

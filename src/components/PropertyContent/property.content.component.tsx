@@ -20,6 +20,7 @@ import moment from "moment";
 import { withNavigation } from "react-navigation";
 
 const notesData = mockData.Notes;
+const date = Date.now();
 
 class PropertyContentComponent extends Component<
   PropertyContentModel.Props,
@@ -47,7 +48,7 @@ class PropertyContentComponent extends Component<
           All Tenants {"  "}
         </Text>
         <Text light accent size={13}>
-          {moment(new Date()).format("MMMM DD, YYYY")}
+          {moment(new Date(date), moment.ISO_8601).format("MMMM DD, YYYY")}
         </Text>
         <Button
           color="transparent"
@@ -225,7 +226,7 @@ class PropertyContentComponent extends Component<
                           <Text secondary medium>
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
-                          on {moment(tenant.nextPaymentDate).format("MM/DD")}
+                          on {moment(tenant.nextPaymentDate, moment.ISO_8601).format("MM/DD")}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -250,7 +251,7 @@ class PropertyContentComponent extends Component<
           }}
         />
         <Text accent size={13} bold>
-          Monthly Report for {moment().format("MMMM")}
+          Monthly Report for {moment(new Date(date), moment.ISO_8601).format("MMMM")}
         </Text>
         <Container row style={{}} flex={1}>
           <Button
@@ -290,10 +291,10 @@ class PropertyContentComponent extends Component<
 
     switch (timePeriod) {
       case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
-        const curDate = moment();
+        const curDate = moment(new Date(date), moment.ISO_8601);
 
         list.forEach((item) => {
-          const monthPaid = moment(item.paidOn);
+          const monthPaid = moment(item.paidOn, moment.ISO_8601);
           if (
             monthPaid.diff(curDate) <= 0 &&
             curDate.month() + 1 === monthPaid.month() + 1
@@ -309,7 +310,7 @@ class PropertyContentComponent extends Component<
     return orderBy(
       newList,
       (e: any) => {
-        return moment(e.paidOn).format("YYYYMMDD");
+        return moment(e.paidOn, moment.ISO_8601).format("YYYYMMDD");
       },
       ["desc"]
     );

@@ -1,4 +1,7 @@
+import { PROPERTIES_DOC, USER_DOC } from "shared/constants/databaseConsts";
+
 import { filter } from "lodash";
+import firebase from "firebase";
 import { mockData } from "shared"; // remove when we get real data
 import { updateArrayOfObjects } from "shared/Utils";
 
@@ -19,12 +22,23 @@ export const getExpense = () => {
   };
 };
 export const getTenants = () => ({ type: GET_TENANTS });
-export const getPropertiesByIds = (propertyIds: number[]) => ({
-  type: GET_PROPERTIES,
-  propertyIds,
-});
+
+export const getPropertiesByIds = (propertyIds: any[]) => {
+  return (dispatch: any) => {
+    firebase
+      .firestore()
+      .collection(PROPERTIES_DOC)
+      .where(firebase.firestore.FieldPath.documentId(), "in", propertyIds)
+      .onSnapshot((snapshot) => {
+        if (snapshot.docs && snapshot.docs.length > 0) {
+          const properties = snapshot.docs.map((i) => i.data());
+          dispatch({ type: GET_PROPERTIES, payload: properties });
+        }
+      });
+  };
+};
+
 export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });
-export const addProperty = (payload: any) => ({ type: ADD_PROPERTY, payload });
 export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
 export const updateProperty = (payload: any) => ({
   type: UPDATE_PROPERTY,
@@ -49,24 +63,13 @@ const initialState = {
 export const propertyReducer = (state = initialState, action: any) => {
   switch (action.type) {
     case GET_PROPERTIES:
-      const allProperties = mockData.Properties;
-      const propertyIdsToFilter = action.propertyIds;
-      let filteredProperties: object[] = [];
-
-      // Filter each property based on the list of IDs and return a new list of properties
-      propertyIdsToFilter.forEach((ids: number) => {
-        filteredProperties.push(filter(allProperties, (p) => p.id === ids)[0]);
-      });
-
-      return { ...state, properties: filteredProperties };
+      return { ...state, properties: action.payload };
     case GET_EXPENSE:
       return { ...state };
     case GET_TENANTS:
       return { ...state };
     case ADD_FINANCES:
       return { ...state, finances: [...state.finances, action.payload] };
-    case ADD_PROPERTY:
-      return { ...state, properties: [...state.properties, action.payload] };
     case ADD_TENANT:
       return { ...state, tenants: [...state.tenants, action.payload] };
     case UPDATE_PROPERTY:
@@ -91,7 +94,7 @@ export const propertyReducer = (state = initialState, action: any) => {
 
       // find which expense to update
       updateArrayOfObjects(financeToUpdate, finances);
-      
+
       return { ...state, finances };
     default:
       return state;

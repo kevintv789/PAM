@@ -22,6 +22,8 @@ export interface ContainerProps {
   wrap?: any;
   style?: any;
   onStartShouldSetResponder?: any;
+  paddingBottom?: number;
+  onLayout?: any;
 }
 
 export interface TextProps {
@@ -57,6 +59,7 @@ export interface TextProps {
   style?: any;
   red?: any;
   numberOfLines?: number;
+  onPress?: () => void;
 }
 
 export interface ButtonProps {

@@ -1,4 +1,5 @@
 import "react-native-gesture-handler";
+import "firebase/firestore";
 
 import * as eva from "@eva-design/eva";
 import * as firebase from "firebase";

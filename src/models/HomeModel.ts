@@ -1,4 +1,5 @@
 export interface State {
+  refreshing: boolean;
 }
 
 export interface Props {
@@ -7,7 +8,7 @@ export interface Props {
     password: string;
     phone: string;
     properties: Array<object>;
-    firstName: string;
+    name: string;
   };
   getPropertiesByIds?: any;
   getUser?: any;

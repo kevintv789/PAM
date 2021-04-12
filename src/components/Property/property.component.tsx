@@ -29,6 +29,7 @@ const { width } = Dimensions.get("window");
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedText = Animated.createAnimatedComponent(Text);
+const date = Date.now();
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
@@ -279,9 +280,9 @@ class PropertyComponent extends Component<
     // sort on leaseStartDate
     if (tenants && tenants.length > 0) {
       const earliestMoveIn = sortBy(tenants, (e: any) =>
-        moment(e.leaseStartDate)
+        moment(e.leaseStartDate, moment.ISO_8601)
       )[0].leaseStartDate;
-      return moment(earliestMoveIn).format("MM/DD/YYYY");
+      return moment(earliestMoveIn, "MM/DD/YYYY");
     }
   };
 
@@ -294,11 +295,11 @@ class PropertyComponent extends Component<
     switch (timePeriod) {
       case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
         const curMonth = date.getMonth() + 1;
-        const curDate = moment();
+        const curDate = moment(new Date(date), moment.ISO_8601);
 
         expenseData.forEach((data: any) => {
-          const paidMonth = moment(data.paidOn).month() + 1;
-          const paidDate = moment(data.paidOn);
+          const paidMonth = moment(data.paidOn, moment.ISO_8601).month() + 1;
+          const paidDate = moment(data.paidOn, moment.ISO_8601);
 
           if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
             totalExpense += data.amount;
@@ -371,12 +372,12 @@ class PropertyComponent extends Component<
       switch (timePeriod) {
         case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
           const curMonth = date.getMonth() + 1;
-          const curDate = moment();
+          const curDate = moment(new Date(date), moment.ISO_8601);
 
           filteredFinancesData.forEach((data: any) => {
             if (data.paidOn) {
-              const paidMonth = moment(data.paidOn).month() + 1;
-              const paidDate = moment(data.paidOn);
+              const paidMonth = moment(data.paidOn, moment.ISO_8601).month() + 1;
+              const paidDate = moment(data.paidOn, moment.ISO_8601);
 
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
                 totalIncome += data.amount;
@@ -432,7 +433,7 @@ class PropertyComponent extends Component<
               }}
             />
             <Text light accent>
-              {moment(new Date()).format("MMM, YYYY")} Report
+              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")} Report
             </Text>
           </Container>
           <Container
@@ -579,16 +580,6 @@ const styles = StyleSheet.create({
   },
   dollars: {
     top: 5,
-  },
-  editButton: {
-    width: 60,
-    position: "absolute",
-    right: 0,
-    height: 40,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: theme.colors.accent,
-    borderRadius: 10,
   },
 });
 

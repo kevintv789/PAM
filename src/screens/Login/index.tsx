@@ -99,7 +99,10 @@ export default class LoginScreen extends Component<
           </KeyboardAvoidingView>
 
           {hasErrors("wrongCredentials") && (
-            <Container flex={false} margin={[-theme.sizes.base * 2, 0, theme.sizes.base * 2, 0]}>
+            <Container
+              flex={false}
+              margin={[-theme.sizes.base * 2, 0, theme.sizes.base * 2, 0]}
+            >
               <Text red>Incorrect email or password, please try again.</Text>
             </Container>
           )}
@@ -111,13 +114,8 @@ export default class LoginScreen extends Component<
               </Text>
             </Button>
 
-            <TouchableOpacity>
-              <Text
-                center
-                offWhite
-                style={styles.forgotPassword}
-                onPress={() => {}}
-              >
+            <TouchableOpacity onPress={() => {}}>
+              <Text center offWhite style={styles.forgotPassword}>
                 Forgot your password?
               </Text>
             </TouchableOpacity>

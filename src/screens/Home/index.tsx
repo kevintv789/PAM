@@ -1,10 +1,11 @@
 import { Button, Container, Text } from "components/common";
-import { Image, StyleSheet } from "react-native";
+import { Image, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
 
 import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
 import { ScrollView } from "react-native-gesture-handler";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
@@ -14,6 +15,10 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   private scrollViewRef: React.RefObject<ScrollView>;
   constructor(props: any) {
     super(props);
+
+    this.state = {
+      refreshing: false,
+    };
 
     this.scrollViewRef = React.createRef();
   }
@@ -26,13 +31,17 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   componentDidUpdate(prevProps: HomeModel.Props) {
     const { userData, getPropertiesByIds } = this.props;
 
-    if (prevProps.userData !== userData) {
+    if (
+      prevProps.userData !== userData &&
+      userData.properties &&
+      userData.properties.length > 0
+    ) {
       getPropertiesByIds(userData.properties);
     }
   }
 
   renderDefaultMessage = () => {
-    const { userData } = this.props;
+    const { userData, navigation } = this.props;
     return (
       <Container
         flex={false}
@@ -42,7 +51,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       >
         <Image source={require("assets/icons/keys.png")} style={styles.keys} />
         <Text offWhite size={30}>
-          Hi {userData.firstName}!
+          Hi {userData.name}!
         </Text>
         <Text
           center
@@ -55,7 +64,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         </Text>
         <Button
           style={styles.setUpProperty}
-          onPress={() => this.setState({ showModal: true })}
+          onPress={() => navigation.navigate("AddPropertyModal")}
         >
           <Text center offWhite size={theme.fontSizes.medium}>
             Set Up Property
@@ -65,13 +74,22 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     );
   };
 
+  onRefresh = () => {
+    const { getUser } = this.props;
+    this.setState({ refreshing: true });
+    setTimeout(() => {
+      getUser();
+      this.setState({ refreshing: false });
+    }, 1000);
+  };
+
   renderProperties = () => {
     const { propertyData, navigation } = this.props;
+    const { refreshing } = this.state;
 
     return (
       <ScrollView
         contentContainerStyle={{
-          flexGrow: 1,
           paddingBottom: theme.sizes.padding,
         }}
         nestedScrollEnabled
@@ -79,14 +97,20 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         ref={this.scrollViewRef}
         keyboardShouldPersistTaps={"handled"}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => this.onRefresh()}
+          />
+        }
       >
         <Container center>
-          {propertyData.map((property: any) => {
+          {propertyData.map((property: any, index: number) => {
             // this is returning a property id
             let positionY = 0;
             return (
               <Container
-                key={property.id}
+                key={index}
                 onLayout={(event: any) =>
                   (positionY = event.nativeEvent.layout.y)
                 }
@@ -126,7 +150,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
           style={{ marginTop: theme.sizes.padding * 2.5 }}
           row
         >
-          <Text h1 tertiary>
+          <Text h1 tertiary style={{ marginBottom: theme.sizes.base }}>
             My Properties
           </Text>
           <Button
@@ -187,9 +211,14 @@ const mapStateToProps = (state: any) => {
   };
 };
 
-const mapDispatchToProps = {
-  getUser,
-  getPropertiesByIds,
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getUser,
+      getPropertiesByIds,
+    },
+    dispatch
+  );
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

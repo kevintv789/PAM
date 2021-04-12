@@ -1,6 +1,8 @@
 import { constants, theme } from ".";
 
+import { USER_DOC } from "shared/constants/databaseConsts";
 import { filter } from "lodash";
+import firebase from "firebase";
 import moment from "moment";
 
 /**
@@ -301,4 +303,21 @@ export const filterArrayForTimePeriod = (
     default:
       return;
   }
+};
+
+/**
+ * This function returns the current user's UID
+ */
+export const getCurrentUserId = () => {
+  return firebase.auth().currentUser?.uid;
+};
+
+/**
+ * This function returns the current user data
+ */
+export const getCurrentUserData = () => {
+  return firebase
+    .firestore()
+    .collection(USER_DOC)
+    .doc(firebase.auth().currentUser?.uid);
 };
