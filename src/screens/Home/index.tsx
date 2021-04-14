@@ -1,8 +1,9 @@
-import { Button, Container, Text } from "components/common";
+import { Button, Container, LoadingIndicator, Text } from "components/common";
 import { Image, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { getAggregatedProperties, getTenants } from "reducks/modules/property";
 
+import AuthService from "services/auth.service";
 import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
 import { ScrollView } from "react-native-gesture-handler";
@@ -15,11 +16,14 @@ import { theme } from "shared";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   private scrollViewRef: React.RefObject<ScrollView>;
+  private authService = new AuthService();
+
   constructor(props: any) {
     super(props);
 
     this.state = {
       refreshing: false,
+      isLoading: true,
     };
 
     this.scrollViewRef = React.createRef();
@@ -27,18 +31,26 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   componentDidMount() {
     const { getUser } = this.props;
-    getUser();
-    this.getTenantData();
-    this.aggregatePropertyWithTenantData();
+
+    this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+
+        const userData = res.data();
+
+        if (userData && userData.properties && userData.properties.length > 0) {
+          getPropertiesByIds(userData.properties);
+          this.getTenantData();
+          this.aggregatePropertyWithTenantData();
+        }
+      })
+      .catch((error) => console.log("ERROR in retrieving user data: ", error))
+      .finally(() => this.setState({ isLoading: false }));
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
-    const {
-      userData,
-      getPropertiesByIds,
-      tenantData,
-      propertyData,
-    } = this.props;
+    const { userData, getPropertiesByIds, propertyData } = this.props;
 
     if (
       !isEqual(prevProps.userData, userData) &&
@@ -50,9 +62,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     if (!isEqual(prevProps.propertyData, propertyData)) {
       this.getTenantData();
-    }
-
-    if (!isEqual(prevProps.tenantData, tenantData)) {
       this.aggregatePropertyWithTenantData();
     }
   }
@@ -134,10 +143,13 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   onRefresh = () => {
     const { getUser } = this.props;
     this.setState({ refreshing: true });
-    setTimeout(() => {
-      getUser();
-      this.setState({ refreshing: false });
-    }, 1000);
+    this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+      })
+      .catch((error) => console.log("ERROR in retrieving user data: ", error))
+      .finally(() => this.setState({ refreshing: false }));
   };
 
   renderProperties = () => {
@@ -197,7 +209,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderContent = () => {
-    const { userData, navigation } = this.props;
+    const { userData, navigation, aggregatedProperties } = this.props;
 
     return (
       <Container color="accent" style={{}}>
@@ -222,7 +234,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
             />
           </Button>
         </Container>
-        {!userData.properties.length
+        {userData.properties.length === 0
           ? this.renderDefaultMessage()
           : this.renderProperties()}
       </Container>
@@ -231,13 +243,28 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   render() {
     const { userData } = this.props;
-    return userData ? (
-      this.renderContent()
-    ) : (
-      <Container>
-        <Text>No Data</Text>
-      </Container>
-    );
+    const { isLoading } = this.state;
+
+    if (isLoading) {
+      return (
+        <Container
+          color="accent"
+          flex={1}
+          center
+          padding={[theme.sizes.base * 8]}
+        >
+          <LoadingIndicator size="large" color={theme.colors.offWhite} />
+        </Container>
+      );
+    } else if (!isLoading && userData) {
+      return this.renderContent();
+    } else {
+      return (
+        <Container>
+          <Text>No Data</Text>
+        </Container>
+      );
+    }
   }
 }
 

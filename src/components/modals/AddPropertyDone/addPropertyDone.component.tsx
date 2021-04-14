@@ -2,10 +2,25 @@ import { Button, Container, Text } from "components/common";
 import { Image, StyleSheet } from "react-native";
 import { constants, theme } from "shared";
 
+import AuthService from "services/auth.service";
 import React from "react";
+import { getUser } from "reducks/modules/user";
+import { useDispatch } from "react-redux";
 
 const AddPropertyDoneComponent = (props: any) => {
   const { navigation } = props;
+  const authService = new AuthService();
+  const dispatch = useDispatch();
+
+  const handleSubmit = () => {
+    authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        dispatch(getUser(res.data()));
+        navigation.goBack();
+      })
+      .catch((error) => console.log("ERROR in retrieving user data: ", error));
+  };
 
   return (
     <Container center color="accent" style={styles.mainContainer}>
@@ -28,7 +43,7 @@ const AddPropertyDoneComponent = (props: any) => {
       <Button
         color="secondary"
         style={styles.button}
-        onPress={() => navigation.goBack()}
+        onPress={() => handleSubmit()}
       >
         <Text offWhite center bold>
           Take Me Home

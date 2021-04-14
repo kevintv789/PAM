@@ -7,6 +7,7 @@ import Counter from "./Counter";
 import CurrencyInput from "./CurrencyInput";
 import DataOutline from "./DataOutline";
 import HeaderDivider from "./HeaderDivider";
+import LoadingIndicator from './LoadingIndicator';
 import Pills from "./Pills";
 import PillsList from "./PillsList";
 import SelectableBox from "./SelectableBox";
@@ -32,4 +33,5 @@ export {
   Counter,
   CheckBox,
   CurrencyInput,
+  LoadingIndicator
 };

@@ -1,5 +1,6 @@
 export interface State {
   refreshing: boolean;
+  isLoading: boolean;
 }
 
 export interface Props {
