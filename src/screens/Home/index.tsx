@@ -1,6 +1,7 @@
 import { Button, Container, Text } from "components/common";
 import { Image, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { getAggregatedProperties, getTenants } from "reducks/modules/property";
 
 import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
@@ -9,6 +10,7 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
+import { isEqual } from "lodash";
 import { theme } from "shared";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
@@ -26,19 +28,74 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   componentDidMount() {
     const { getUser } = this.props;
     getUser();
+    this.getTenantData();
+    this.aggregatePropertyWithTenantData();
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
-    const { userData, getPropertiesByIds } = this.props;
+    const {
+      userData,
+      getPropertiesByIds,
+      tenantData,
+      propertyData,
+    } = this.props;
 
     if (
-      prevProps.userData !== userData &&
+      !isEqual(prevProps.userData, userData) &&
       userData.properties &&
       userData.properties.length > 0
     ) {
       getPropertiesByIds(userData.properties);
     }
+
+    if (!isEqual(prevProps.propertyData, propertyData)) {
+      this.getTenantData();
+    }
+
+    if (!isEqual(prevProps.tenantData, tenantData)) {
+      this.aggregatePropertyWithTenantData();
+    }
   }
+
+  getTenantData = () => {
+    const { getTenants, propertyData } = this.props;
+
+    if (propertyData && propertyData.length > 0 && getTenants) {
+      propertyData.map((property: any) => {
+        getTenants(property.tenants);
+      });
+    }
+  };
+
+  /**
+   * This function aggregates tenant data with properties that references
+   * those tenant's ids and stores them inside the reducks
+   */
+  aggregatePropertyWithTenantData = () => {
+    const { propertyData, tenantData, getAggregatedProperties } = this.props;
+
+    if (propertyData && propertyData.length > 0 && getAggregatedProperties) {
+      // this creates a completely separate array so that propertyData stays immutable
+      let tempPropertyData = JSON.parse(JSON.stringify(propertyData));
+
+      const newProperty = tempPropertyData.map((property: any) => {
+        const groupedTenants: any[] = [];
+
+        if (tenantData && tenantData.length > 0) {
+          tenantData.map((t: any) => {
+            if (t.propertyId === property.id) {
+              groupedTenants.push(t);
+            }
+            return (property.tenants = groupedTenants);
+          });
+        }
+
+        return property;
+      });
+
+      getAggregatedProperties(newProperty);
+    }
+  };
 
   renderDefaultMessage = () => {
     const { userData, navigation } = this.props;
@@ -84,7 +141,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { propertyData, navigation } = this.props;
+    const { aggregatedProperties, navigation } = this.props;
     const { refreshing } = this.state;
 
     return (
@@ -105,24 +162,25 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         }
       >
         <Container center>
-          {propertyData.map((property: any, index: number) => {
-            // this is returning a property id
-            let positionY = 0;
-            return (
-              <Container
-                key={index}
-                onLayout={(event: any) =>
-                  (positionY = event.nativeEvent.layout.y)
-                }
-              >
-                <PropertyComponent
-                  propertyData={property}
-                  navigation={navigation}
-                  onPropertySelect={() => this.scrollToProperty(positionY)}
-                />
-              </Container>
-            );
-          })}
+          {aggregatedProperties &&
+            aggregatedProperties.map((property: any, index: number) => {
+              // this is returning a property id
+              let positionY = 0;
+              return (
+                <Container
+                  key={index}
+                  onLayout={(event: any) =>
+                    (positionY = event.nativeEvent.layout.y)
+                  }
+                >
+                  <PropertyComponent
+                    propertyData={property}
+                    navigation={navigation}
+                    onPropertySelect={() => this.scrollToProperty(positionY)}
+                  />
+                </Container>
+              );
+            })}
         </Container>
       </ScrollView>
     );
@@ -208,6 +266,8 @@ const mapStateToProps = (state: any) => {
   return {
     userData: state.userState.user,
     propertyData: state.propertyState.properties,
+    tenantData: state.propertyState.tenants,
+    aggregatedProperties: state.propertyState.aggregatedProperties,
   };
 };
 
@@ -216,6 +276,8 @@ const mapDispatchToProps = (dispatch: any) => {
     {
       getUser,
       getPropertiesByIds,
+      getAggregatedProperties,
+      getTenants,
     },
     dispatch
   );

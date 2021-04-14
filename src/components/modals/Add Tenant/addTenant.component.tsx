@@ -290,7 +290,7 @@ class AddTenantComponent extends Component<
           label="Lease starts on"
           style={styles.input}
           value={leaseStartDate}
-          dateValue={moment(leaseStartDate, moment.ISO_8601).toDate()}
+          dateValue={new Date(leaseStartDate)}
           onChangeDate={(leaseStartDate: string) =>
             this.setState({ leaseStartDate })
           }

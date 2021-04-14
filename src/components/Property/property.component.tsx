@@ -16,13 +16,13 @@ import {
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
-import { getExpense, getTenants } from "reducks/modules/property";
 
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+import { getExpense } from "reducks/modules/property";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
@@ -54,22 +54,20 @@ class PropertyComponent extends Component<
   }
 
   componentDidMount() {
-    const { getExpense, getTenants } = this.props;
-    const { propertyData, financesData } = this.state;
+    const { getExpense, propertyData } = this.props;
+    const { financesData } = this.state;
 
     // This is where app needs to call action to read from Database
     getExpense();
-
-    if (propertyData.tenants.length > 0) {
-      getTenants(propertyData.tenants);
-    }
 
     const filteredExpenses = filter(
       financesData,
       (e: any) => e.propertyId === propertyData.id
     );
 
-    this.setState({ financesData: filteredExpenses });
+    this.setState({
+      financesData: filteredExpenses,
+    });
   }
 
   togglePropertyContent = (timePeriod: string) => {
@@ -266,24 +264,15 @@ class PropertyComponent extends Component<
     );
   };
 
-  getOneTenantFromData = (index: number) => {
-    const { propertyData, tenantData } = this.props;
-    const tenantIdToFind = propertyData.tenants[index];
-    return tenantData[
-      findIndex(tenantData, (e: any) => e.id === tenantIdToFind)
-    ];
-  };
-
   findEarliestMoveInDate = () => {
-    const { propertyData, tenantData } = this.props;
-    const tenants = getDataFromProperty(propertyData.tenants, tenantData);
+    const { propertyData } = this.props;
 
     // sort on leaseStartDate
-    if (tenants && tenants.length > 0) {
-      const earliestMoveIn = sortBy(tenants, (e: any) =>
-        moment(e.leaseStartDate, moment.ISO_8601)
+    if (propertyData.tenants && propertyData.tenants.length > 0) {
+      const earliestMoveIn = sortBy(propertyData.tenants, (e: any) =>
+        moment(e.leaseStartDate)
       )[0].leaseStartDate;
-      return moment(earliestMoveIn, "MM/DD/YYYY");
+      return moment(earliestMoveIn, "MM/DD/YYYY").format("MM/DD/YYYY");
     }
   };
 
@@ -330,15 +319,15 @@ class PropertyComponent extends Component<
       ) {
         return (
           <Container>
-            {propertyData.tenants.map((e: any, index: number) => {
-              if (this.getOneTenantFromData(index)) {
+            {propertyData.tenants.map((tenant: any) => {
+              if (typeof tenant === "object") {
                 return (
-                  <Container row space="between" middle key={index}>
+                  <Container row space="between" middle key={tenant.id}>
                     <Text accent medium>
-                      {this.getOneTenantFromData(index).name.split(" ")[0]}
+                      {tenant.name.split(" ")[0]}
                     </Text>
                     <Text light size={11} style={{ top: 2 }}>
-                      From {this.getOneTenantFromData(index).leaseStartDate}
+                      From {tenant.leaseStartDate}
                     </Text>
                   </Container>
                 );
@@ -499,7 +488,7 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
     } = this.state;
 
-    const { propertyData, tenantData } = this.props;
+    const { propertyData } = this.props;
     const { financesData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
@@ -526,7 +515,6 @@ class PropertyComponent extends Component<
               style={{ opacity: animatedExpandedContentOpacity }}
             >
               <PropertyContentComponent
-                tenantData={tenantData}
                 financesData={financesData}
                 propertyData={propertyData}
                 totalIncome={this.sumIncomeForTimePeriod(
@@ -586,7 +574,6 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state: any) => {
   return {
     financesData: state.propertyState.finances,
-    tenantData: state.propertyState.tenants,
   };
 };
 
@@ -594,7 +581,6 @@ const mapDispatchToProps = (dispatch: any) => {
   return bindActionCreators(
     {
       getExpense,
-      getTenants,
     },
     dispatch
   );

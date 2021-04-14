@@ -9,4 +9,5 @@ export interface Props {
   financesData: any;
   totalIncome: number;
   navigation: any;
+  getTenants?: (tenantIds: string[]) => {};
 }

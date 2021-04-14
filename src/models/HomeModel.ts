@@ -14,4 +14,8 @@ export interface Props {
   getUser?: any;
   navigation?: any;
   propertyData?: any;
+  aggregatedProperties?: any[];
+  tenantData?: any[];
+  getAggregatedProperties?: (newProperty: any[]) => {};
+  getTenants?: (tenantIds: string[]) => {};
 }

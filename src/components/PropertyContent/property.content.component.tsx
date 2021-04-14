@@ -38,14 +38,6 @@ class PropertyContentComponent extends Component<
     };
   }
 
-  componentDidMount() {
-    const { propertyData, getTenants } = this.props;
-
-    if (propertyData.tenants.length > 0) {
-      getTenants(propertyData.tenants);
-    }
-  }
-
   renderTenantHeader = () => {
     const { navigation, propertyData } = this.props;
 
@@ -126,9 +118,9 @@ class PropertyContentComponent extends Component<
   };
 
   renderTenantInfo = () => {
-    const { tenantData, navigation, propertyData } = this.props;
+    const { navigation, propertyData } = this.props;
 
-    if (!tenantData.length) {
+    if (!propertyData.tenants.length) {
       return (
         <Container flex={false} center middle padding={[15, 0, 0]}>
           <Text bold center>
@@ -161,10 +153,10 @@ class PropertyContentComponent extends Component<
           horizontal={false}
           nestedScrollEnabled
         >
-          {tenantData &&
-            tenantData.map((tenant: any) => {
+          {propertyData &&
+            propertyData.tenants.map((tenant: any, index: number) => {
               return (
-                <Container style={styles.tenantInfoItem} key={tenant.id}>
+                <Container style={styles.tenantInfoItem} key={tenant.id + '-' + index}>
                   <TouchableWithoutFeedback>
                     <TouchableOpacity
                       onPress={() =>
@@ -237,7 +229,10 @@ class PropertyContentComponent extends Component<
                           <Text secondary medium>
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
-                          on {moment(tenant.nextPaymentDate).format("MM/DD")}
+                          on{" "}
+                          {moment(tenant.nextPaymentDate, "MM/DD").format(
+                            "MM/DD"
+                          )}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -645,4 +640,6 @@ const mapDispatchToProps = (dispatch: any) => {
   );
 };
 
-export default withNavigation(connect(null, mapDispatchToProps)(PropertyContentComponent));
+export default withNavigation(
+  connect(null, mapDispatchToProps)(PropertyContentComponent)
+);
