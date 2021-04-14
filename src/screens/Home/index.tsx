@@ -42,7 +42,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         if (userData && userData.properties && userData.properties.length > 0) {
           getPropertiesByIds(userData.properties);
           this.getTenantData();
-          this.aggregatePropertyWithTenantData();
         }
       })
       .catch((error) => console.log("ERROR in retrieving user data: ", error))
@@ -50,7 +49,12 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
-    const { userData, getPropertiesByIds, propertyData } = this.props;
+    const {
+      userData,
+      getPropertiesByIds,
+      propertyData,
+      tenantData,
+    } = this.props;
 
     if (
       !isEqual(prevProps.userData, userData) &&
@@ -62,6 +66,9 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     if (!isEqual(prevProps.propertyData, propertyData)) {
       this.getTenantData();
+    }
+
+    if (!isEqual(prevProps.tenantData, tenantData)) {
       this.aggregatePropertyWithTenantData();
     }
   }
