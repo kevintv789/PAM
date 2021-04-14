@@ -21,4 +21,16 @@ export default class TenantService {
     });
   };
 
+  /**
+   * This function handles updating the tenant object from the backend
+   * @param payload 
+   * @param tenantId 
+   */
+  handleUpdateTenant = (payload: any, tenantId: string) => {
+    return firebase
+      .firestore()
+      .collection(TENANTS_DOC)
+      .doc(tenantId)
+      .set({ ...payload, id: tenantId });
+  };
 }

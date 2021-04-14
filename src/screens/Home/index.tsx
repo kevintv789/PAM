@@ -30,22 +30,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   }
 
   componentDidMount() {
-    const { getUser } = this.props;
-
-    this.authService
-      .getCurrentUserPromise()
-      .then((res) => {
-        getUser(res.data());
-
-        const userData = res.data();
-
-        if (userData && userData.properties && userData.properties.length > 0) {
-          getPropertiesByIds(userData.properties);
-          this.getTenantData();
-        }
-      })
-      .catch((error) => console.log("ERROR in retrieving user data: ", error))
-      .finally(() => this.setState({ isLoading: false }));
+    this.handleUpdateData();
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
@@ -72,6 +57,25 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       this.aggregatePropertyWithTenantData();
     }
   }
+
+  handleUpdateData = () => {
+    const { getUser } = this.props;
+
+    this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+
+        const userData = res.data();
+
+        if (userData && userData.properties && userData.properties.length > 0) {
+          getPropertiesByIds(userData.properties);
+          this.getTenantData();
+        }
+      })
+      .catch((error) => console.log("ERROR in retrieving user data: ", error))
+      .finally(() => this.setState({ isLoading: false, refreshing: false }));
+  };
 
   getTenantData = () => {
     const { getTenants, propertyData } = this.props;
@@ -148,15 +152,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   onRefresh = () => {
-    const { getUser } = this.props;
     this.setState({ refreshing: true });
-    this.authService
-      .getCurrentUserPromise()
-      .then((res) => {
-        getUser(res.data());
-      })
-      .catch((error) => console.log("ERROR in retrieving user data: ", error))
-      .finally(() => this.setState({ refreshing: false }));
+    this.handleUpdateData();
   };
 
   renderProperties = () => {

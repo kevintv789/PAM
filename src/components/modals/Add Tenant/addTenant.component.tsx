@@ -123,6 +123,7 @@ class AddTenantComponent extends Component<
     }
 
     const tenantPayload = {
+      id: this.isEditting ? this.tenantInfo.id : "",
       propertyId: this.isEditting
         ? this.tenantInfo.propertyId
         : propertyData.id,
@@ -164,7 +165,7 @@ class AddTenantComponent extends Component<
 
         // this.addToPropertyFinances(tenantPayload);
       } else {
-        updateTenant(tenantPayload);
+        this.tenantService.handleUpdateTenant(tenantPayload, tenantPayload.id);
       }
 
       navigation.goBack();
