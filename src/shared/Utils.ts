@@ -160,8 +160,8 @@ export const getDaysDiffFrom = (
   endDate: any,
   inclusive: boolean = false
 ) => {
-  const start = moment(startDate);
-  const end = moment(endDate);
+  const start = moment(new Date(startDate), moment.ISO_8601);
+  const end = moment(new Date(endDate), moment.ISO_8601);
 
   if (!start.isValid() || !end.isValid()) {
     return;

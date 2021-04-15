@@ -4,10 +4,10 @@ export interface State {
 }
 
 export interface Props {
-  tenantData: Array<any>;
-  propertyData: any;
-  financesData: any;
-  totalIncome: number;
-  navigation: any;
+  propertyData?: any;
+  financesData?: any;
+  totalIncome?: number;
+  navigation?: any;
   getTenants?: (tenantIds: string[]) => {};
+  tenantsData?: any[];
 }

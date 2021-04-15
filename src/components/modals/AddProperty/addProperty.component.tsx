@@ -18,6 +18,7 @@ import { AddPropertyModel } from "models";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
@@ -174,9 +175,11 @@ class AddPropertyComponent extends Component<
 
     if (!errors.length) {
       if (!this.isEditting) {
-        const propertiesCollection = this.propertyService.createNewPropertyId();
+        const propertiesCollection = this.propertyService.createNewDocId(
+          PROPERTIES_DOC
+        );
         this.propertyService
-          .handleCreateProperty(payload, propertiesCollection)
+          .handleCreate(payload, propertiesCollection)
           .then(() => {
             const propertyId = propertiesCollection.id;
 

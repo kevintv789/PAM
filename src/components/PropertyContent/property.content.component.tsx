@@ -16,9 +16,6 @@ import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PropertyContentModel } from "models";
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
-import { getTenants } from "reducks/modules/property";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
 
@@ -118,9 +115,9 @@ class PropertyContentComponent extends Component<
   };
 
   renderTenantInfo = () => {
-    const { navigation, propertyData } = this.props;
+    const { navigation, propertyData, tenantsData } = this.props;
 
-    if (!propertyData.tenants.length) {
+    if (!tenantsData.length) {
       return (
         <Container flex={false} center middle padding={[15, 0, 0]}>
           <Text bold center>
@@ -153,10 +150,13 @@ class PropertyContentComponent extends Component<
           horizontal={false}
           nestedScrollEnabled
         >
-          {propertyData &&
-            propertyData.tenants.map((tenant: any, index: number) => {
+          {tenantsData &&
+            tenantsData.map((tenant: any, index: number) => {
               return (
-                <Container style={styles.tenantInfoItem} key={tenant.id + '-' + index}>
+                <Container
+                  style={styles.tenantInfoItem}
+                  key={tenant.id + "-" + index}
+                >
                   <TouchableWithoutFeedback>
                     <TouchableOpacity
                       onPress={() =>
@@ -230,9 +230,10 @@ class PropertyContentComponent extends Component<
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
                           on{" "}
-                          {moment(tenant.nextPaymentDate, "MM/DD").format(
-                            "MM/DD"
-                          )}
+                          {moment(
+                            new Date(tenant.nextPaymentDate),
+                            moment.ISO_8601
+                          ).format("MM/DD")}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -301,7 +302,7 @@ class PropertyContentComponent extends Component<
         const curDate = moment(new Date(date), moment.ISO_8601);
 
         list.forEach((item) => {
-          const monthPaid = moment(item.paidOn, moment.ISO_8601);
+          const monthPaid = moment(new Date(item.paidOn), moment.ISO_8601);
           if (
             monthPaid.diff(curDate) <= 0 &&
             curDate.month() + 1 === monthPaid.month() + 1
@@ -317,7 +318,7 @@ class PropertyContentComponent extends Component<
     return orderBy(
       newList,
       (e: any) => {
-        return moment(e.paidOn, moment.ISO_8601).format("YYYYMMDD");
+        return moment(new Date(e.paidOn), moment.ISO_8601).format("YYYYMMDD");
       },
       ["desc"]
     );
@@ -631,15 +632,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = (dispatch: any) => {
-  return bindActionCreators(
-    {
-      getTenants,
-    },
-    dispatch
-  );
-};
-
-export default withNavigation(
-  connect(null, mapDispatchToProps)(PropertyContentComponent)
-);
+export default withNavigation(PropertyContentComponent);

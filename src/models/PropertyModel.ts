@@ -10,8 +10,8 @@ export interface State {
   animatedExpandedContentOpacity: Animated.Value;
   animatedPropertyAddressWidth: Animated.Value;
   financesData: any;
-  tenantData: any;
   propertyData: any;
+  tenantsData: any[];
 }
 
 export interface Props {

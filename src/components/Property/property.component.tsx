@@ -8,11 +8,10 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, isEqual, property, sortBy, sumBy } from "lodash";
+import { filter, isEqual, isEqualWith, sortBy } from "lodash";
 import {
   filterArrayForTimePeriod,
   formatNumber,
-  getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
@@ -20,9 +19,9 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import TenantService from "services/tenant.service";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
-import { getExpense } from "reducks/modules/property";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
@@ -36,6 +35,8 @@ class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
+  private tenantService = new TenantService();
+
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -48,27 +49,41 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
       animatedPropertyAddressWidth: new Animated.Value(180),
-      financesData: this.props.financesData,
+      financesData: [],
+      tenantsData: [],
       propertyData: this.props.propertyData,
     };
   }
 
   componentDidMount() {
-    const { getExpense, propertyData } = this.props;
-    const { financesData } = this.state;
-
-    // This is where app needs to call action to read from Database
-    getExpense();
-
-    const filteredExpenses = filter(
+    const { propertyData, financesData } = this.props;
+    this.getTenantData();
+    const filteredFinancialData = filter(
       financesData,
       (e: any) => e.propertyId === propertyData.id
     );
 
-    this.setState({
-      financesData: filteredExpenses,
-    });
+    this.setState({ financesData: filteredFinancialData });
   }
+
+  componentDidUpdate(prevProps: PropertyModel.Props) {
+    const { propertyData } = this.props;
+
+    if (!isEqual(prevProps.propertyData.tenants, propertyData.tenants)) {
+      // Get tenants data from property
+      this.getTenantData();
+    }
+  }
+
+  getTenantData = () => {
+    const { propertyData } = this.props;
+
+    const tenants = propertyData.tenants;
+    if (tenants && tenants.length > 0) {
+      const tenantsRef = this.tenantService.getTenantsFromIds(tenants);
+      tenantsRef.then((res) => this.setState({ tenantsData: res }));
+    }
+  };
 
   togglePropertyContent = (timePeriod: string) => {
     const { onPropertySelect } = this.props;
@@ -83,6 +98,7 @@ class PropertyComponent extends Component<
       animatedPropertyAddressWidth,
       propertyData,
       financesData,
+      tenantsData,
     } = this.state;
 
     // animate header height
@@ -103,29 +119,24 @@ class PropertyComponent extends Component<
 
     // TODO --- Super hacky conditional, find a better way to do this shiz
     if (
-      (!propertyData.tenants.length && financesData.length) ||
-      (propertyData.tenants.length &&
-        !financesData.length &&
-        totalIncome === 0) ||
-      (propertyData.tenants.length &&
-        financesData.length &&
-        totalIncome === 0) ||
-      (propertyData.tenants &&
-        propertyData.tenants.length > 0 &&
-        propertyData.tenants.length < 4)
+      (!tenantsData.length && financesData.length) ||
+      (tenantsData.length && !financesData.length && totalIncome === 0) ||
+      (tenantsData.length && financesData.length && totalIncome === 0) ||
+      (tenantsData && tenantsData.length > 0 && tenantsData.length < 4)
     ) {
-      height = 600;
+      height = 510 + 40 * tenantsData.length;
 
       const reportDetailsLength = filterArrayForTimePeriod(
         financesData,
         "paidOn",
         timePeriod
       )?.length;
+
       if (reportDetailsLength && reportDetailsLength > 0) {
         height += 40 * reportDetailsLength;
       }
     } else if (
-      (!propertyData.tenants.length && !financesData.length) ||
+      (!tenantsData.length && !financesData.length) ||
       totalIncome === 0
     ) {
       height = 550;
@@ -266,10 +277,10 @@ class PropertyComponent extends Component<
 
   findEarliestMoveInDate = () => {
     const { propertyData } = this.props;
-
+    const { tenantsData } = this.state;
     // sort on leaseStartDate
-    if (propertyData.tenants && propertyData.tenants.length > 0) {
-      const earliestMoveIn = sortBy(propertyData.tenants, (e: any) =>
+    if (tenantsData && tenantsData.length > 0) {
+      const earliestMoveIn = sortBy(tenantsData, (e: any) =>
         moment(e.leaseStartDate)
       )[0].leaseStartDate;
       return moment(earliestMoveIn, "MM/DD/YYYY").format("MM/DD/YYYY");
@@ -288,8 +299,9 @@ class PropertyComponent extends Component<
         const curDate = moment(new Date(date), moment.ISO_8601);
 
         expenseData.forEach((data: any) => {
-          const paidMonth = moment(data.paidOn, moment.ISO_8601).month() + 1;
-          const paidDate = moment(data.paidOn, moment.ISO_8601);
+          const paidMonth =
+            moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+          const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
           if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
             totalExpense += data.amount;
@@ -305,21 +317,19 @@ class PropertyComponent extends Component<
 
   renderTenantNames = () => {
     const { propertyData } = this.props;
+    const { tenantsData } = this.state;
 
-    if (propertyData.tenants) {
-      if (!propertyData.tenants.length) {
+    if (tenantsData) {
+      if (!tenantsData.length) {
         return (
           <Text accent semibold size={theme.fontSizes.big}>
             Vacant
           </Text>
         );
-      } else if (
-        propertyData.tenants.length > 0 &&
-        propertyData.tenants.length < 4
-      ) {
+      } else if (tenantsData.length > 0 && tenantsData.length < 4) {
         return (
           <Container>
-            {propertyData.tenants.map((tenant: any) => {
+            {tenantsData.map((tenant: any) => {
               if (typeof tenant === "object") {
                 return (
                   <Container row space="between" middle key={tenant.id}>
@@ -339,7 +349,7 @@ class PropertyComponent extends Component<
         return (
           <Container>
             <Text accent semibold>
-              {propertyData.tenants.length} Occupants
+              {tenantsData.length} Occupants
             </Text>
             <Text light>From {this.findEarliestMoveInDate()}</Text>
           </Container>
@@ -358,7 +368,7 @@ class PropertyComponent extends Component<
       (i: any) => i.type === "income"
     );
 
-    if (filteredFinancesData.length) {
+    if (filteredFinancesData && filteredFinancesData.length > 0) {
       switch (timePeriod) {
         case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
           const curMonth = date.getMonth() + 1;
@@ -367,8 +377,8 @@ class PropertyComponent extends Component<
           filteredFinancesData.forEach((data: any) => {
             if (data.paidOn) {
               const paidMonth =
-                moment(data.paidOn, moment.ISO_8601).month() + 1;
-              const paidDate = moment(data.paidOn, moment.ISO_8601);
+                moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+              const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
                 totalIncome += data.amount;
@@ -489,7 +499,7 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const { propertyData } = this.props;
-    const { financesData } = this.state;
+    const { financesData, tenantsData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
     if (!propertyData) {
@@ -515,6 +525,7 @@ class PropertyComponent extends Component<
               style={{ opacity: animatedExpandedContentOpacity }}
             >
               <PropertyContentComponent
+                tenantsData={tenantsData}
                 financesData={financesData}
                 propertyData={propertyData}
                 totalIncome={this.sumIncomeForTimePeriod(
@@ -577,13 +588,4 @@ const mapStateToProps = (state: any) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-  return bindActionCreators(
-    {
-      getExpense,
-    },
-    dispatch
-  );
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(PropertyComponent);
+export default connect(mapStateToProps, null)(PropertyComponent);

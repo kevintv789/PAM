@@ -23,8 +23,8 @@ export default class TenantService {
 
   /**
    * This function handles updating the tenant object from the backend
-   * @param payload 
-   * @param tenantId 
+   * @param payload
+   * @param tenantId
    */
   handleUpdateTenant = (payload: any, tenantId: string) => {
     return firebase
@@ -32,5 +32,19 @@ export default class TenantService {
       .collection(TENANTS_DOC)
       .doc(tenantId)
       .set({ ...payload, id: tenantId });
+  };
+
+  /**
+   * This function retrieves all tenants related to the list of IDs given
+   * @param tenantIds
+   */
+  getTenantsFromIds = async (tenantIds: string[]) => {
+    const snapshot = await firebase
+      .firestore()
+      .collection(TENANTS_DOC)
+      .where(firebase.firestore.FieldPath.documentId(), "in", tenantIds)
+      .get();
+
+    return snapshot.docs.map((doc) => doc.data());
   };
 }

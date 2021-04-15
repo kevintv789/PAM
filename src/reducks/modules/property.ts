@@ -1,27 +1,35 @@
-import { PROPERTIES_DOC, USER_DOC } from "shared/constants/databaseConsts";
+import {
+  PROPERTIES_DOC,
+  PROPERTY_FINANCES_DOC,
+} from "shared/constants/databaseConsts";
 
-import { Dispatch } from "react";
 import { TENANTS_DOC } from "./../../shared/constants/databaseConsts";
-import { filter } from "lodash";
 import firebase from "firebase";
-import { mockData } from "shared"; // remove when we get real data
 import { updateArrayOfObjects } from "shared/Utils";
 
 // Action Types/Action Creators
-const GET_EXPENSE = "GET_EXPENSE";
+const GET_FINANCES = "GET_FINANCES";
 const GET_TENANTS = "GET_TENANTS";
 const GET_PROPERTIES = "GET_PROPERTIES";
 const ADD_FINANCES = "ADD_FINANCES";
-const ADD_PROPERTY = "ADD_PROPERTY";
 const ADD_TENANT = "ADD_TENANT";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 const UPDATE_TENANT = "UPDATE_TENANT";
 const UPDATE_FINANCES = "UPDATE_FINANCES";
 const AGGREGATE_PROPERTIES = "AGGREGATE_PROPERTIES";
 
-export const getExpense = () => {
+export const getPropertyFinances = () => {
   return (dispatch: any) => {
-    dispatch({ type: GET_EXPENSE });
+    firebase
+      .firestore()
+      .collection(PROPERTY_FINANCES_DOC)
+      .get()
+      .then((snapshot: any) => {
+        if (snapshot.docs && snapshot.docs.length > 0) {
+          const finances = snapshot.docs.map((i: any) => i.data());
+          dispatch({ type: GET_FINANCES, payload: finances });
+        }
+      });
   };
 };
 
@@ -59,11 +67,12 @@ export const getPropertiesByIds = (propertyIds: any[]) => {
 };
 
 export const getAggregatedProperties = (aggregatedPropertyData: any[]) => {
-  return (dispatch: any) =>
+  return (dispatch: any) => {
     dispatch({
       type: AGGREGATE_PROPERTIES,
       payload: aggregatedPropertyData,
     });
+  };
 };
 
 export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });
@@ -84,7 +93,7 @@ export const updateFinances = (payload: any) => ({
 // State & Reducer
 const initialState = {
   properties: [],
-  finances: mockData.PropertyFinances,
+  finances: [],
   tenants: [],
   aggregatedProperties: [],
 };
@@ -93,8 +102,8 @@ export const propertyReducer = (state = initialState, action: any) => {
   switch (action.type) {
     case GET_PROPERTIES:
       return { ...state, properties: action.payload };
-    case GET_EXPENSE:
-      return { ...state };
+    case GET_FINANCES:
+      return { ...state, finances: action.payload };
     case GET_TENANTS:
       return { ...state, tenants: action.payload };
     case AGGREGATE_PROPERTIES:

@@ -1,29 +1,33 @@
 import "firebase/firestore";
 
-import { PROPERTIES_DOC, USER_DOC } from "shared/constants/databaseConsts";
+import {
+  PROPERTIES_DOC,
+  PROPERTY_FINANCES_DOC,
+  USER_DOC,
+} from "shared/constants/databaseConsts";
 
 import firebase from "firebase";
 
 export default class PropertyService {
   /**
-   * This function's primary focus is to create a new property document
+   * This function's primary focus is to create a new document
    * so that the app can retrieve its ID to use elsewhere
    */
-  createNewPropertyId = () => {
-    return firebase.firestore().collection(PROPERTIES_DOC).doc();
+  createNewDocId = (collection: string) => {
+    return firebase.firestore().collection(collection).doc();
   };
 
   /**
-   * This function literally adds a new property object onto the database
+   * This function literally adds a new document object onto the database
    * It will first destructure all of its properties with the 3 dots
    * Without destructuring, the new property object will have the 'payload'
    * as the top key
    * @param payload
    */
-  handleCreateProperty = (payload: any, propertiesCollection: any) => {
-    return propertiesCollection.set({
+  handleCreate = (payload: any, ref: any) => {
+    return ref.set({
       ...payload,
-      id: propertiesCollection.id,
+      id: ref.id,
     });
   };
 

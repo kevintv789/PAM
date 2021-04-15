@@ -5,6 +5,7 @@ import {
   Counter,
   CurrencyInput,
   HeaderDivider,
+  LoadingIndicator,
   PillsList,
   Text,
   TextInput,
@@ -15,19 +16,22 @@ import React, { Component } from "react";
 import {
   addFinances,
   addTenant,
+  getPropertyFinances,
   updateProperty,
-  updateTenant,
 } from "reducks/modules/property";
 import { constants, theme } from "shared";
 import { formatMobileNumber, hasErrors } from "shared/Utils";
 
 import { AddTenantModel } from "models";
 import { Entypo } from "@expo/vector-icons";
+import FinanceService from "services/finance.service";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import TenantService from "services/tenant.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
@@ -44,6 +48,7 @@ class AddTenantComponent extends Component<
   private tenantInfo: any;
   private tenantService = new TenantService();
   private propertyService = new PropertyService();
+  private financeService = new FinanceService();
 
   constructor(props: AddTenantModel.Props) {
     super(props);
@@ -61,13 +66,14 @@ class AddTenantComponent extends Component<
       rent: 0,
       deposit: 0,
       totalOccupants: 1,
-      notes: undefined,
+      notes: null,
       showNotesModal: false,
       lastPaymentDate: moment(new Date(date), moment.ISO_8601).format(
         "MM/DD/YYYY"
       ),
       hasTenantPaidFirstRent: false,
       errors: [],
+      isLoading: false,
     };
 
     this.scrollViewRef = React.createRef();
@@ -99,7 +105,7 @@ class AddTenantComponent extends Component<
   }
 
   handleAddTenant = () => {
-    const { navigation, updateTenant } = this.props;
+    const { navigation } = this.props;
     const {
       primaryTenantName,
       phone,
@@ -113,6 +119,7 @@ class AddTenantComponent extends Component<
       lastPaymentDate,
       hasTenantPaidFirstRent,
       rent,
+      isLoading,
     } = this.state;
 
     const errors = [];
@@ -158,36 +165,44 @@ class AddTenantComponent extends Component<
             );
 
             // Add tenant's income/rent to finances
+            this.addToPropertyFinances(tenantPayload);
           })
           .catch((error: any) =>
             console.log("ERROR in creating a new tenant: ", error)
-          );
-
-        // this.addToPropertyFinances(tenantPayload);
+          )
+          .finally(() => this.setState({ isLoading: false }));
       } else {
-        this.tenantService.handleUpdateTenant(tenantPayload, tenantPayload.id);
+        this.tenantService
+          .handleUpdateTenant(tenantPayload, tenantPayload.id)
+          .catch((error: any) =>
+            console.log("ERROR in updating tenant: ", error)
+          )
+          .finally(() => this.setState({ isLoading: false }));
       }
 
-      navigation.goBack();
+      if (!isLoading) {
+        navigation.goBack();
+      }
     } else {
       this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
     }
 
-    this.setState({ errors });
+    this.setState({ errors, isLoading: true });
   };
 
   addToPropertyFinances = (payload: any) => {
-    if (moment(payload.lastPaymentDate).isValid() && payload.lastPaymentDate) {
-      const { addFinances } = this.props;
-
+    const { getPropertyFinances } = this.props;
+    if (
+      moment(new Date(payload.lastPaymentDate), moment.ISO_8601).isValid() &&
+      payload.lastPaymentDate
+    ) {
       const financePayload = {
-        id: Math.floor(Math.random() * 1000),
         amount: payload.rent,
         status: constants.EXPENSE_STATUS_TYPE.PAID,
         description: "",
         paidOn: payload.lastPaymentDate,
         paymentDue: "",
-        recurring: undefined,
+        recurring: null,
         additionalNotes: "",
         image: null,
         propertyId: payload.propertyId,
@@ -195,7 +210,16 @@ class AddTenantComponent extends Component<
         type: "income",
       };
 
-      addFinances(financePayload);
+      const collectionRef = this.financeService.createNewDocId(
+        PROPERTY_FINANCES_DOC
+      );
+
+      this.financeService
+        .handleCreate(financePayload, collectionRef)
+        .then(() => getPropertyFinances())
+        .catch((error: any) =>
+          console.log("ERROR in creating a new finance object: ", error)
+        );
     }
   };
 
@@ -435,6 +459,7 @@ class AddTenantComponent extends Component<
 
   renderNavigationButtons = () => {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
 
     return (
       <Container
@@ -463,8 +488,11 @@ class AddTenantComponent extends Component<
           style={styles.navigationButtons}
           onPress={() => this.handleAddTenant()}
         >
-          <Text offWhite center semibold>
-            Save
+          <Text offWhite center semibold style={{ alignSelf: "center" }}>
+            {!isLoading && "Save"}
+            {isLoading && (
+              <LoadingIndicator size="small" color={theme.colors.offWhite} />
+            )}
           </Text>
         </Button>
       </Container>
@@ -559,11 +587,16 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = {
-  addTenant,
-  updateProperty,
-  updateTenant,
-  addFinances,
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      addTenant,
+      updateProperty,
+      addFinances,
+      getPropertyFinances,
+    },
+    dispatch
+  );
 };
 
 export default connect(null, mapDispatchToProps)(AddTenantComponent);

@@ -19,4 +19,6 @@ export interface Props {
   tenantData?: any[];
   getAggregatedProperties?: (newProperty: any[]) => {};
   getTenants?: (tenantIds: string[]) => any;
+  getPropertyFinances?: () => any;
+  financesData?: any[];
 }

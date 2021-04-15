@@ -10,16 +10,6 @@ const GET_USER = "GET_USER";
 export const getUser = (payload: any) => {
   return (dispatch: any) => {
     dispatch({ type: GET_USER, payload });
-    // firebase
-    //   .firestore()
-    //   .collection(USER_DOC)
-    //   .doc(firebase.auth().currentUser?.uid)
-    //   .get()
-    //   .then((snapshot) => {
-    //     if (snapshot.exists) {
-    //       dispatch({ type: GET_USER, payload: snapshot.data() });
-    //     }
-    //   });
   };
 };
 

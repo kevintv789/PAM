@@ -16,6 +16,7 @@ export interface State {
   lastPaymentDate: string;
   hasTenantPaidFirstRent: boolean;
   errors: string[];
+  isLoading: boolean;
 }
 
 export interface Props {
