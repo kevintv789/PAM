@@ -22,11 +22,13 @@ export const getPropertyFinances = () => {
     firebase
       .firestore()
       .collection(PROPERTY_FINANCES_DOC)
-      .get()
-      .then((snapshot: any) => {
+      // .doc()
+      .onSnapshot((snapshot) => {
         if (snapshot.docs && snapshot.docs.length > 0) {
           const finances = snapshot.docs.map((i: any) => i.data());
           dispatch({ type: GET_FINANCES, payload: finances });
+        } else {
+          dispatch({ type: GET_FINANCES, payload: [] });
         }
       });
   };

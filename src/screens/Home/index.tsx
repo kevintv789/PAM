@@ -63,9 +63,9 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   handleUpdateData = () => {
     const { getUser, getPropertyFinances } = this.props;
 
-    if (getPropertyFinances) {
+    // if (getPropertyFinances) {
       getPropertyFinances();
-    }
+    // }
 
     this.authService
       .getCurrentUserPromise()

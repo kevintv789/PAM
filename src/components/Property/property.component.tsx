@@ -56,24 +56,33 @@ class PropertyComponent extends Component<
   }
 
   componentDidMount() {
-    const { propertyData, financesData } = this.props;
     this.getTenantData();
+    this.setFinancialData();
+  }
+
+  componentDidUpdate(prevProps: PropertyModel.Props) {
+    const { propertyData, financesData } = this.props;
+
+    if (!isEqual(prevProps.propertyData.tenants, propertyData.tenants)) {
+      // Get tenants data from property
+      this.getTenantData();
+    }
+
+    if (!isEqual(prevProps.financesData, financesData)) {
+      this.setFinancialData();
+    }
+  }
+
+  setFinancialData = () => {
+    const { propertyData, financesData } = this.props;
+
     const filteredFinancialData = filter(
       financesData,
       (e: any) => e.propertyId === propertyData.id
     );
 
     this.setState({ financesData: filteredFinancialData });
-  }
-
-  componentDidUpdate(prevProps: PropertyModel.Props) {
-    const { propertyData } = this.props;
-
-    if (!isEqual(prevProps.propertyData.tenants, propertyData.tenants)) {
-      // Get tenants data from property
-      this.getTenantData();
-    }
-  }
+  };
 
   getTenantData = () => {
     const { propertyData } = this.props;
