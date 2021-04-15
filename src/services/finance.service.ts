@@ -22,4 +22,18 @@ export default class FinanceService {
       id: ref.id,
     });
   };
+
+  /**
+   * This function handles any updates to the firebase documents
+   * @param payload 
+   * @param docId 
+   * @param collection 
+   */
+  handleUpdate = (payload: any, docId: string, collection: string) => {
+    return firebase
+      .firestore()
+      .collection(collection)
+      .doc(docId)
+      .set({ ...payload, id: docId });
+  };
 }
