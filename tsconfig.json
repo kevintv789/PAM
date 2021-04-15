@@ -9,5 +9,15 @@
     "resolveJsonModule": true,
     "strict": true,
     "suppressImplicitAnyIndexErrors": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@assets": ["./assets"],
+      "@components": ["./components"],
+      "@navigation": ["./navigation"],
+      "@screens": ["./screens"],
+      "@shared": ["./shared"],
+      "@models": ["./models"],
+      "@reducks": ["./reducks"]
+    }
   }
 }
