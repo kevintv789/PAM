@@ -1,6 +1,6 @@
 # PAM Test Branch
 
-# Release v0.1
+# Beta Release v0.1
 - Major features
     - User is now able to Sign up for a usable account and log into it with fresh data
     - Creating and editing a property from the home screen
