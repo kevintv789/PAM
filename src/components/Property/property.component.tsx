@@ -105,7 +105,6 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
       animatedPropertyAddressWidth,
-      propertyData,
       financesData,
       tenantsData,
     } = this.state;
