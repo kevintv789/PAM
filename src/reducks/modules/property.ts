@@ -16,7 +16,6 @@ const ADD_TENANT = "ADD_TENANT";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 const UPDATE_TENANT = "UPDATE_TENANT";
 const UPDATE_FINANCES = "UPDATE_FINANCES";
-const AGGREGATE_PROPERTIES = "AGGREGATE_PROPERTIES";
 
 export const getPropertyFinances = () => {
   return (dispatch: any) => {
@@ -66,15 +65,6 @@ export const getPropertiesByIds = (propertyIds: any[]) => {
   };
 };
 
-export const getAggregatedProperties = (aggregatedPropertyData: any[]) => {
-  return (dispatch: any) => {
-    dispatch({
-      type: AGGREGATE_PROPERTIES,
-      payload: aggregatedPropertyData,
-    });
-  };
-};
-
 export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });
 export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
 export const updateProperty = (payload: any) => ({
@@ -95,7 +85,6 @@ const initialState = {
   properties: [],
   finances: [],
   tenants: [],
-  aggregatedProperties: [],
 };
 
 export const propertyReducer = (state = initialState, action: any) => {
@@ -106,8 +95,6 @@ export const propertyReducer = (state = initialState, action: any) => {
       return { ...state, finances: action.payload };
     case GET_TENANTS:
       return { ...state, tenants: action.payload };
-    case AGGREGATE_PROPERTIES:
-      return { ...state, aggregatedProperties: action.payload };
     case ADD_FINANCES:
       return { ...state, finances: [...state.finances, action.payload] };
     case ADD_TENANT:

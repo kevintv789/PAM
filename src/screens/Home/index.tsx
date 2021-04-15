@@ -1,11 +1,7 @@
 import { Button, Container, LoadingIndicator, Text } from "components/common";
 import { Image, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import {
-  getAggregatedProperties,
-  getPropertyFinances,
-  getTenants,
-} from "reducks/modules/property";
+import { getPropertyFinances, getTenants } from "reducks/modules/property";
 
 import AuthService from "services/auth.service";
 import { HomeModel } from "models";
@@ -59,10 +55,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       this.getTenantData();
     }
 
-    if (!isEqual(prevProps.tenantData, tenantData)) {
-      this.aggregatePropertyWithTenantData();
-    }
-
     if (!isEqual(prevProps.financesData, financesData) && getPropertyFinances) {
       getPropertyFinances();
     }
@@ -98,56 +90,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       propertyData.map((property: any) => {
         getTenants(property.tenants);
       });
-    }
-  };
-
-  /**
-   * This function aggregates tenant data with properties that references
-   * those tenant's ids and stores them inside the reducks
-   */
-  aggregatePropertyWithTenantData = () => {
-    const { propertyData, tenantData, getAggregatedProperties } = this.props;
-
-    if (propertyData && propertyData.length > 0 && getAggregatedProperties) {
-      // this creates a completely separate array so that propertyData stays immutable
-      let tempPropertyData = JSON.parse(JSON.stringify(propertyData));
-      let groupedTenants: any[] = [];
-
-      const newProperty = tempPropertyData.map((property: any) => {
-        const tenants = property.tenants;
-
-        // if (tenants && tenants.length > 0) {
-        //   tenants.map((tenant: any, index: number) => {
-        //     if (tenantData && tenantData.length > 0) {
-        //       tenantData.map(data => {
-        //         if (data.id === tenant) {
-        //           // groupedTenants.push(data);
-        //           tenants[index] = data;
-        //         }
-        //       });
-        //       return tenant;
-        //     }
-        //   });
-        // }
-        // console.log(tenants)
-        // property.tenants = groupedTenants;
-
-        // if (tenantData && tenantData.length > 0) {
-        //   tenantData.map((t: any) => {
-        //     if (t.propertyId === property.id) {
-        //       groupedTenants.push(t);
-        //       property.tenants = groupedTenants;
-        //     }
-        //   });
-        // }
-        // groupedTenants = [];
-        return property;
-      });
-
-      // console.log(newProperty)
-
-      // console.log(newProperty);
-      getAggregatedProperties(newProperty);
     }
   };
 
@@ -191,7 +133,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { aggregatedProperties, navigation } = this.props;
+    const { propertyData, navigation } = this.props;
     const { refreshing } = this.state;
 
     return (
@@ -212,8 +154,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
         }
       >
         <Container center>
-          {aggregatedProperties &&
-            aggregatedProperties.map((property: any, index: number) => {
+          {propertyData &&
+            propertyData.map((property: any, index: number) => {
               // this is returning a property id
               let positionY = 0;
               return (
@@ -247,7 +189,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderContent = () => {
-    const { userData, navigation, aggregatedProperties } = this.props;
+    const { userData, navigation } = this.props;
 
     return (
       <Container color="accent" style={{}}>
@@ -332,7 +274,6 @@ const mapStateToProps = (state: any) => {
     userData: state.userState.user,
     propertyData: state.propertyState.properties,
     tenantData: state.propertyState.tenants,
-    aggregatedProperties: state.propertyState.aggregatedProperties,
     financesData: state.propertyState.finances,
   };
 };
@@ -342,7 +283,6 @@ const mapDispatchToProps = (dispatch: any) => {
     {
       getUser,
       getPropertiesByIds,
-      getAggregatedProperties,
       getTenants,
       getPropertyFinances,
     },
