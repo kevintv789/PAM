@@ -61,9 +61,9 @@ class PropertyComponent extends Component<
   }
 
   componentDidUpdate(prevProps: PropertyModel.Props) {
-    const { propertyData, financesData } = this.props;
+    const { propertyData, financesData, tenantData } = this.props;
 
-    if (!isEqual(prevProps.propertyData.tenants, propertyData.tenants)) {
+    if (!isEqual(prevProps.tenantData, tenantData)) {
       // Get tenants data from property
       this.getTenantData();
     }
@@ -85,12 +85,14 @@ class PropertyComponent extends Component<
   };
 
   getTenantData = () => {
-    const { propertyData } = this.props;
-
+    const { propertyData, tenantData } = this.props;
     const tenants = propertyData.tenants;
+
     if (tenants && tenants.length > 0) {
-      const tenantsRef = this.tenantService.getTenantsFromIds(tenants);
-      tenantsRef.then((res) => this.setState({ tenantsData: res }));
+      const filteredTenants = tenantData.filter((tenant: any) => {
+        return tenant.propertyId === propertyData.id;
+      });
+      this.setState({ tenantsData: filteredTenants });
     }
   };
 
