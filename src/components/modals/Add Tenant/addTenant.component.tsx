@@ -119,7 +119,6 @@ class AddTenantComponent extends Component<
       lastPaymentDate,
       hasTenantPaidFirstRent,
       rent,
-      isLoading,
     } = this.state;
 
     const errors = [];
@@ -165,7 +164,18 @@ class AddTenantComponent extends Component<
             );
 
             // Add tenant's income/rent to finances
-            this.addToPropertyFinances(tenantPayload);
+            if (
+              tenantPayload.lastPaymentDate &&
+              moment(
+                new Date(tenantPayload.lastPaymentDate),
+                moment.ISO_8601
+              ).isValid() &&
+              tenantPayload.lastPaymentDate
+            ) {
+              this.addToPropertyFinances(tenantPayload);
+            } else {
+              navigation.goBack();
+            }
           })
           .catch((error: any) =>
             console.log("ERROR in creating a new tenant: ", error)
@@ -174,14 +184,11 @@ class AddTenantComponent extends Component<
       } else {
         this.tenantService
           .handleUpdateTenant(tenantPayload, tenantPayload.id)
+          .then(() => navigation.goBack())
           .catch((error: any) =>
             console.log("ERROR in updating tenant: ", error)
           )
           .finally(() => this.setState({ isLoading: false }));
-      }
-
-      if (!isLoading) {
-        navigation.goBack();
       }
     } else {
       this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
@@ -191,36 +198,32 @@ class AddTenantComponent extends Component<
   };
 
   addToPropertyFinances = (payload: any) => {
-    const { getPropertyFinances } = this.props;
-    if (
-      moment(new Date(payload.lastPaymentDate), moment.ISO_8601).isValid() &&
-      payload.lastPaymentDate
-    ) {
-      const financePayload = {
-        amount: payload.rent,
-        status: constants.EXPENSE_STATUS_TYPE.PAID,
-        description: "",
-        paidOn: payload.lastPaymentDate,
-        paymentDue: "",
-        recurring: null,
-        additionalNotes: "",
-        image: null,
-        propertyId: payload.propertyId,
-        name: payload.name,
-        type: "income",
-      };
+    const { getPropertyFinances, navigation } = this.props;
 
-      const collectionRef = this.financeService.createNewDocId(
-        PROPERTY_FINANCES_DOC
+    const financePayload = {
+      amount: payload.rent,
+      status: constants.EXPENSE_STATUS_TYPE.PAID,
+      description: "",
+      paidOn: payload.lastPaymentDate,
+      paymentDue: "",
+      recurring: null,
+      additionalNotes: "",
+      image: null,
+      propertyId: payload.propertyId,
+      name: payload.name,
+      type: "income",
+    };
+
+    const collectionRef = this.financeService.createNewDocId(
+      PROPERTY_FINANCES_DOC
+    );
+
+    this.financeService
+      .handleCreate(financePayload, collectionRef)
+      .then(() => navigation.goBack())
+      .catch((error: any) =>
+        console.log("ERROR in creating a new finance object: ", error)
       );
-
-      this.financeService
-        .handleCreate(financePayload, collectionRef)
-        .then(() => getPropertyFinances())
-        .catch((error: any) =>
-          console.log("ERROR in creating a new finance object: ", error)
-        );
-    }
   };
 
   renderImageSection = () => {

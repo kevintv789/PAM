@@ -31,6 +31,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   componentDidMount() {
     this.handleUpdateData();
+    
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
@@ -52,7 +53,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     }
 
     if (!isEqual(prevProps.propertyData, propertyData)) {
-      this.getTenantData();
+      // this.getTenantData();
     }
 
     if (!isEqual(prevProps.financesData, financesData) && getPropertyFinances) {
@@ -64,7 +65,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     const { getUser, getPropertyFinances } = this.props;
 
     // if (getPropertyFinances) {
-      getPropertyFinances();
+    getPropertyFinances();
     // }
 
     this.authService
@@ -133,7 +134,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { propertyData, navigation } = this.props;
+    const { propertyData, navigation, tenantData } = this.props;
     const { refreshing } = this.state;
 
     return (
@@ -166,6 +167,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
                   }
                 >
                   <PropertyComponent
+                    tenantData={tenantData}
                     propertyData={property}
                     navigation={navigation}
                     onPropertySelect={() => this.scrollToProperty(positionY)}
