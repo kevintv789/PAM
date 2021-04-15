@@ -9,14 +9,14 @@ import {
 } from "components/common";
 import { Dimensions, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import { addFinances, updateFinances } from "reducks/modules/property";
 import { constants, theme } from "shared";
 
 import { Entypo } from "@expo/vector-icons";
+import FinanceService from "services/finance.service";
 import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
 import moment from "moment";
 
@@ -25,13 +25,17 @@ class IncomeComponent extends Component<
   FinancesModel.defaultProps,
   FinancesModel.initialState
 > {
+  private financeService = new FinanceService();
+
   constructor(props: FinancesModel.defaultProps) {
     super(props);
 
     this.state = {
       name: "",
       amount: 0,
-      expenseStatusDate: moment().format("MM/DD/YYYY"),
+      expenseStatusDate: moment(new Date(), moment.ISO_8601).format(
+        "MM/DD/YYYY"
+      ),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
       notes: null,
       showNotesModal: false,
@@ -54,22 +58,9 @@ class IncomeComponent extends Component<
     }
   }
 
-  handleExpenseSave = () => {
-    const {
-      navigation,
-      addFinances,
-      updateFinances,
-      propertyId,
-      isEditting,
-      reportData,
-    } = this.props;
-    const {
-      name,
-      amount,
-      expenseStatusDate,
-      expenseStatus,
-      recurring,
-    } = this.state;
+  handleIncomeSave = () => {
+    const { navigation, propertyId, isEditting, reportData } = this.props;
+    const { name, amount, expenseStatusDate, expenseStatus } = this.state;
 
     const errors = [];
 
@@ -79,13 +70,13 @@ class IncomeComponent extends Component<
 
     // Call API to save expense to property
     const payload = {
-      id: isEditting ? reportData.id : Math.floor(Math.random() * 1000),
+      id: isEditting ? reportData.id : "",
       amount,
       status: expenseStatus,
       description: "",
       paidOn: expenseStatusDate,
       paymentDue: "",
-      recurring: recurring,
+      recurring: null,
       additionalNotes: "",
       image: null,
       propertyId,
@@ -95,11 +86,25 @@ class IncomeComponent extends Component<
 
     if (!errors.length) {
       if (!isEditting) {
-        addFinances(payload);
+        const docRef = this.financeService.createNewDocId(
+          PROPERTY_FINANCES_DOC
+        );
+        this.financeService
+          .handleCreate(payload, docRef)
+          .then(() => {
+            navigation.goBack();
+          })
+          .catch((error: any) =>
+            console.log("ERROR in creating a new income object: ", error)
+          );
       } else {
-        updateFinances(payload);
+        this.financeService
+          .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
+          .then(() => navigation.goBack())
+          .catch((error: any) =>
+            console.log("ERROR in updating a new income object: ", error)
+          );
       }
-      navigation.goBack();
     }
 
     this.setState({ errors });
@@ -170,7 +175,10 @@ class IncomeComponent extends Component<
             label="Paid on Date"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(expenseStatusDate).toDate()}
+            dateValue={moment(
+              new Date(expenseStatusDate),
+              moment.ISO_8601
+            ).toDate()}
             onChangeDate={(expenseStatusDate: string) =>
               this.setState({ expenseStatusDate })
             }
@@ -181,7 +189,10 @@ class IncomeComponent extends Component<
             label="Payment Due On"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(expenseStatusDate).toDate()}
+            dateValue={moment(
+              new Date(expenseStatusDate),
+              moment.ISO_8601
+            ).toDate()}
             onChangeDate={(expenseStatusDate: string) =>
               this.setState({ expenseStatusDate })
             }
@@ -240,7 +251,7 @@ class IncomeComponent extends Component<
         <Button
           color="secondary"
           style={styles.navigationButtons}
-          onPress={() => this.handleExpenseSave()}
+          onPress={() => this.handleIncomeSave()}
         >
           <Text offWhite center semibold>
             Save
@@ -317,9 +328,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = {
-  addFinances,
-  updateFinances,
-};
-
-export default connect(null, mapDispatchToProps)(IncomeComponent);
+export default IncomeComponent;

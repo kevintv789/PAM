@@ -268,7 +268,9 @@ export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
   }
 
   if (timeToAdd >= 0) {
-    return moment(startDate).add(timeToAdd, dateType).format("MM/DD/YYYY");
+    return moment(new Date(startDate), moment.ISO_8601)
+      .add(timeToAdd, dateType)
+      .format("MM/DD/YYYY");
   }
 };
 
@@ -298,7 +300,8 @@ export const filterArrayForTimePeriod = (
     case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
       const curMonth = new Date().getMonth() + 1;
       return array.filter(
-        (item) => moment(item[prop]).month() + 1 === curMonth
+        (item) =>
+          moment(new Date(item[prop]), moment.ISO_8601).month() + 1 === curMonth
       );
     default:
       return;
