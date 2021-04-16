@@ -1,5 +1,12 @@
 # PAM Test Branch
 
+# Beta Release v0.11
+- Bug Fixes
+    - Fixed crash when editing a tenant
+    - Fixed data sync issue where tenant and financial data were overtaking a newly added property
+    - Fixed data sync issue where tenants weren't being updated when first added to properties that previously had no tenants
+    - Fixed weird sorting of a newly added property by automatically sorting to the most recent addition first
+
 # Beta Release v0.1
 - Major features
     - User is now able to Sign up for a usable account and log into it with fresh data
