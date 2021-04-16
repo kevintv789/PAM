@@ -9,6 +9,7 @@ export interface State {
   errors: string[];
   autoFill: boolean;
   showKeyboard: boolean;
+  isLoading: boolean;
 }
 
 export interface Props {

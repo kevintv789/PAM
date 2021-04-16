@@ -1,8 +1,3 @@
-import "firebase/firestore";
-
-import { USER_DOC } from "shared/constants/databaseConsts";
-import firebase from "firebase";
-
 // Action Types
 const GET_USER = "GET_USER";
 

@@ -13,12 +13,6 @@ import {
 } from "components/common";
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
-import {
-  addFinances,
-  addTenant,
-  getPropertyFinances,
-  updateProperty,
-} from "reducks/modules/property";
 import { constants, theme } from "shared";
 import { formatMobileNumber, hasErrors } from "shared/Utils";
 
@@ -31,8 +25,6 @@ import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import TenantService from "services/tenant.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { bindActionCreators } from "redux";
-import { connect } from "react-redux";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
 
@@ -57,7 +49,7 @@ class AddTenantComponent extends Component<
       primaryTenantName: "",
       phone: "",
       email: "",
-      leaseType: "",
+      leaseType: constants.LEASE_TYPE.FIXED_TERM,
       leaseStartDate: moment(new Date(date), moment.ISO_8601).format(
         "MM/DD/YYYY"
       ),
@@ -148,6 +140,7 @@ class AddTenantComponent extends Component<
       nextPaymentDate: this.isEditting
         ? this.tenantInfo.nextPaymentDate
         : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
+      createdOn: this.isEditting ? this.tenantInfo.createdOn : new Date(),
     };
 
     if (!errors.length) {
@@ -198,7 +191,7 @@ class AddTenantComponent extends Component<
   };
 
   addToPropertyFinances = (payload: any) => {
-    const { getPropertyFinances, navigation } = this.props;
+    const { navigation } = this.props;
 
     const financePayload = {
       amount: payload.rent,
@@ -304,9 +297,7 @@ class AddTenantComponent extends Component<
         <PillsList
           label="Select a lease type:"
           defaultSelected={
-            this.isEditting
-              ? this.tenantInfo.leaseType
-              : constants.LEASE_TYPE.FIXED_TERM
+            this.isEditting ? this.tenantInfo.leaseType : leaseType
           }
           data={leaseTypes}
           handlePillSelected={(leaseType: string) =>
@@ -590,16 +581,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = (dispatch: any) => {
-  return bindActionCreators(
-    {
-      addTenant,
-      updateProperty,
-      addFinances,
-      getPropertyFinances,
-    },
-    dispatch
-  );
-};
-
-export default connect(null, mapDispatchToProps)(AddTenantComponent);
+export default AddTenantComponent;

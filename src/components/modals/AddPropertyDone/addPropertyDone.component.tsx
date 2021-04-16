@@ -1,9 +1,9 @@
-import { Button, Container, Text } from "components/common";
+import { Button, Container, LoadingIndicator, Text } from "components/common";
 import { Image, StyleSheet } from "react-native";
+import React, { useState } from "react";
 import { constants, theme } from "shared";
 
 import AuthService from "services/auth.service";
-import React from "react";
 import { getUser } from "reducks/modules/user";
 import { useDispatch } from "react-redux";
 
@@ -12,14 +12,18 @@ const AddPropertyDoneComponent = (props: any) => {
   const authService = new AuthService();
   const dispatch = useDispatch();
 
+  const [isLoading, setisLoading] = useState(false);
+
   const handleSubmit = () => {
+    setisLoading(true);
     authService
       .getCurrentUserPromise()
       .then((res) => {
         dispatch(getUser(res.data()));
         navigation.goBack();
       })
-      .catch((error) => console.log("ERROR in retrieving user data: ", error));
+      .catch((error) => console.log("ERROR in retrieving user data: ", error))
+      .finally(() => setisLoading(false));
   };
 
   return (
@@ -45,8 +49,11 @@ const AddPropertyDoneComponent = (props: any) => {
         style={styles.button}
         onPress={() => handleSubmit()}
       >
-        <Text offWhite center bold>
-          Take Me Home
+        <Text offWhite center bold style={{ alignSelf: "center" }}>
+          {!isLoading && "Take Me Home"}
+          {isLoading && (
+            <LoadingIndicator size="small" color={theme.colors.offWhite} />
+          )}
         </Text>
       </Button>
     </Container>

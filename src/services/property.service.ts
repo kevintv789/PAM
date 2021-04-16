@@ -28,6 +28,7 @@ export default class PropertyService {
     return ref.set({
       ...payload,
       id: ref.id,
+      createdOn: new Date(),
     });
   };
 
@@ -41,7 +42,7 @@ export default class PropertyService {
       .firestore()
       .collection(PROPERTIES_DOC)
       .doc(propertyId)
-      .set({ ...payload, id: propertyId });
+      .set({ ...payload, id: propertyId, updatedOn: new Date() });
   };
 
   /**
@@ -62,7 +63,7 @@ export default class PropertyService {
         const tenants = propertyData?.tenants;
         tenants.push(tenantId);
 
-        propertyRef.update({ tenants });
+        propertyRef.update({ tenants, updatedOn: new Date() });
       }
     });
   };
@@ -86,6 +87,7 @@ export default class PropertyService {
 
       return currentUser.update({
         properties,
+        updatedOn: new Date(),
       });
     });
   };

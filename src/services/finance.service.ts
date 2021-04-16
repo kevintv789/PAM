@@ -20,20 +20,21 @@ export default class FinanceService {
     return ref.set({
       ...payload,
       id: ref.id,
+      createdOn: new Date(),
     });
   };
 
   /**
    * This function handles any updates to the firebase documents
-   * @param payload 
-   * @param docId 
-   * @param collection 
+   * @param payload
+   * @param docId
+   * @param collection
    */
   handleUpdate = (payload: any, docId: string, collection: string) => {
     return firebase
       .firestore()
       .collection(collection)
       .doc(docId)
-      .set({ ...payload, id: docId });
+      .set({ ...payload, id: docId, updatedOn: new Date() });
   };
 }
