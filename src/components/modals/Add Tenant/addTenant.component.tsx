@@ -12,18 +12,20 @@ import {
   Toggle,
 } from "components/common";
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
+import {
+  PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
+} from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 import { formatMobileNumber, hasErrors } from "shared/Utils";
 
 import { AddTenantModel } from "models";
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
-import FinanceService from "services/finance.service";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
-import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
-import TenantService from "services/tenant.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
@@ -38,9 +40,8 @@ class AddTenantComponent extends Component<
   private scrollViewRef: any;
   private isEditting: boolean = false;
   private tenantInfo: any;
-  private tenantService = new TenantService();
   private propertyService = new PropertyService();
-  private financeService = new FinanceService();
+  private commonService = new CommonService();
 
   constructor(props: AddTenantModel.Props) {
     super(props);
@@ -145,10 +146,10 @@ class AddTenantComponent extends Component<
 
     if (!errors.length) {
       if (!this.isEditting) {
-        const tenantDocRef = this.tenantService.createNewTenantId();
+        const tenantDocRef = this.commonService.createNewDocId(TENANTS_DOC);
 
-        this.tenantService
-          .handleCreateTenant(tenantPayload, tenantDocRef)
+        this.commonService
+          .handleCreate(tenantPayload, tenantDocRef)
           .then(() => {
             // Update property on the backend with the new tenant ID
             this.propertyService.addTenantIdToProperty(
@@ -175,8 +176,8 @@ class AddTenantComponent extends Component<
           )
           .finally(() => this.setState({ isLoading: false }));
       } else {
-        this.tenantService
-          .handleUpdateTenant(tenantPayload, tenantPayload.id)
+        this.commonService
+          .handleUpdate(tenantPayload, tenantPayload.id, TENANTS_DOC)
           .then(() => navigation.goBack())
           .catch((error: any) =>
             console.log("ERROR in updating tenant: ", error)
@@ -207,11 +208,11 @@ class AddTenantComponent extends Component<
       type: "income",
     };
 
-    const collectionRef = this.financeService.createNewDocId(
+    const collectionRef = this.commonService.createNewDocId(
       PROPERTY_FINANCES_DOC
     );
 
-    this.financeService
+    this.commonService
       .handleCreate(financePayload, collectionRef)
       .then(() => navigation.goBack())
       .catch((error: any) =>

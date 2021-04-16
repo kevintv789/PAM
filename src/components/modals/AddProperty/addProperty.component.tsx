@@ -16,6 +16,7 @@ import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
 
 import { AddPropertyModel } from "models";
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
@@ -32,6 +33,8 @@ class AddPropertyComponent extends Component<
   AddPropertyModel.State
 > {
   private propertyService = new PropertyService();
+  private commonService = new CommonService();
+
   constructor(
     props: any,
     private scrollViewRef: React.RefObject<ScrollView>,
@@ -180,11 +183,11 @@ class AddPropertyComponent extends Component<
 
     if (!errors.length) {
       if (!this.isEditting) {
-        const propertiesCollection = this.propertyService.createNewDocId(
+        const propertiesCollection = this.commonService.createNewDocId(
           PROPERTIES_DOC
         );
 
-        this.propertyService
+        this.commonService
           .handleCreate(payload, propertiesCollection)
           .then(() => {
             const propertyId = propertiesCollection.id;
@@ -211,8 +214,8 @@ class AddPropertyComponent extends Component<
         payload.color = color;
         payload.tenants = tenants;
 
-        this.propertyService
-          .updateProperty(payload, id)
+        this.commonService
+          .handleUpdate(payload, id, PROPERTIES_DOC)
           .then(() => navigation.goBack())
           .catch((error) => console.log("ERROR in updating property: ", error));
       }
