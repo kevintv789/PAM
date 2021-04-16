@@ -8,7 +8,7 @@ import {
 import { Container, Text, VerticalDivider } from "components/common";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, isEqualWith, sortBy } from "lodash";
+import { filter, isEqual, property, sortBy } from "lodash";
 import {
   filterArrayForTimePeriod,
   formatNumber,
@@ -19,8 +19,6 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
-import TenantService from "services/tenant.service";
-import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import moment from "moment";
 
@@ -35,8 +33,6 @@ class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
-  private tenantService = new TenantService();
-
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -56,16 +52,29 @@ class PropertyComponent extends Component<
   }
 
   componentDidMount() {
-    this.getTenantData();
+    this.getTenantData(this.state.propertyData);
     this.setFinancialData();
   }
 
-  componentDidUpdate(prevProps: PropertyModel.Props) {
-    const { propertyData, financesData, tenantData } = this.props;
+  static getDerivedStateFromProps(
+    props: PropertyModel.Props,
+    state: PropertyModel.State
+  ) {
+    if (!isEqual(props.propertyData, state.propertyData)) {
+      return { propertyData: props.propertyData };
+    }
 
-    if (!isEqual(prevProps.tenantData, tenantData)) {
-      // Get tenants data from property
-      this.getTenantData();
+    return null;
+  }
+
+  componentDidUpdate(prevProps: PropertyModel.Props) {
+    const { financesData, tenantData, propertyData } = this.props;
+
+    if (
+      !isEqual(prevProps.propertyData, propertyData) ||
+      !isEqual(prevProps.tenantData, tenantData)
+    ) {
+      this.getTenantData(propertyData);
     }
 
     if (!isEqual(prevProps.financesData, financesData)) {
@@ -74,7 +83,8 @@ class PropertyComponent extends Component<
   }
 
   setFinancialData = () => {
-    const { propertyData, financesData } = this.props;
+    const { financesData } = this.props;
+    const { propertyData } = this.state;
 
     const filteredFinancialData = filter(
       financesData,
@@ -84,14 +94,21 @@ class PropertyComponent extends Component<
     this.setState({ financesData: filteredFinancialData });
   };
 
-  getTenantData = () => {
-    const { propertyData, tenantData } = this.props;
+  getTenantData = (propertyData: any) => {
+    const { tenantData } = this.props;
     const tenants = propertyData.tenants;
 
     if (tenants && tenants.length > 0) {
-      const filteredTenants = tenantData.filter((tenant: any) => {
-        return tenant.propertyId === propertyData.id;
+      const filteredTenants: any[] = [];
+
+      tenants.map((id: string) => {
+        tenantData.map((tenant: any) => {
+          if (tenant.id === id) {
+            filteredTenants.push(tenant);
+          }
+        });
       });
+
       this.setState({ tenantsData: filteredTenants });
     }
   };
@@ -134,7 +151,7 @@ class PropertyComponent extends Component<
       (tenantsData.length && financesData.length && totalIncome === 0) ||
       (tenantsData && tenantsData.length > 0 && tenantsData.length < 4)
     ) {
-      height = 510 + 40 * tenantsData.length;
+      height = 530 + 40 * tenantsData.length;
 
       const reportDetailsLength = filterArrayForTimePeriod(
         financesData,
@@ -186,7 +203,7 @@ class PropertyComponent extends Component<
   };
 
   renderHeader = () => {
-    const { propertyData, navigation } = this.props;
+    const { navigation } = this.props;
     const {
       animatedHeaderHeight,
       animatedHeaderImageWidth,
@@ -194,6 +211,7 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop,
       animatedPropertyAddressWidth,
       expanded,
+      propertyData,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
@@ -286,12 +304,12 @@ class PropertyComponent extends Component<
   };
 
   findEarliestMoveInDate = () => {
-    const { propertyData } = this.props;
     const { tenantsData } = this.state;
+
     // sort on leaseStartDate
     if (tenantsData && tenantsData.length > 0) {
       const earliestMoveIn = sortBy(tenantsData, (e: any) =>
-        moment(e.leaseStartDate)
+        moment(new Date(e.leaseStartDate), moment.ISO_8601)
       )[0].leaseStartDate;
       return moment(earliestMoveIn, "MM/DD/YYYY").format("MM/DD/YYYY");
     }
@@ -326,7 +344,6 @@ class PropertyComponent extends Component<
   };
 
   renderTenantNames = () => {
-    const { propertyData } = this.props;
     const { tenantsData } = this.state;
 
     if (tenantsData) {
@@ -508,8 +525,7 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
     } = this.state;
 
-    const { propertyData } = this.props;
-    const { financesData, tenantsData } = this.state;
+    const { financesData, tenantsData, propertyData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
     if (!propertyData) {

@@ -31,7 +31,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   componentDidMount() {
     this.handleUpdateData();
-    
   }
 
   componentDidUpdate(prevProps: HomeModel.Props) {
@@ -39,7 +38,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       userData,
       getPropertiesByIds,
       propertyData,
-      tenantData,
       getPropertyFinances,
       financesData,
     } = this.props;
@@ -53,7 +51,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     }
 
     if (!isEqual(prevProps.propertyData, propertyData)) {
-      // this.getTenantData();
+      this.getTenantData();
     }
 
     if (!isEqual(prevProps.financesData, financesData) && getPropertyFinances) {
@@ -62,11 +60,9 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   }
 
   handleUpdateData = () => {
-    const { getUser, getPropertyFinances } = this.props;
+    const { getUser, getPropertyFinances, getPropertiesByIds } = this.props;
 
-    // if (getPropertyFinances) {
     getPropertyFinances();
-    // }
 
     this.authService
       .getCurrentUserPromise()
@@ -89,7 +85,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     if (propertyData && propertyData.length > 0 && getTenants) {
       propertyData.map((property: any) => {
-        getTenants(property.tenants);
+        getTenants();
       });
     }
   };
@@ -156,12 +152,12 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       >
         <Container center>
           {propertyData &&
-            propertyData.map((property: any, index: number) => {
+            propertyData.map((property: any) => {
               // this is returning a property id
               let positionY = 0;
               return (
                 <Container
-                  key={index}
+                  key={property.id}
                   onLayout={(event: any) =>
                     (positionY = event.nativeEvent.layout.y)
                   }

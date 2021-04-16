@@ -18,6 +18,7 @@ export default class TenantService {
     return tenantDocRef.set({
       ...payload,
       id: tenantDocRef.id,
+      createdOn: new Date(),
     });
   };
 
@@ -31,7 +32,7 @@ export default class TenantService {
       .firestore()
       .collection(TENANTS_DOC)
       .doc(tenantId)
-      .set({ ...payload, id: tenantId });
+      .set({ ...payload, id: tenantId, updatedOn: new Date() });
   };
 
   /**
@@ -39,12 +40,14 @@ export default class TenantService {
    * @param tenantIds
    */
   getTenantsFromIds = async (tenantIds: string[]) => {
-    const snapshot = await firebase
-      .firestore()
-      .collection(TENANTS_DOC)
-      .where(firebase.firestore.FieldPath.documentId(), "in", tenantIds)
-      .get();
+    if (tenantIds && tenantIds.length > 0) {
+      const snapshot = await firebase
+        .firestore()
+        .collection(TENANTS_DOC)
+        .where(firebase.firestore.FieldPath.documentId(), "in", tenantIds)
+        .get();
 
-    return snapshot.docs.map((doc) => doc.data());
+      return snapshot.docs.map((doc) => doc.data());
+    }
   };
 }

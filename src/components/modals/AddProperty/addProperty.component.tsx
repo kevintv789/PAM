@@ -5,6 +5,7 @@ import {
   CheckBox,
   Container,
   HeaderDivider,
+  LoadingIndicator,
   PillsList,
   Text,
   TextInput,
@@ -50,6 +51,7 @@ class AddPropertyComponent extends Component<
       errors: [],
       autoFill: true,
       showKeyboard: true,
+      isLoading: false,
     };
 
     this.scrollViewRef = React.createRef();
@@ -152,7 +154,7 @@ class AddPropertyComponent extends Component<
    *
    */
   handleSaveProperty = () => {
-    const { navigation, updateProperty } = this.props;
+    const { navigation } = this.props;
     const { typeSelected, propertyNickName, streetAddress } = this.state;
 
     const errors = [];
@@ -171,6 +173,9 @@ class AddPropertyComponent extends Component<
       image: null,
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
+      createdOn: this.isEditting
+        ? this.routePropertyData.createdOn
+        : new Date(),
     };
 
     if (!errors.length) {
@@ -178,6 +183,7 @@ class AddPropertyComponent extends Component<
         const propertiesCollection = this.propertyService.createNewDocId(
           PROPERTIES_DOC
         );
+
         this.propertyService
           .handleCreate(payload, propertiesCollection)
           .then(() => {
@@ -197,7 +203,8 @@ class AddPropertyComponent extends Component<
                 )
               );
           })
-          .catch((error: any) => console.log(error));
+          .catch((error: any) => console.log(error))
+          .finally(() => this.setState({ isLoading: false }));
       } else {
         const { id, notesId, color, tenants } = this.routePropertyData;
         payload.notesId = notesId;
@@ -211,11 +218,12 @@ class AddPropertyComponent extends Component<
       }
     }
 
-    this.setState({ errors });
+    this.setState({ errors, isLoading: true });
   };
 
   renderNavigationButtons = () => {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
 
     return (
       <Container
@@ -244,8 +252,11 @@ class AddPropertyComponent extends Component<
           style={styles.navigationButtons}
           onPress={() => this.handleSaveProperty()}
         >
-          <Text offWhite center semibold>
-            Next
+          <Text offWhite center semibold style={{ alignSelf: "center" }}>
+            {!isLoading && "Next"}
+            {isLoading && (
+              <LoadingIndicator size="small" color={theme.colors.offWhite} />
+            )}
           </Text>
         </Button>
       </Container>

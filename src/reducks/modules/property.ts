@@ -5,6 +5,7 @@ import {
 
 import { TENANTS_DOC } from "./../../shared/constants/databaseConsts";
 import firebase from "firebase";
+import { orderBy } from "lodash";
 import { updateArrayOfObjects } from "shared/Utils";
 
 // Action Types/Action Creators
@@ -34,37 +35,36 @@ export const getPropertyFinances = () => {
   };
 };
 
-export const getTenants = (tenantIds: string[]) => {
-  if (tenantIds && tenantIds.length > 0) {
+export const getTenants = () => {
+  return (dispatch: any) => {
+    firebase
+      .firestore()
+      .collection(TENANTS_DOC)
+      .onSnapshot((snapshot) => {
+        if (snapshot.docs && snapshot.docs.length > 0) {
+          const tenants = snapshot.docs.map((i) => i.data());
+          dispatch({ type: GET_TENANTS, payload: tenants });
+        }
+      });
+  };
+};
+
+export const getPropertiesByIds = (propertyIds: any[]) => {
+  if (propertyIds && propertyIds.length > 0) {
     return (dispatch: any) => {
       firebase
         .firestore()
-        .collection(TENANTS_DOC)
-        .where(firebase.firestore.FieldPath.documentId(), "in", tenantIds)
+        .collection(PROPERTIES_DOC)
+        .where(firebase.firestore.FieldPath.documentId(), "in", propertyIds)
         .onSnapshot((snapshot) => {
           if (snapshot.docs && snapshot.docs.length > 0) {
-            const tenants = snapshot.docs.map((i) => i.data());
-            dispatch({ type: GET_TENANTS, payload: tenants });
+            let properties = snapshot.docs.map((i) => i.data());
+            properties = orderBy(properties, ["createdOn"], ["desc"]);
+            dispatch({ type: GET_PROPERTIES, payload: properties });
           }
         });
     };
   }
-  return { type: GET_TENANTS, payload: [] };
-};
-
-export const getPropertiesByIds = (propertyIds: any[]) => {
-  return (dispatch: any) => {
-    firebase
-      .firestore()
-      .collection(PROPERTIES_DOC)
-      .where(firebase.firestore.FieldPath.documentId(), "in", propertyIds)
-      .onSnapshot((snapshot) => {
-        if (snapshot.docs && snapshot.docs.length > 0) {
-          const properties = snapshot.docs.map((i) => i.data());
-          dispatch({ type: GET_PROPERTIES, payload: properties });
-        }
-      });
-  };
 };
 
 export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });

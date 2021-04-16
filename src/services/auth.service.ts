@@ -3,7 +3,7 @@ import { User } from "models/User.model";
 import firebase from "firebase";
 
 class AuthService {
-  handleSignUpWithEmailAndPassword = (user: User, navigation: any) => {
+  handleSignUpWithEmailAndPassword = (user: User) => {
     return firebase
       .auth()
       .createUserWithEmailAndPassword(user.email, user.password);
