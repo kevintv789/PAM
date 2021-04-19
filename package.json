@@ -58,6 +58,7 @@
     "redux-devtools-extension": "^2.13.9",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
+    "rn-tooltip": "^3.0.1",
     "toggle-switch-react-native": "^3.2.0"
   },
   "devDependencies": {

@@ -12,6 +12,8 @@ export interface State {
   financesData: any;
   propertyData: any;
   tenantsData: any[];
+  showTooltip: boolean;
+  showCommonModal: boolean;
 }
 
 export interface Props {
