@@ -1,6 +1,7 @@
 import Button from "./Button";
 import Container from "./Container";
 import HeaderDivider from "./HeaderDivider";
+import LoadingIndicator from "./LoadingIndicator";
 import Modal from "react-native-modal";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -22,7 +23,8 @@ const CommonModal = (props: any) => {
     customTextProp,
     headerIcon,
     headerIconBackground,
-    title
+    title,
+    isLoading,
   } = props;
 
   const renderNavButtons = () => (
@@ -37,8 +39,16 @@ const CommonModal = (props: any) => {
 
       <Container right>
         <Button color="secondary" style={styles.navButtons}>
-          <Text center offWhite onPress={() => onRemoveProperty()}>
-            Yes
+          <Text
+            center
+            offWhite
+            onPress={() => onRemoveProperty()}
+            style={{ alignSelf: "center" }}
+          >
+            {!isLoading && "Yes"}
+            {isLoading && (
+              <LoadingIndicator size="small" color={theme.colors.offWhite} />
+            )}
           </Text>
         </Button>
       </Container>

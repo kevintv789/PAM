@@ -1,6 +1,7 @@
 import firebase from "firebase";
 
 export default class CommonService {
+  constructor() {}
   /**
    * This function's primary focus is to create a new document
    * so that the app can retrieve its ID to use elsewhere
@@ -36,5 +37,19 @@ export default class CommonService {
       .collection(collection)
       .doc(docId)
       .set({ ...payload, id: docId, updatedOn: new Date() });
+  };
+
+  /**
+   * This function takes in a collection, property of an object and a particular data type
+   * that will be used within the where() clause
+   * @param collection
+   * @param property
+   * @param dataToQuery
+   */
+  getRefsFrom = (collection: string, property: string, dataToQuery: any) => {
+    return firebase
+      .firestore()
+      .collection(collection)
+      .where(property, "==", dataToQuery);
   };
 }

@@ -29,9 +29,13 @@ import {
   getPropertyTypeIcons,
 } from "shared/Utils";
 
+import AuthService from "services/auth.service";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import PropertyService from "services/property.service";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+import { getUser } from "reducks/modules/user";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
@@ -46,6 +50,9 @@ class PropertyComponent extends Component<
   PropertyModel.State
 > {
   private tooltipRef: React.RefObject<any>;
+  private propertyService = new PropertyService();
+  private authService = new AuthService();
+
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -63,6 +70,7 @@ class PropertyComponent extends Component<
       propertyData: this.props.propertyData,
       showTooltip: false,
       showCommonModal: false,
+      isRemoving: false,
     };
 
     this.tooltipRef = React.createRef();
@@ -272,7 +280,7 @@ class PropertyComponent extends Component<
               color={theme.colors.red}
             />
             <Text accent style={{ paddingLeft: 5 }}>
-              Remove
+              Bulldoze
             </Text>
           </Container>
         </TouchableOpacity>
@@ -593,7 +601,39 @@ class PropertyComponent extends Component<
   };
 
   onRemoveProperty = () => {
-    const { propertyData } = this.props;
+    const { propertyData, userData, getUser } = this.props;
+    const propertyId = propertyData.id;
+
+    this.propertyService.handleRemovePropertyFromFinances(propertyId);
+
+    if (propertyData.tenants && propertyData.tenants.length > 0) {
+      this.propertyService.handleRemovePropertyFromTenant(propertyId);
+    }
+
+    this.propertyService.handleRemoveProperty(propertyId);
+
+    // Remove all references of properties from the user collection
+    this.propertyService
+      .handleRemovePropertyFromUser(propertyId, userData)
+      .then(() => {
+        console.log("Removed property referenes from the user");
+        this.authService
+          .getCurrentUserPromise()
+          .then((res) => {
+            getUser(res.data());
+          })
+          .catch((error) =>
+            console.log(
+              "ERROR in getting user after removal of properties: ",
+              error
+            )
+          );
+      })
+      .catch((error) =>
+        console.log("ERROR in removing property from user", error)
+      );
+
+    this.setState({ showCommonModal: false });
   };
 
   render() {
@@ -602,6 +642,7 @@ class PropertyComponent extends Component<
       animatedContainerHeight,
       animatedExpandedContentOpacity,
       showCommonModal,
+      isRemoving,
     } = this.state;
 
     const { financesData, tenantsData, propertyData } = this.state;
@@ -705,8 +746,18 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state: any) => {
   return {
+    userData: state.userState.user,
     financesData: state.propertyState.finances,
   };
 };
 
-export default connect(mapStateToProps, null)(PropertyComponent);
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getUser,
+    },
+    dispatch
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PropertyComponent);
