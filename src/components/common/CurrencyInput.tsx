@@ -9,7 +9,7 @@ const CurrencyInput = (props: any) => {
   const { label, handleChange, value, textFieldWidth } = props;
 
   return (
-    <Container>
+    <Container style={{ width: "100%" }}>
       <Text tertiary style={styles.label}>
         {label}
       </Text>

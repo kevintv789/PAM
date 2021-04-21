@@ -77,7 +77,7 @@ const CommonModal = (props: any) => {
           />
         </Container>
         {!customTextProp && (
-          <Text center size={theme.fontSizes.medium} offWhite>
+          <Text center size={theme.fontSizes.medium} offWhite style={{ width: '90%'}}>
             {descriptorText}
           </Text>
         )}

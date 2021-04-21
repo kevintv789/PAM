@@ -86,9 +86,7 @@ class IncomeComponent extends Component<
 
     if (!errors.length) {
       if (!isEditting) {
-        const docRef = this.commonService.createNewDocId(
-          PROPERTY_FINANCES_DOC
-        );
+        const docRef = this.commonService.createNewDocId(PROPERTY_FINANCES_DOC);
         this.commonService
           .handleCreate(payload, docRef)
           .then(() => {
@@ -147,11 +145,14 @@ class IncomeComponent extends Component<
           }
         />
 
-        <CurrencyInput
-          label="Amount"
-          handleChange={(amount: number) => this.setState({ amount })}
-          value={amount}
-        />
+        <Container>
+          <CurrencyInput
+            label="Amount"
+            handleChange={(amount: number) => this.setState({ amount })}
+            value={amount}
+            textFieldWidth={width * 0.87}
+          />
+        </Container>
 
         <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
           <Container left>
