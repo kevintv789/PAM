@@ -5,6 +5,10 @@
     - User is now able to remove - bulldoze - a property from the home screen
 - Bugfixes
     - Fixed a bug related to memory leak during deletion of a single property
+    - Fixed styling issues within the report section of the collapsed property card
+    - Fixed styling issue with the vertical ellipses button on the property card and made the touch area a bit bigger
+    - Made the tooltip height and content a bit bigger 
+    - Fixed currency input styling on some pages to make it look consistent with other inputs
 
 # Beta Release v0.11
 - Bug Fixes
