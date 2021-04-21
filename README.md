@@ -1,5 +1,11 @@
 # PAM Test Branch
 
+# Beta Release v0.12.20210420
+- Minor Feature
+    - User is now able to remove - bulldoze - a property from the home screen
+- Bugfixes
+    - Fixed a bug related to memory leak during deletion of a single property
+
 # Beta Release v0.11
 - Bug Fixes
     - Fixed crash when editing a tenant
