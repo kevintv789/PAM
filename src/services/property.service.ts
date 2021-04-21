@@ -3,47 +3,15 @@ import "firebase/firestore";
 import {
   PROPERTIES_DOC,
   PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
   USER_DOC,
 } from "shared/constants/databaseConsts";
 
+import CommonService from "services/common.service";
 import firebase from "firebase";
 
 export default class PropertyService {
-  /**
-   * This function's primary focus is to create a new document
-   * so that the app can retrieve its ID to use elsewhere
-   */
-  createNewDocId = (collection: string) => {
-    return firebase.firestore().collection(collection).doc();
-  };
-
-  /**
-   * This function literally adds a new document object onto the database
-   * It will first destructure all of its properties with the 3 dots
-   * Without destructuring, the new property object will have the 'payload'
-   * as the top key
-   * @param payload
-   */
-  handleCreate = (payload: any, ref: any) => {
-    return ref.set({
-      ...payload,
-      id: ref.id,
-      createdOn: new Date(),
-    });
-  };
-
-  /**
-   * This function updates a single property based on a given property Id
-   * @param payload
-   * @param propertyId
-   */
-  updateProperty = (payload: any, propertyId: string) => {
-    return firebase
-      .firestore()
-      .collection(PROPERTIES_DOC)
-      .doc(propertyId)
-      .set({ ...payload, id: propertyId, updatedOn: new Date() });
-  };
+  private commonService = new CommonService();
 
   /**
    * This function's primary focus is to map a newly created tenant onto
@@ -90,5 +58,79 @@ export default class PropertyService {
         updatedOn: new Date(),
       });
     });
+  };
+
+  /**
+   * This function removes all property references from tenant collection
+   * @param propertyId
+   */
+  handleRemovePropertyFromTenant = (propertyId: string) => {
+    return this.commonService
+      .getRefsFrom(TENANTS_DOC, "propertyId", propertyId)
+      .get()
+      .then((snapshot) => {
+        snapshot.docs.forEach((doc) => {
+          const batch = firebase.firestore().batch();
+
+          batch.delete(doc.ref);
+          return batch.commit();
+        });
+      });
+  };
+
+  /**
+   * This function removes all property references from property finances collection
+   * @param propertyId
+   */
+  handleRemovePropertyFromFinances = (propertyId: string) => {
+    return this.commonService
+      .getRefsFrom(PROPERTY_FINANCES_DOC, "propertyId", propertyId)
+      .get()
+      .then((snapshot) => {
+        snapshot.docs.forEach((doc) => {
+          const batch = firebase.firestore().batch();
+
+          batch.delete(doc.ref);
+          return batch.commit();
+        });
+      });
+  };
+
+  /**
+   * This function removes all property references from property collection
+   * @param propertyId
+   */
+  handleRemoveProperty = (propertyId: string) => {
+    return this.commonService
+      .getRefsFrom(PROPERTIES_DOC, "id", propertyId)
+      .get()
+      .then((snapshot) => {
+        snapshot.docs.forEach((doc) => {
+          const batch = firebase.firestore().batch();
+
+          batch.delete(doc.ref);
+          return batch.commit();
+        });
+      });
+  };
+
+  /**
+   * This function sets a new array for the user
+   * @param propertyId
+   */
+  handleRemovePropertyFromUser = (propertyId: string, userData: any) => {
+    const properties = userData.properties;
+
+    // Filters out property to be deleted
+    const filteredProperties = properties.filter(
+      (id: string) => id !== propertyId
+    );
+
+    // Sets the new properties array
+    return firebase
+      .firestore()
+      .collection(USER_DOC)
+      .doc(firebase.auth().currentUser?.uid)
+      .update({ properties: filteredProperties });
   };
 }

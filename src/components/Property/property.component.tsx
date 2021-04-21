@@ -5,10 +5,28 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { Container, Text, VerticalDivider } from "components/common";
+import {
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import {
+  CommonModal,
+  Container,
+  HeaderDivider,
+  Text,
+  TooltipWrapper,
+  VerticalDivider,
+} from "components/common";
+import {
+  PROPERTIES_DOC,
+  PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
+} from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, property, sortBy } from "lodash";
+import { filter, isEqual, sortBy } from "lodash";
 import {
   filterArrayForTimePeriod,
   formatNumber,
@@ -16,10 +34,13 @@ import {
   getPropertyTypeIcons,
 } from "shared/Utils";
 
-import { Entypo } from "@expo/vector-icons";
+import AuthService from "services/auth.service";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import PropertyService from "services/property.service";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+import { getUser } from "reducks/modules/user";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
@@ -33,6 +54,10 @@ class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
+  private tooltipRef: React.RefObject<any>;
+  private propertyService = new PropertyService();
+  private authService = new AuthService();
+
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -48,7 +73,12 @@ class PropertyComponent extends Component<
       financesData: [],
       tenantsData: [],
       propertyData: this.props.propertyData,
+      showTooltip: false,
+      showCommonModal: false,
+      isRemoving: false,
     };
+
+    this.tooltipRef = React.createRef();
   }
 
   componentDidMount() {
@@ -176,7 +206,7 @@ class PropertyComponent extends Component<
       animatedPropertyAddressWidth,
       expanded,
       180,
-      215
+      210
     );
 
     // animate property address on header
@@ -193,7 +223,7 @@ class PropertyComponent extends Component<
       expanded,
       0,
       1,
-      800
+      1000
     );
 
     // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
@@ -202,8 +232,68 @@ class PropertyComponent extends Component<
     this.setState({ expanded: !expanded });
   };
 
-  renderHeader = () => {
+  renderEditPropertyButton = () => {
+    return (
+      <Container flex={false}>
+        <Entypo
+          name="dots-three-vertical"
+          size={18}
+          color={theme.colors.accent}
+        />
+      </Container>
+    );
+  };
+
+  renderTooltipOptions = (width: number) => {
     const { navigation } = this.props;
+    const { propertyData } = this.state;
+
+    return (
+      <React.Fragment>
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            this.tooltipRef.current?.toggleTooltip();
+            navigation.navigate("AddPropertyModal", {
+              editting: true,
+              propertyData,
+            });
+          }}
+        >
+          <Container row flex={false}>
+            <AntDesign name="edit" size={18} color={theme.colors.accent} />
+            <Text accent style={{ paddingLeft: 5 }}>
+              Edit
+            </Text>
+          </Container>
+        </TouchableOpacity>
+        <HeaderDivider
+          color="accent"
+          style={{ width, height: StyleSheet.hairlineWidth, marginTop: 0 }}
+        />
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            this.tooltipRef.current?.toggleTooltip();
+            this.setState({ showCommonModal: true });
+          }}
+        >
+          <Container row flex={false}>
+            <MaterialCommunityIcons
+              name="bulldozer"
+              size={18}
+              color={theme.colors.red}
+            />
+            <Text accent style={{ paddingLeft: 5 }}>
+              Bulldoze
+            </Text>
+          </Container>
+        </TouchableOpacity>
+      </React.Fragment>
+    );
+  };
+
+  renderHeader = () => {
     const {
       animatedHeaderHeight,
       animatedHeaderImageWidth,
@@ -212,6 +302,7 @@ class PropertyComponent extends Component<
       animatedPropertyAddressWidth,
       expanded,
       propertyData,
+      showTooltip,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
@@ -275,26 +366,22 @@ class PropertyComponent extends Component<
               >
                 {propertyData.propertyAddress}
               </AnimatedText>
-              <TouchableOpacity
-                style={{ position: "absolute", right: -5 }}
-                onPress={() =>
-                  navigation.navigate("AddPropertyModal", {
-                    editting: true,
-                    propertyData,
-                  })
-                }
-              >
-                <Container flex={false}>
-                  <Entypo
-                    name="dots-three-vertical"
-                    size={18}
-                    color={theme.colors.accent}
-                  />
-                </Container>
-              </TouchableOpacity>
+
+              <TooltipWrapper
+                anchor={this.renderEditPropertyButton()}
+                content={this.renderTooltipOptions(125)}
+                width={125}
+                height={80}
+                tooltipRef={this.tooltipRef}
+              />
             </AnimatedContainer>
 
-            <Text accent semibold size={theme.fontSizes.medium}>
+            <Text
+              accent
+              semibold
+              size={theme.fontSizes.medium}
+              numberOfLines={1}
+            >
               {!expanded && propertyData.propertyName}
             </Text>
           </Container>
@@ -518,11 +605,85 @@ class PropertyComponent extends Component<
     );
   };
 
+  onRemoveProperty = () => {
+    const { propertyData, userData } = this.props;
+    const propertyId = propertyData.id;
+    const promises: Promise<any>[] = [];
+
+    const propertyFinancesPromise = this.propertyService
+      .handleRemovePropertyFromFinances(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTY_FINANCES_DOC}`,
+          error
+        )
+      );
+
+    if (propertyData.tenants && propertyData.tenants.length > 0) {
+      const tenantsPromise = this.propertyService
+        .handleRemovePropertyFromTenant(propertyId)
+        .catch((error) =>
+          console.log(
+            `ERROR in removing property references from ${TENANTS_DOC}`,
+            error
+          )
+        );
+
+      promises.push(tenantsPromise);
+    }
+
+    const propertiesPromise = this.propertyService
+      .handleRemoveProperty(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTIES_DOC}`,
+          error
+        )
+      );
+
+    // Remove all references of properties from the user collection
+    const userPromise = this.propertyService
+      .handleRemovePropertyFromUser(propertyId, userData)
+      .catch((error) =>
+        console.log("ERROR in removing property from user", error)
+      );
+
+    promises.push(propertyFinancesPromise);
+    promises.push(propertiesPromise);
+    promises.push(userPromise);
+
+    Promise.all(promises)
+      .then(() => {
+        this.updateUserData();
+      })
+      .finally(() => this.setState({ isRemoving: false }));
+
+    this.setState({ isRemoving: true });
+  };
+
+  updateUserData = () => {
+    const { getUser } = this.props;
+
+    this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+      })
+      .catch((error) =>
+        console.log(
+          "ERROR in getting user after removal of properties: ",
+          error
+        )
+      );
+  };
+
   render() {
     const {
       expanded,
       animatedContainerHeight,
       animatedExpandedContentOpacity,
+      showCommonModal,
+      isRemoving,
     } = this.state;
 
     const { financesData, tenantsData, propertyData } = this.state;
@@ -560,6 +721,23 @@ class PropertyComponent extends Component<
               />
             </AnimatedContainer>
           )}
+          <CommonModal
+            visible={showCommonModal}
+            compact
+            descriptorText={`Are you sure you want to bulldoze this property?\n\nYou can't undo this action.`}
+            hideModal={() => this.setState({ showCommonModal: false })}
+            onRemoveProperty={() => this.onRemoveProperty()}
+            headerIcon={
+              <FontAwesome
+                name="warning"
+                size={36}
+                color={theme.colors.offWhite}
+              />
+            }
+            headerIconBackground={theme.colors.primary}
+            title="Confirm"
+            isLoading={isRemoving}
+          />
         </AnimatedContainer>
       );
     }
@@ -610,8 +788,18 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state: any) => {
   return {
+    userData: state.userState.user,
     financesData: state.propertyState.finances,
   };
 };
 
-export default connect(mapStateToProps, null)(PropertyComponent);
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getUser,
+    },
+    dispatch
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(PropertyComponent);

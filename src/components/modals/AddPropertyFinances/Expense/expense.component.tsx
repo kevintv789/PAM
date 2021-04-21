@@ -11,8 +11,8 @@ import { Dimensions, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
-import FinanceService from "services/finance.service";
 import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
@@ -25,7 +25,7 @@ class ExpenseComponent extends Component<
   FinancesModel.defaultProps,
   FinancesModel.initialState
 > {
-  private financeService = new FinanceService();
+  private commonService = new CommonService();
 
   constructor(props: FinancesModel.defaultProps) {
     super(props);
@@ -96,11 +96,11 @@ class ExpenseComponent extends Component<
 
     if (!errors.length) {
       if (!isEditting) {
-        const docRef = this.financeService.createNewDocId(
+        const docRef = this.commonService.createNewDocId(
           PROPERTY_FINANCES_DOC
         );
 
-        this.financeService
+        this.commonService
           .handleCreate(payload, docRef)
           .then(() => {
             navigation.goBack();
@@ -109,7 +109,7 @@ class ExpenseComponent extends Component<
             console.log("ERROR in creating a new income object: ", error)
           );
       } else {
-        this.financeService
+        this.commonService
           .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
           .then(() => navigation.goBack())
           .catch((error: any) =>

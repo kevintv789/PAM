@@ -12,6 +12,9 @@ export interface State {
   financesData: any;
   propertyData: any;
   tenantsData: any[];
+  showTooltip: boolean;
+  showCommonModal: boolean;
+  isRemoving: boolean;
 }
 
 export interface Props {
@@ -22,4 +25,6 @@ export interface Props {
   tenantData: any;
   navigation?: any;
   onPropertySelect: () => void;
+  userData?: any;
+  getUser?: any
 }
