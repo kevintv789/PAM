@@ -65,7 +65,7 @@ export default class PropertyService {
    * @param propertyId
    */
   handleRemovePropertyFromTenant = (propertyId: string) => {
-    this.commonService
+    return this.commonService
       .getRefsFrom(TENANTS_DOC, "propertyId", propertyId)
       .get()
       .then((snapshot) => {
@@ -73,19 +73,7 @@ export default class PropertyService {
           const batch = firebase.firestore().batch();
 
           batch.delete(doc.ref);
-          batch
-            .commit()
-            .then(() =>
-              console.log(
-                `Removed all property references from ${TENANTS_DOC} collection`
-              )
-            )
-            .catch((error) =>
-              console.log(
-                `ERROR in removing property references from ${TENANTS_DOC}`,
-                error
-              )
-            );
+          return batch.commit();
         });
       });
   };
@@ -95,7 +83,7 @@ export default class PropertyService {
    * @param propertyId
    */
   handleRemovePropertyFromFinances = (propertyId: string) => {
-    this.commonService
+    return this.commonService
       .getRefsFrom(PROPERTY_FINANCES_DOC, "propertyId", propertyId)
       .get()
       .then((snapshot) => {
@@ -103,19 +91,7 @@ export default class PropertyService {
           const batch = firebase.firestore().batch();
 
           batch.delete(doc.ref);
-          batch
-            .commit()
-            .then(() =>
-              console.log(
-                `Removed all property references from ${PROPERTY_FINANCES_DOC} collection`
-              )
-            )
-            .catch((error) =>
-              console.log(
-                `ERROR in removing property references from ${PROPERTY_FINANCES_DOC}`,
-                error
-              )
-            );
+          return batch.commit();
         });
       });
   };
@@ -125,7 +101,7 @@ export default class PropertyService {
    * @param propertyId
    */
   handleRemoveProperty = (propertyId: string) => {
-    this.commonService
+    return this.commonService
       .getRefsFrom(PROPERTIES_DOC, "id", propertyId)
       .get()
       .then((snapshot) => {
@@ -133,19 +109,7 @@ export default class PropertyService {
           const batch = firebase.firestore().batch();
 
           batch.delete(doc.ref);
-          batch
-            .commit()
-            .then(() =>
-              console.log(
-                `Removed all property references from ${PROPERTIES_DOC} collection`
-              )
-            )
-            .catch((error) =>
-              console.log(
-                `ERROR in removing property references from ${PROPERTIES_DOC}`,
-                error
-              )
-            );
+          return batch.commit();
         });
       });
   };

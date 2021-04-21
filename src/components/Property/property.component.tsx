@@ -19,6 +19,11 @@ import {
   TooltipWrapper,
   VerticalDivider,
 } from "components/common";
+import {
+  PROPERTIES_DOC,
+  PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
+} from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
 import { filter, isEqual, sortBy } from "lodash";
@@ -601,39 +606,75 @@ class PropertyComponent extends Component<
   };
 
   onRemoveProperty = () => {
-    const { propertyData, userData, getUser } = this.props;
+    const { propertyData, userData } = this.props;
     const propertyId = propertyData.id;
+    const promises: Promise<any>[] = [];
 
-    this.propertyService.handleRemovePropertyFromFinances(propertyId);
+    const propertyFinancesPromise = this.propertyService
+      .handleRemovePropertyFromFinances(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTY_FINANCES_DOC}`,
+          error
+        )
+      );
 
     if (propertyData.tenants && propertyData.tenants.length > 0) {
-      this.propertyService.handleRemovePropertyFromTenant(propertyId);
+      const tenantsPromise = this.propertyService
+        .handleRemovePropertyFromTenant(propertyId)
+        .catch((error) =>
+          console.log(
+            `ERROR in removing property references from ${TENANTS_DOC}`,
+            error
+          )
+        );
+
+      promises.push(tenantsPromise);
     }
 
-    this.propertyService.handleRemoveProperty(propertyId);
+    const propertiesPromise = this.propertyService
+      .handleRemoveProperty(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTIES_DOC}`,
+          error
+        )
+      );
 
     // Remove all references of properties from the user collection
-    this.propertyService
+    const userPromise = this.propertyService
       .handleRemovePropertyFromUser(propertyId, userData)
-      .then(() => {
-        console.log("Removed property referenes from the user");
-        this.authService
-          .getCurrentUserPromise()
-          .then((res) => {
-            getUser(res.data());
-          })
-          .catch((error) =>
-            console.log(
-              "ERROR in getting user after removal of properties: ",
-              error
-            )
-          );
-      })
       .catch((error) =>
         console.log("ERROR in removing property from user", error)
       );
 
-    this.setState({ showCommonModal: false });
+    promises.push(propertyFinancesPromise);
+    promises.push(propertiesPromise);
+    promises.push(userPromise);
+
+    Promise.all(promises)
+      .then(() => {
+        this.updateUserData();
+      })
+      .finally(() => this.setState({ isRemoving: false }));
+
+    this.setState({ isRemoving: true });
+  };
+
+  updateUserData = () => {
+    const { getUser } = this.props;
+
+    this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+      })
+      .catch((error) =>
+        console.log(
+          "ERROR in getting user after removal of properties: ",
+          error
+        )
+      );
   };
 
   render() {
@@ -695,6 +736,7 @@ class PropertyComponent extends Component<
             }
             headerIconBackground={theme.colors.primary}
             title="Confirm"
+            isLoading={isRemoving}
           />
         </AnimatedContainer>
       );

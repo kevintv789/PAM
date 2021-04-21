@@ -38,13 +38,12 @@ const CommonModal = (props: any) => {
       </Container>
 
       <Container right>
-        <Button color="secondary" style={styles.navButtons}>
-          <Text
-            center
-            offWhite
-            onPress={() => onRemoveProperty()}
-            style={{ alignSelf: "center" }}
-          >
+        <Button
+          color="secondary"
+          style={styles.navButtons}
+          onPress={() => onRemoveProperty()}
+        >
+          <Text center offWhite style={{ alignSelf: "center" }}>
             {!isLoading && "Yes"}
             {isLoading && (
               <LoadingIndicator size="small" color={theme.colors.offWhite} />
@@ -117,7 +116,7 @@ export default CommonModal;
 const styles = StyleSheet.create({
   compactContainer: {
     height: 200,
-    width: "100%",
+    width: "95%",
     alignSelf: "center",
     borderRadius: 10,
   },
