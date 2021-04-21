@@ -18,7 +18,7 @@ export default function TooltipWrapper(props: any) {
   } = props;
 
   return (
-    <Container flex={false}>
+    <React.Fragment>
       <Tooltip
         ref={tooltipRef}
         popover={content}
@@ -34,7 +34,7 @@ export default function TooltipWrapper(props: any) {
       >
         {anchor}
       </Tooltip>
-    </Container>
+    </React.Fragment>
   );
 }
 

@@ -261,7 +261,8 @@ class PropertyContentComponent extends Component<
           Monthly Report for{" "}
           {moment(new Date(date), moment.ISO_8601).format("MMMM")}
         </Text>
-        <Container row style={{}} flex={1}>
+
+        <Container row>
           <Button
             color="transparent"
             style={styles.addFinanceButton}
@@ -271,14 +272,12 @@ class PropertyContentComponent extends Component<
               })
             }
           >
-            {/* <Text light accent style={{ top: 2, right: 4 }} size={13}>
-              Add Expense
-            </Text> */}
             <Image
               source={require("assets/icons/plus.png")}
               style={{ width: 20, height: 20 }}
             />
           </Button>
+
           <Button
             color="transparent"
             style={styles.filterButton}
@@ -579,6 +578,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
     height: 29,
+    width: "100%",
   },
   expensesContainer: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -602,14 +602,19 @@ const styles = StyleSheet.create({
   },
   addFinanceButton: {
     flexDirection: "row",
-    paddingRight: 90,
-    bottom: 10,
+    position: "absolute",
+    right: 0,
+    top: -7,
+    justifyContent: "space-between",
+    width: 50,
   },
   filterButton: {
+    flexDirection: "row",
     position: "absolute",
-    top: -24,
-    right: -25,
-    width: 40,
+    right: 0,
+    top: -7,
+    justifyContent: "space-between",
+    width: 15,
   },
   tenantInfoItem: {
     borderBottomWidth: StyleSheet.hairlineWidth,

@@ -234,13 +234,12 @@ class PropertyComponent extends Component<
 
   renderEditPropertyButton = () => {
     return (
-      <Container flex={false}>
-        <Entypo
-          name="dots-three-vertical"
-          size={18}
-          color={theme.colors.accent}
-        />
-      </Container>
+      <Entypo
+        name="dots-three-vertical"
+        size={20}
+        color={theme.colors.accent}
+        style={{ textAlign: "right" }}
+      />
     );
   };
 
@@ -262,7 +261,11 @@ class PropertyComponent extends Component<
         >
           <Container row flex={false}>
             <AntDesign name="edit" size={18} color={theme.colors.accent} />
-            <Text accent style={{ paddingLeft: 5 }}>
+            <Text
+              accent
+              style={{ paddingLeft: 5 }}
+              size={theme.fontSizes.medium}
+            >
               Edit
             </Text>
           </Container>
@@ -284,7 +287,11 @@ class PropertyComponent extends Component<
               size={18}
               color={theme.colors.red}
             />
-            <Text accent style={{ paddingLeft: 5 }}>
+            <Text
+              accent
+              style={{ paddingLeft: 5 }}
+              size={theme.fontSizes.medium}
+            >
               Bulldoze
             </Text>
           </Container>
@@ -339,6 +346,7 @@ class PropertyComponent extends Component<
             <AnimatedContainer
               row
               center
+              left
               flex={1}
               style={{ top: animatedHeaderPropertyAddressTop }}
             >
@@ -362,18 +370,20 @@ class PropertyComponent extends Component<
                 light
                 size={theme.fontSizes.medium}
                 numberOfLines={1}
-                style={{ width: animatedPropertyAddressWidth }}
+                style={{ width: "80%" }}
               >
                 {propertyData.propertyAddress}
               </AnimatedText>
 
-              <TooltipWrapper
-                anchor={this.renderEditPropertyButton()}
-                content={this.renderTooltipOptions(125)}
-                width={125}
-                height={80}
-                tooltipRef={this.tooltipRef}
-              />
+              <Container style={{ width: 28 }} flex={false}>
+                <TooltipWrapper
+                  anchor={this.renderEditPropertyButton()}
+                  content={this.renderTooltipOptions(125)}
+                  width={125}
+                  height={100}
+                  tooltipRef={this.tooltipRef}
+                />
+              </Container>
             </AnimatedContainer>
 
             <Text
@@ -553,7 +563,7 @@ class PropertyComponent extends Component<
             </Text>
           </Container>
           <Container
-            padding={[0, 0, 0, 3]}
+            padding={[0, 5, 0, 3]}
             flex={3}
             style={{ width: width / 2.3 }}
           >
