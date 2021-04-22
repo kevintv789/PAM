@@ -1,6 +1,8 @@
 export interface State {
   refreshing: boolean;
   isLoading: boolean;
+  searchQuery: string;
+  propertyData: any;
 }
 
 export interface Props {
