@@ -23,6 +23,7 @@ import { theme } from "shared";
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   private scrollViewRef: React.RefObject<ScrollView>;
   private authService = new AuthService();
+  private triggered = false;
 
   constructor(props: any) {
     super(props);
@@ -51,6 +52,19 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     } = this.props;
 
     const { searchQuery } = this.state;
+
+    if (
+      this.scrollViewRef &&
+      this.scrollViewRef.current &&
+      !this.triggered &&
+      searchQuery === ""
+    ) {
+      this.scrollViewRef.current.scrollTo({
+        x: 0,
+        y: 50,
+        animated: false,
+      });
+    }
 
     if (
       !isEqual(prevProps.userData, userData) &&
@@ -156,7 +170,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   renderProperties = () => {
     const { navigation, tenantData } = this.props;
-    const { refreshing, propertyData } = this.state;
+    const { refreshing, propertyData, searchQuery } = this.state;
 
     return (
       <ScrollView
@@ -175,6 +189,18 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
           />
         }
       >
+        <SearchInput
+          handleChangeText={(value: string) => {
+            this.setState({ searchQuery: value });
+            this.triggered = true;
+          }}
+          handleClearText={() => {
+            this.setState({ searchQuery: "" });
+            Keyboard.dismiss();
+          }}
+          searchValue={searchQuery}
+        />
+
         <Container center>
           {propertyData &&
             propertyData.map((property: any) => {
@@ -205,7 +231,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     setTimeout(() => {
       this.scrollViewRef.current?.scrollTo({
         x: 0,
-        y: positionY,
+        y: positionY + 50,
         animated: true,
       });
     }, 400);
@@ -238,17 +264,6 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
             />
           </Button>
         </Container>
-
-        <SearchInput
-          handleChangeText={(value: string) =>
-            this.setState({ searchQuery: value })
-          }
-          handleClearText={() => {
-            this.setState({ searchQuery: "" });
-            Keyboard.dismiss();
-          }}
-          searchValue={searchQuery}
-        />
 
         {userData.properties.length === 0
           ? this.renderDefaultMessage()

@@ -12,7 +12,7 @@ const SearchInput = (props: any) => {
     <Container flex={false} row middle>
       <EvilIcons
         name="search"
-        size={26}
+        size={22}
         color={theme.colors.gray2}
         style={styles.icon}
       />
@@ -26,12 +26,14 @@ const SearchInput = (props: any) => {
       />
 
       {searchValue.length > 0 && (
-        <TouchableOpacity onPress={() => handleClearText()}  style={styles.clearIcon}>
+        <TouchableOpacity
+          onPress={() => handleClearText()}
+          style={styles.clearIcon}
+        >
           <AntDesign
             name="closecircleo"
             size={22}
             color={theme.colors.tertiary}
-           
           />
         </TouchableOpacity>
       )}
@@ -49,9 +51,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: theme.colors.offWhite,
-    margin: 10,
+    margin: 15,
     padding: 10,
-    marginTop: 0,
+    marginTop: -15,
     color: theme.colors.offWhite,
     alignSelf: "center",
     paddingLeft: 35,
@@ -61,11 +63,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     zIndex: 1,
     left: 28,
-    top: 8,
+    top: -5,
   },
   clearIcon: {
     position: "absolute",
     right: 30,
-    top: 8,
+    top: -5,
   },
 });
