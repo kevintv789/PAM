@@ -126,7 +126,7 @@ class AddTenantComponent extends Component<
       propertyId: this.isEditting
         ? this.tenantInfo.propertyId
         : propertyData.id,
-      name: primaryTenantName,
+      name: primaryTenantName.trim(),
       phone,
       email,
       leaseType,

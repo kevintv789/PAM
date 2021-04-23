@@ -11,6 +11,7 @@ import HeaderDivider from "./HeaderDivider";
 import LoadingIndicator from "./LoadingIndicator";
 import Pills from "./Pills";
 import PillsList from "./PillsList";
+import SearchInput from "./SearchInput";
 import SelectableBox from "./SelectableBox";
 import Text from "./Text";
 import TextInput from "./TextInput";
@@ -38,4 +39,5 @@ export {
   LoadingIndicator,
   TooltipWrapper,
   CommonModal,
+  SearchInput,
 };

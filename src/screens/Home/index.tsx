@@ -1,7 +1,14 @@
-import { Button, Container, LoadingIndicator, Text } from "components/common";
-import { Image, RefreshControl, StyleSheet } from "react-native";
+import {
+  Button,
+  Container,
+  LoadingIndicator,
+  SearchInput,
+  Text,
+} from "components/common";
+import { Image, Keyboard, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { getPropertyFinances, getTenants } from "reducks/modules/property";
+import { includes, isEqual } from "lodash";
 
 import AuthService from "services/auth.service";
 import { HomeModel } from "models";
@@ -11,12 +18,12 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
-import { isEqual } from "lodash";
 import { theme } from "shared";
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   private scrollViewRef: React.RefObject<ScrollView>;
   private authService = new AuthService();
+  private triggered = false;
 
   constructor(props: any) {
     super(props);
@@ -24,6 +31,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     this.state = {
       refreshing: false,
       isLoading: true,
+      searchQuery: "",
+      propertyData: this.props.propertyData, // used as a state to enable mutation through search filtering
     };
 
     this.scrollViewRef = React.createRef();
@@ -33,7 +42,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     this.handleUpdateData();
   }
 
-  componentDidUpdate(prevProps: HomeModel.Props) {
+  componentDidUpdate(prevProps: HomeModel.Props, prevState: HomeModel.State) {
     const {
       userData,
       getPropertiesByIds,
@@ -41,6 +50,21 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       getPropertyFinances,
       financesData,
     } = this.props;
+
+    const { searchQuery } = this.state;
+
+    if (
+      this.scrollViewRef &&
+      this.scrollViewRef.current &&
+      !this.triggered &&
+      searchQuery === ""
+    ) {
+      this.scrollViewRef.current.scrollTo({
+        x: 0,
+        y: 50,
+        animated: false,
+      });
+    }
 
     if (
       !isEqual(prevProps.userData, userData) &&
@@ -52,10 +76,25 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     if (!isEqual(prevProps.propertyData, propertyData)) {
       this.getTenantData();
+      this.setState({ propertyData });
     }
 
     if (!isEqual(prevProps.financesData, financesData) && getPropertyFinances) {
       getPropertyFinances();
+    }
+
+    if (prevState.searchQuery !== searchQuery) {
+      const filteredProperties = propertyData.filter(
+        (p: any) =>
+          includes(
+            p.propertyAddress.toUpperCase(),
+            searchQuery.toUpperCase()
+          ) ||
+          includes(p.unitType.toUpperCase(), searchQuery.toUpperCase()) ||
+          includes(p.propertyName.toUpperCase(), searchQuery.toUpperCase())
+      );
+
+      this.setState({ propertyData: filteredProperties });
     }
   }
 
@@ -130,8 +169,8 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   };
 
   renderProperties = () => {
-    const { propertyData, navigation, tenantData } = this.props;
-    const { refreshing } = this.state;
+    const { navigation, tenantData } = this.props;
+    const { refreshing, propertyData, searchQuery } = this.state;
 
     return (
       <ScrollView
@@ -150,6 +189,18 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
           />
         }
       >
+        <SearchInput
+          handleChangeText={(value: string) => {
+            this.setState({ searchQuery: value });
+            this.triggered = true;
+          }}
+          handleClearText={() => {
+            this.setState({ searchQuery: "" });
+            Keyboard.dismiss();
+          }}
+          searchValue={searchQuery}
+        />
+
         <Container center>
           {propertyData &&
             propertyData.map((property: any) => {
@@ -180,7 +231,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     setTimeout(() => {
       this.scrollViewRef.current?.scrollTo({
         x: 0,
-        y: positionY,
+        y: positionY + 50,
         animated: true,
       });
     }, 400);
@@ -188,9 +239,10 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   renderContent = () => {
     const { userData, navigation } = this.props;
+    const { searchQuery } = this.state;
 
     return (
-      <Container color="accent" style={{}}>
+      <Container color="accent">
         <Container
           middle
           center
@@ -212,6 +264,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
             />
           </Button>
         </Container>
+
         {userData.properties.length === 0
           ? this.renderDefaultMessage()
           : this.renderProperties()}
