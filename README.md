@@ -1,5 +1,11 @@
 # PAM Test Branch
 
+# Beta Release v0.13.20210422
+- Minor Feature
+    - User is now able to search for a property based on the property's address, property's nickname and the unit type (apartment/condo, single fam house, etc.)
+- Bugfixes
+    - Fixed a bug where creating a tenant with a leading space in their name will cause them to appear as empty in the collapsed property card
+
 # Beta Release v0.12.20210420
 - Minor Feature
     - User is now able to remove - bulldoze - a property from the home screen
