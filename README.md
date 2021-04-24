@@ -1,5 +1,13 @@
 # PAM Test Branch
 
+
+# Beta Release v0.13.20210424
+- Minor Feature
+    - User can now search for tenants in the search bar
+- Bugfixes
+    - Fixed a bug where duplicative tenants were added if user presses the 'Save' button more than once during loading
+    - Disabled all buttons when loading is active 
+
 # Beta Release v0.13.20210422
 - Minor Feature
     - User is now able to search for a property based on the property's address, property's nickname and the unit type (apartment/condo, single fam house, etc.)
