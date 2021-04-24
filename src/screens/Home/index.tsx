@@ -7,8 +7,8 @@ import {
 } from "components/common";
 import { Image, Keyboard, RefreshControl, StyleSheet } from "react-native";
 import React, { Component } from "react";
+import { filter, includes, isEqual, some, uniq } from "lodash";
 import { getPropertyFinances, getTenants } from "reducks/modules/property";
-import { includes, isEqual } from "lodash";
 
 import AuthService from "services/auth.service";
 import { HomeModel } from "models";
@@ -84,17 +84,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     }
 
     if (prevState.searchQuery !== searchQuery) {
-      const filteredProperties = propertyData.filter(
-        (p: any) =>
-          includes(
-            p.propertyAddress.toUpperCase(),
-            searchQuery.toUpperCase()
-          ) ||
-          includes(p.unitType.toUpperCase(), searchQuery.toUpperCase()) ||
-          includes(p.propertyName.toUpperCase(), searchQuery.toUpperCase())
-      );
-
-      this.setState({ propertyData: filteredProperties });
+      this.handleSearch();
     }
   }
 
@@ -119,11 +109,61 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       .finally(() => this.setState({ isLoading: false, refreshing: false }));
   };
 
+  /**
+   * This function handles search filter functionality for the tenant and property data
+   */
+  handleSearch = () => {
+    const { propertyData } = this.props;
+    const { searchQuery } = this.state;
+    let filteredProperties: any[] = [];
+
+    const filteredTenantsByProperty = this.filterTenantsByProperty();
+
+    // filters tenant data based on search query
+    const filteredTenants = filteredTenantsByProperty?.filter(
+      (t: any) =>
+        (includes(t.name.toUpperCase(), searchQuery.toUpperCase()) ||
+          includes(t.leaseType.toUpperCase(), searchQuery.toUpperCase()) ||
+          includes(
+            t.recurringPaymentType.toUpperCase(),
+            searchQuery.toUpperCase()
+          )) &&
+        searchQuery !== ""
+    );
+
+    if (filteredTenants && filteredTenants.length > 0) {
+      filteredProperties = uniq(
+        filteredTenants.map((t: any) => {
+          return propertyData.filter((p: any) => t.propertyId === p.id)[0];
+        })
+      );
+    } else {
+      filteredProperties = propertyData.filter(
+        (p: any) =>
+          includes(
+            p.propertyAddress.toUpperCase(),
+            searchQuery.toUpperCase()
+          ) ||
+          includes(p.unitType.toUpperCase(), searchQuery.toUpperCase()) ||
+          includes(p.propertyName.toUpperCase(), searchQuery.toUpperCase())
+      );
+    }
+
+    this.setState({ propertyData: filteredProperties });
+  };
+
+  filterTenantsByProperty = () => {
+    const { tenantData, propertyData } = this.props;
+    return tenantData?.filter((t: any) =>
+      some(propertyData, (p: any) => p.id === t.propertyId)
+    );
+  };
+
   getTenantData = () => {
     const { getTenants, propertyData } = this.props;
 
     if (propertyData && propertyData.length > 0 && getTenants) {
-      propertyData.map((property: any) => {
+      propertyData.map(() => {
         getTenants();
       });
     }

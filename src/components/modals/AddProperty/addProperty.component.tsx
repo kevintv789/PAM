@@ -254,6 +254,7 @@ class AddPropertyComponent extends Component<
           color="secondary"
           style={styles.navigationButtons}
           onPress={() => this.handleSaveProperty()}
+          disabled={isLoading}
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Next"}

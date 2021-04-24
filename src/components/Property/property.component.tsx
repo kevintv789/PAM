@@ -150,12 +150,9 @@ class PropertyComponent extends Component<
       expanded,
       animatedHeaderImageWidth,
       animatedHeaderImageHeight,
-      animatedContainerHeight,
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
       animatedPropertyAddressWidth,
-      financesData,
-      tenantsData,
     } = this.state;
 
     // animate header height
@@ -166,6 +163,52 @@ class PropertyComponent extends Component<
 
     // animate header image height
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
+
+    // animate property address width
+    animations.animateOnToggle(
+      animatedPropertyAddressWidth,
+      expanded,
+      180,
+      210
+    );
+
+    // Animate content height
+    // BUG -- TODO: The height doesn't automatically update when user adds a new tenant/expense/income.
+    // Find a solution -- Maybe collapse the property when they add a new tenant/expense/income?
+    this.animateContentHeight(timePeriod);
+
+    // animate property address on header
+    animations.animateOnToggle(
+      animatedHeaderPropertyAddressTop,
+      expanded,
+      0,
+      10
+    );
+
+    // animate expanded content opacity
+    animations.animateOnToggle(
+      animatedExpandedContentOpacity,
+      expanded,
+      0,
+      1,
+      1000
+    );
+
+    // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
+    // to help the auto scroll function
+    onPropertySelect();
+    this.setState({ expanded: !expanded });
+  };
+
+  animateContentHeight = (
+    timePeriod: string = constants.RECURRING_PAYMENT_TYPE.MONTHLY
+  ) => {
+    const {
+      expanded,
+      animatedContainerHeight,
+      financesData,
+      tenantsData,
+    } = this.state;
 
     // animate entire container height
     const totalIncome =
@@ -200,36 +243,6 @@ class PropertyComponent extends Component<
     }
 
     animations.animateOnToggle(animatedContainerHeight, expanded, 200, height);
-
-    // animate property address width
-    animations.animateOnToggle(
-      animatedPropertyAddressWidth,
-      expanded,
-      180,
-      210
-    );
-
-    // animate property address on header
-    animations.animateOnToggle(
-      animatedHeaderPropertyAddressTop,
-      expanded,
-      0,
-      10
-    );
-
-    // animate expanded content opacity
-    animations.animateOnToggle(
-      animatedExpandedContentOpacity,
-      expanded,
-      0,
-      1,
-      1000
-    );
-
-    // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
-    // to help the auto scroll function
-    onPropertySelect();
-    this.setState({ expanded: !expanded });
   };
 
   renderEditPropertyButton = () => {

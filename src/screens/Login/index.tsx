@@ -116,7 +116,7 @@ export default class LoginScreen extends Component<
           )}
 
           <Container flex={1.4}>
-            <Button onPress={() => this.handleSignIn()}>
+            <Button onPress={() => this.handleSignIn()} disabled={isLoading}>
               <Text
                 center
                 offWhite
