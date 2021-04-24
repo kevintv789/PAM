@@ -48,6 +48,7 @@ const AddPropertyDoneComponent = (props: any) => {
         color="secondary"
         style={styles.button}
         onPress={() => handleSubmit()}
+        disabled={isLoading}
       >
         <Text offWhite center bold style={{ alignSelf: "center" }}>
           {!isLoading && "Take Me Home"}

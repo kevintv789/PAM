@@ -386,14 +386,14 @@ class AddTenantComponent extends Component<
           label={`Rent / ${rentPaidPeriod}`}
           handleChange={(rent: number) => this.setState({ rent })}
           value={rent}
-          textFieldWidth={'94%'}
+          textFieldWidth={"94%"}
         />
 
         <CurrencyInput
           label="Deposit paid"
           handleChange={(deposit: number) => this.setState({ deposit })}
           value={deposit}
-          textFieldWidth={'94%'}
+          textFieldWidth={"94%"}
         />
 
         {/* ------- TOTAL OCCUPANTS COUNTER ------- */}
@@ -482,6 +482,7 @@ class AddTenantComponent extends Component<
           color="secondary"
           style={styles.navigationButtons}
           onPress={() => this.handleAddTenant()}
+          disabled={isLoading}
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Save"}

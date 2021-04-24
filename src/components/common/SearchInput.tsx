@@ -19,7 +19,7 @@ const SearchInput = (props: any) => {
 
       <TextInput
         style={styles.input}
-        placeholder="Search for a property"
+        placeholder="Search"
         placeholderTextColor={theme.colors.gray2}
         onChangeText={(value: string) => handleChangeText(value)}
         value={searchValue}

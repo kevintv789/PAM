@@ -42,6 +42,7 @@ const CommonModal = (props: any) => {
           color="secondary"
           style={styles.navButtons}
           onPress={() => onRemoveProperty()}
+          disabled={isLoading}
         >
           <Text center offWhite style={{ alignSelf: "center" }}>
             {!isLoading && "Yes"}
