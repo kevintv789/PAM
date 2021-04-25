@@ -52,24 +52,22 @@ export default class LoginScreen extends Component<
       errors.push("password");
     }
 
-    if (!errors.length) {
-      const userObj: User = {
-        email,
-        password,
-      };
+    const userObj: User = {
+      email,
+      password,
+    };
 
-      // TODO -- Add loading indicator
-      this.authService
-        .handleSignInWithEmailAndPassword(userObj)
-        .then(() => navigation.navigate("HomeScreen"))
-        .catch(() => {
-          errors.push("wrongCredentials");
-          errors.push("password");
-          errors.push("email");
-          this.setState({ errors });
-        })
-        .finally(() => this.setState({ isLoading: false }));
-    }
+    // TODO -- Add loading indicator
+    this.authService
+      .handleSignInWithEmailAndPassword(userObj)
+      .then(() => navigation.navigate("HomeScreen"))
+      .catch(() => {
+        errors.push("wrongCredentials");
+        errors.push("password");
+        errors.push("email");
+        this.setState({ errors });
+      })
+      .finally(() => this.setState({ isLoading: false }));
 
     this.setState({ email, errors, isLoading: true });
   };

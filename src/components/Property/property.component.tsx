@@ -28,7 +28,6 @@ import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
 import { filter, isEqual, sortBy } from "lodash";
 import {
-  filterArrayForTimePeriod,
   formatNumber,
   getPropertyImage,
   getPropertyTypeIcons,
@@ -66,7 +65,7 @@ class PropertyComponent extends Component<
       animatedHeaderHeight: new Animated.Value(100),
       animatedHeaderImageWidth: new Animated.Value(74),
       animatedHeaderImageHeight: new Animated.Value(74),
-      animatedContainerHeight: new Animated.Value(200),
+      animatedContainerHeight: new Animated.Value(0),
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
       animatedPropertyAddressWidth: new Animated.Value(180),
@@ -143,7 +142,7 @@ class PropertyComponent extends Component<
     }
   };
 
-  togglePropertyContent = (timePeriod: string) => {
+  togglePropertyContent = () => {
     const { onPropertySelect } = this.props;
     const {
       animatedHeaderHeight,
@@ -153,6 +152,7 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
       animatedPropertyAddressWidth,
+      animatedContainerHeight,
     } = this.state;
 
     // animate header height
@@ -173,9 +173,7 @@ class PropertyComponent extends Component<
     );
 
     // Animate content height
-    // BUG -- TODO: The height doesn't automatically update when user adds a new tenant/expense/income.
-    // Find a solution -- Maybe collapse the property when they add a new tenant/expense/income?
-    this.animateContentHeight(timePeriod);
+    animations.animateOnToggle(animatedContainerHeight, expanded, 0, 1);
 
     // animate property address on header
     animations.animateOnToggle(
@@ -198,51 +196,6 @@ class PropertyComponent extends Component<
     // to help the auto scroll function
     onPropertySelect();
     this.setState({ expanded: !expanded });
-  };
-
-  animateContentHeight = (
-    timePeriod: string = constants.RECURRING_PAYMENT_TYPE.MONTHLY
-  ) => {
-    const {
-      expanded,
-      animatedContainerHeight,
-      financesData,
-      tenantsData,
-    } = this.state;
-
-    // animate entire container height
-    const totalIncome =
-      this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
-      0;
-
-    let height = 750;
-
-    // TODO --- Super hacky conditional, find a better way to do this shiz
-    if (
-      (!tenantsData.length && financesData.length) ||
-      (tenantsData.length && !financesData.length && totalIncome === 0) ||
-      (tenantsData.length && financesData.length && totalIncome === 0) ||
-      (tenantsData && tenantsData.length > 0 && tenantsData.length < 4)
-    ) {
-      height = 530 + 40 * tenantsData.length;
-
-      const reportDetailsLength = filterArrayForTimePeriod(
-        financesData,
-        "paidOn",
-        timePeriod
-      )?.length;
-
-      if (reportDetailsLength && reportDetailsLength > 0) {
-        height += 40 * reportDetailsLength;
-      }
-    } else if (
-      (!tenantsData.length && !financesData.length) ||
-      totalIncome === 0
-    ) {
-      height = 550;
-    }
-
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, height);
   };
 
   renderEditPropertyButton = () => {
@@ -319,19 +272,15 @@ class PropertyComponent extends Component<
       animatedHeaderImageWidth,
       animatedHeaderImageHeight,
       animatedHeaderPropertyAddressTop,
-      animatedPropertyAddressWidth,
       expanded,
       propertyData,
-      showTooltip,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
-        onPress={() =>
-          this.togglePropertyContent(constants.RECURRING_PAYMENT_TYPE.MONTHLY)
-        }
+        onPress={() => this.togglePropertyContent()}
         activeOpacity={0.9}
       >
         <AnimatedContainer
@@ -542,7 +491,7 @@ class PropertyComponent extends Component<
     const totalProfit = totalIncome - expensesSum;
 
     return (
-      <Container row>
+      <Container row style={{ position: "relative", height: 0 }}>
         <Container>
           <Container row padding={8}>
             <Image
@@ -553,7 +502,10 @@ class PropertyComponent extends Component<
               Tenants
             </Text>
           </Container>
-          <Container padding={8} flex={4} style={{ width: width / 2.3 }}>
+          <Container
+            padding={8}
+            style={{ width: width / 2.3, position: "absolute", top: 30 }}
+          >
             {this.renderTenantNames()}
           </Container>
         </Container>
@@ -577,8 +529,8 @@ class PropertyComponent extends Component<
           </Container>
           <Container
             padding={[0, 5, 0, 3]}
-            flex={3}
-            style={{ width: width / 2.3 }}
+            flex={false}
+            style={{ width: width / 2.3, position: "absolute", top: 40 }}
           >
             <Container row space="between" style={styles.dollarContainers}>
               <Text accent medium style={styles.dollars}>
@@ -724,7 +676,10 @@ class PropertyComponent extends Component<
           style={[
             styles.mainContainer,
             {
-              height: animatedContainerHeight,
+              maxHeight: animatedContainerHeight.interpolate({
+                inputRange: [0, 1],
+                outputRange: ["60%", "100%"],
+              }),
             },
           ]}
         >
@@ -773,8 +728,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     minHeight: 200,
-    maxHeight: 750,
     marginBottom: theme.sizes.padding,
+    overflow: "hidden",
   },
   touchableArea: {
     width: "100%",
@@ -803,6 +758,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
     top: -10,
+    paddingBottom: 3,
   },
   dollars: {
     top: 5,
