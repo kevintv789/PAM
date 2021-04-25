@@ -51,19 +51,22 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       financesData,
     } = this.props;
 
-    const { searchQuery } = this.state;
+    const { searchQuery, refreshing } = this.state;
 
     if (
       this.scrollViewRef &&
       this.scrollViewRef.current &&
       !this.triggered &&
-      searchQuery === ""
+      searchQuery === "" &&
+      !refreshing
     ) {
-      this.scrollViewRef.current.scrollTo({
-        x: 0,
-        y: 50,
-        animated: false,
-      });
+      setTimeout(() => {
+        this.scrollViewRef.current?.scrollTo({
+          x: 0,
+          y: 50,
+          animated: true,
+        });
+      }, 10);
     }
 
     if (
