@@ -1,10 +1,15 @@
 # PAM Test Branch
 
+# Beta Release v0.13.20210425
+- Bug fixes
+    - Fixed a bug where pulling down to refresh on the home screen would cause a jumpy graphic glitch
+    - Fixed a bug on the login screen where the 'Login' button would load infinite if the user made an error
+    - Fixed a bug on property's content height to make it more dynamic when user is adding tenant/expense/income -- previously, this wasn't dynamic enough to automatically update
 
 # Beta Release v0.13.20210424
 - Minor Feature
     - User can now search for tenants in the search bar
-- Bugfixes
+- Bug fixes
     - Fixed a bug where duplicative tenants were added if user presses the 'Save' button more than once during loading
     - Disabled all buttons when loading is active 
 
@@ -17,7 +22,7 @@
 # Beta Release v0.12.20210420
 - Minor Feature
     - User is now able to remove - bulldoze - a property from the home screen
-- Bugfixes
+- Bug fixes
     - Fixed a bug related to memory leak during deletion of a single property
     - Fixed styling issues within the report section of the collapsed property card
     - Fixed styling issue with the vertical ellipses button on the property card and made the touch area a bit bigger
