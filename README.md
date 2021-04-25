@@ -1,12 +1,12 @@
 # PAM Test Branch
 
-# Beta Release v0.13.20210425
+# Beta Release v0.15.20210425
 - Bug fixes
     - Fixed a bug where pulling down to refresh on the home screen would cause a jumpy graphic glitch
     - Fixed a bug on the login screen where the 'Login' button would load infinite if the user made an error
     - Fixed a bug on property's content height to make it more dynamic when user is adding tenant/expense/income -- previously, this wasn't dynamic enough to automatically update
 
-# Beta Release v0.13.20210424
+# Beta Release v0.14.20210424
 - Minor Feature
     - User can now search for tenants in the search bar
 - Bug fixes
