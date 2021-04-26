@@ -10,6 +10,7 @@ export interface State {
   autoFill: boolean;
   showKeyboard: boolean;
   isLoading: boolean;
+  showAddImageModal: boolean;
 }
 
 export interface Props {

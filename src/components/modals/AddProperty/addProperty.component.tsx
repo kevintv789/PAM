@@ -5,6 +5,7 @@ import {
   CheckBox,
   Container,
   HeaderDivider,
+  ImagesList,
   LoadingIndicator,
   PillsList,
   Text,
@@ -15,6 +16,7 @@ import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
 
+import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
 import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
@@ -55,6 +57,7 @@ class AddPropertyComponent extends Component<
       autoFill: true,
       showKeyboard: true,
       isLoading: false,
+      showAddImageModal: false,
     };
 
     this.scrollViewRef = React.createRef();
@@ -77,9 +80,12 @@ class AddPropertyComponent extends Component<
   renderImageSection = () => {
     return (
       <AddImageButton
-        handleOnPress={() => console.log("Adding a property image")}
+        handleOnPress={() => this.setState({ showAddImageModal: true })}
         caption="Add property images or related documents"
       />
+      // <Container style={{ flex: 1 }}>
+      //   <ImagesList />
+      // </Container>
     );
   };
 
@@ -395,7 +401,12 @@ class AddPropertyComponent extends Component<
   };
 
   render() {
-    const { streetAddressResults, autoFill, showKeyboard } = this.state;
+    const {
+      streetAddressResults,
+      autoFill,
+      showKeyboard,
+      showAddImageModal,
+    } = this.state;
 
     if (streetAddressResults.length > 0 && autoFill) {
       this.scrollToBottom();
@@ -406,32 +417,38 @@ class AddPropertyComponent extends Component<
     }
 
     return (
-      <ScrollView
-        keyboardShouldPersistTaps={"handled"}
-        ref={this.scrollViewRef}
-      >
-        <Container center color="accent">
-          <KeyboardAwareScrollView
-            contentContainerStyle={{ flex: 1 }}
-            scrollEnabled={false}
-            keyboardShouldPersistTaps={"handled"}
-          >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
+      <React.Fragment>
+        <ScrollView
+          keyboardShouldPersistTaps={"handled"}
+          ref={this.scrollViewRef}
+        >
+          <Container center color="accent">
+            <KeyboardAwareScrollView
+              contentContainerStyle={{ flex: 1 }}
+              scrollEnabled={false}
+              keyboardShouldPersistTaps={"handled"}
             >
-              {this.isEditting ? "Edit Property" : "Add Property"}
-            </Text>
-            {this.renderImageSection()}
-            {this.renderPropertyTypeSelection()}
-            {this.renderPropertyDetails()}
-            {this.renderNavigationButtons()}
-            {this.renderNotesModal()}
-          </KeyboardAwareScrollView>
-        </Container>
-      </ScrollView>
+              <Text
+                h1
+                offWhite
+                center
+                style={{ paddingTop: theme.sizes.padding }}
+              >
+                {this.isEditting ? "Edit Property" : "Add Property"}
+              </Text>
+              {this.renderImageSection()}
+              {this.renderPropertyTypeSelection()}
+              {this.renderPropertyDetails()}
+              {this.renderNavigationButtons()}
+              {this.renderNotesModal()}
+            </KeyboardAwareScrollView>
+          </Container>
+        </ScrollView>
+        <AddImageModalComponent
+          visible={showAddImageModal}
+          hideModal={() => this.setState({ showAddImageModal: false })}
+        />
+      </React.Fragment>
     );
   }
 }

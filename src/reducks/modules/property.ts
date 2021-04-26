@@ -14,9 +14,11 @@ const GET_TENANTS = "GET_TENANTS";
 const GET_PROPERTIES = "GET_PROPERTIES";
 const ADD_FINANCES = "ADD_FINANCES";
 const ADD_TENANT = "ADD_TENANT";
+const ADD_TEMP_IMAGES = "ADD_TEMP_IMAGES";
 const UPDATE_PROPERTY = "UPDATE_PROPERTY";
 const UPDATE_TENANT = "UPDATE_TENANT";
 const UPDATE_FINANCES = "UPDATE_FINANCES";
+const REMOVE_TEMP_IMAGES = "REMOVE_TEMP_IMAGES";
 
 export const getPropertyFinances = () => {
   return (dispatch: any) => {
@@ -69,6 +71,10 @@ export const getPropertiesByIds = (propertyIds: any[]) => {
 
 export const addFinances = (payload: any) => ({ type: ADD_FINANCES, payload });
 export const addTenant = (payload: any) => ({ type: ADD_TENANT, payload });
+export const addTempImages = (payload: any[]) => ({
+  type: ADD_TEMP_IMAGES,
+  payload,
+});
 export const updateProperty = (payload: any) => ({
   type: UPDATE_PROPERTY,
   payload,
@@ -81,12 +87,14 @@ export const updateFinances = (payload: any) => ({
   type: UPDATE_FINANCES,
   payload,
 });
+export const removeTempImages = () => ({ type: REMOVE_TEMP_IMAGES });
 
 // State & Reducer
 const initialState = {
   properties: [],
   finances: [],
   tenants: [],
+  tempImages: [],
 };
 
 export const propertyReducer = (state = initialState, action: any) => {
@@ -101,6 +109,10 @@ export const propertyReducer = (state = initialState, action: any) => {
       return { ...state, finances: [...state.finances, action.payload] };
     case ADD_TENANT:
       return { ...state, tenants: [...state.tenants, action.payload] };
+    case ADD_TEMP_IMAGES:
+      return { ...state, tempImages: action.payload };
+    case REMOVE_TEMP_IMAGES:
+      return { ...state, tempImages: [] };
     case UPDATE_PROPERTY:
       const propertyToUpdate = action.payload;
       const properties: any[] = state.properties;

@@ -204,7 +204,6 @@ class PropertyComponent extends Component<
         name="dots-three-vertical"
         size={20}
         color={theme.colors.accent}
-        style={{ textAlign: "right" }}
       />
     );
   };
