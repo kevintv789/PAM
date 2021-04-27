@@ -1,24 +1,34 @@
 import { FlatList, Image, StyleSheet } from "react-native";
 
+import AddImageButton from "./AddImageButton";
 import Container from "./Container";
 import React from "react";
 
-const ImagesList = () => {
+const ImagesList = (props: any) => {
+  const { images, showAddImageModal, caption } = props;
+
   return (
     <Container>
       <FlatList
         keyboardShouldPersistTaps={"handled"}
         horizontal
-        data={[
-          {
-            uri:
-              "file:///var/mobile/Containers/Data/Application/D3413086-9217-4A79-A0AE-1CD5C53EF05F/Library/Caches/ExponentExperienceData/%2540kevintv789%252FPAM/ImagePicker/6EFBBF90-B776-425D-9557-5D437A109FFA.jpg",
-          },
-        ]}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item.uri }} style={styles.image} />
+        showsHorizontalScrollIndicator={false}
+        data={images}
+        renderItem={({ item, index }) => (
+          <React.Fragment>
+            <Image source={{ uri: item.uri }} style={styles.image} />
+            {images.length === index + 1 && (
+              <Container>
+                <AddImageButton
+                  handleOnPress={() => showAddImageModal()}
+                  caption={caption}
+                  containerStyle={{ marginRight: 10, width: 150 }}
+                />
+              </Container>
+            )}
+          </React.Fragment>
         )}
-        keyExtractor={(item: any) => item}
+        keyExtractor={(item: any) => item.uri}
       />
     </Container>
   );
@@ -31,6 +41,6 @@ const styles = StyleSheet.create({
     width: 165,
     height: 165,
     marginHorizontal: 10,
-    marginTop: 10,
+    marginTop: 20,
   },
 });

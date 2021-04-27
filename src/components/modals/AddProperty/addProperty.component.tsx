@@ -58,6 +58,7 @@ class AddPropertyComponent extends Component<
       showKeyboard: true,
       isLoading: false,
       showAddImageModal: false,
+      images: [],
     };
 
     this.scrollViewRef = React.createRef();
@@ -78,14 +79,24 @@ class AddPropertyComponent extends Component<
   }
 
   renderImageSection = () => {
+    const { images } = this.state;
+    if (images.length === 0) {
+      return (
+        <AddImageButton
+          handleOnPress={() => this.setState({ showAddImageModal: true })}
+          caption="Add property images or related documents"
+        />
+      );
+    }
+
     return (
-      <AddImageButton
-        handleOnPress={() => this.setState({ showAddImageModal: true })}
-        caption="Add property images or related documents"
-      />
-      // <Container style={{ flex: 1 }}>
-      //   <ImagesList />
-      // </Container>
+      <Container style={{ flex: 1 }}>
+        <ImagesList
+          images={images}
+          showAddImageModal={() => this.setState({ showAddImageModal: true })}
+          caption="Add property images or related documents"
+        />
+      </Container>
     );
   };
 
@@ -447,6 +458,7 @@ class AddPropertyComponent extends Component<
         <AddImageModalComponent
           visible={showAddImageModal}
           hideModal={() => this.setState({ showAddImageModal: false })}
+          onSelectImages={(data: any[]) => this.setState({ images: data })}
         />
       </React.Fragment>
     );

@@ -10,7 +10,7 @@ import Modal from "react-native-modal";
 import { theme } from "shared";
 
 const AddImageModalComponent = (props: any) => {
-  const { visible, hideModal } = props;
+  const { visible, hideModal, onSelectImages } = props;
 
   const [galleryImage, setGalleryImage] = useState(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -42,6 +42,7 @@ const AddImageModalComponent = (props: any) => {
 
   const pickImagesFromGallery = (data: any[]) => {
     setShowGalleryModal(false);
+    onSelectImages(data);
   };
 
   return (
@@ -73,10 +74,7 @@ const AddImageModalComponent = (props: any) => {
 
           <Button
             style={styles.button}
-            onPress={() =>
-              // renderGalleryPermission().then(() => pickImageFromGallery())
-              setShowGalleryModal(true)
-            }
+            onPress={() => setShowGalleryModal(true)}
             flat
           >
             <Container row margin={[0, 0, 0, 15]} center>

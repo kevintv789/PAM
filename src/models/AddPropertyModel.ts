@@ -11,6 +11,7 @@ export interface State {
   showKeyboard: boolean;
   isLoading: boolean;
   showAddImageModal: boolean;
+  images: any[];
 }
 
 export interface Props {
