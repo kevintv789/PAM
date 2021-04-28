@@ -12,6 +12,7 @@ export interface State {
   isLoading: boolean;
   showAddImageModal: boolean;
   images: any[];
+  imageStorageDownloadUrls: any[];
 }
 
 export interface Props {

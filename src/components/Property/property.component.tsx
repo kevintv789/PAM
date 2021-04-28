@@ -626,22 +626,23 @@ class PropertyComponent extends Component<
     promises.push(propertiesPromise);
     promises.push(userPromise);
 
-    Promise.all(promises)
-      .then(() => {
-        this.updateUserData();
-      })
-      .finally(() => this.setState({ isRemoving: false }));
+    Promise.all(promises).finally(() => {
+      this.setState({ isRemoving: false }, () => this.updateUserData());
+    });
 
     this.setState({ isRemoving: true });
   };
 
   updateUserData = () => {
     const { getUser } = this.props;
+    const { isRemoving } = this.state;
 
     this.authService
       .getCurrentUserPromise()
       .then((res) => {
-        getUser(res.data());
+        if (!isRemoving) {
+          getUser(res.data());
+        }
       })
       .catch((error) =>
         console.log(

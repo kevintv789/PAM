@@ -59,6 +59,7 @@ class AddPropertyComponent extends Component<
       isLoading: false,
       showAddImageModal: false,
       images: [],
+      imageStorageDownloadUrls: [],
     };
 
     this.scrollViewRef = React.createRef();
@@ -73,13 +74,16 @@ class AddPropertyComponent extends Component<
         autoFill: false,
         propertyNickName: this.routePropertyData.propertyName,
         typeSelected: this.routePropertyData.unitType,
+        images: this.routePropertyData.images,
         // TODO -- Add notes later
       });
+
+      this.renderImageWhileEditting(this.routePropertyData.images);
     }
   }
 
   renderImageSection = () => {
-    const { images } = this.state;
+    const { images, imageStorageDownloadUrls } = this.state;
     if (images.length === 0) {
       return (
         <AddImageButton
@@ -89,15 +93,38 @@ class AddPropertyComponent extends Component<
       );
     }
 
-    return (
-      <Container style={{ flex: 1 }}>
-        <ImagesList
-          images={images}
-          showAddImageModal={() => this.setState({ showAddImageModal: true })}
-          caption="Add property images or related documents"
-        />
-      </Container>
-    );
+    if (!this.isEditting) {
+      return (
+        <Container style={{ flex: 1 }}>
+          <ImagesList
+            images={images}
+            showAddImageModal={() => this.setState({ showAddImageModal: true })}
+            caption="Add property images or related documents"
+          />
+        </Container>
+      );
+    } else {
+      if (imageStorageDownloadUrls.length > 0)
+        return (
+          <Container style={{ flex: 1 }}>
+            <ImagesList
+              images={imageStorageDownloadUrls}
+              showAddImageModal={() =>
+                this.setState({ showAddImageModal: true })
+              }
+              caption="Add property images or related documents"
+            />
+          </Container>
+        );
+    }
+  };
+
+  renderImageWhileEditting = async (images: any[]) => {
+    const data = await this.commonService.getImageDownloadUri(images);
+
+    if (data && data.length > 0) {
+      this.setState({ imageStorageDownloadUrls: data });
+    }
   };
 
   renderPropertyTypeSelection = () => {
@@ -175,7 +202,12 @@ class AddPropertyComponent extends Component<
    */
   handleSaveProperty = () => {
     const { navigation } = this.props;
-    const { typeSelected, propertyNickName, streetAddress } = this.state;
+    const {
+      typeSelected,
+      propertyNickName,
+      streetAddress,
+      images,
+    } = this.state;
 
     const errors = [];
 
@@ -190,7 +222,7 @@ class AddPropertyComponent extends Component<
       propertyAddress: streetAddress,
       notesId: "",
       tenants: [],
-      image: null,
+      images: null,
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
       createdOn: this.isEditting
@@ -205,7 +237,7 @@ class AddPropertyComponent extends Component<
         );
 
         this.commonService
-          .handleCreate(payload, propertiesCollection)
+          .handleCreateWithImages(payload, propertiesCollection, images)
           .then(() => {
             const propertyId = propertiesCollection.id;
 
@@ -213,8 +245,13 @@ class AddPropertyComponent extends Component<
             this.propertyService
               .updateUserDataWithProperty(propertyId)
               .then(() => {
-                navigation.goBack();
-                navigation.navigate("AddPropertyDoneModal");
+                // Upload any images if there are any
+                if (images.length > 0) {
+                  this.uploadImages(propertyId);
+                } else {
+                  navigation.goBack();
+                  navigation.navigate("AddPropertyDoneModal");
+                }
               })
               .catch((error) =>
                 console.log(
@@ -239,6 +276,21 @@ class AddPropertyComponent extends Component<
     }
 
     this.setState({ errors, isLoading: true });
+  };
+
+  uploadImages = (propertyId: string) => {
+    const { images } = this.state;
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleUploadImages(images, propertyId)
+      .then(() => {
+        navigation.goBack();
+        navigation.navigate("AddPropertyDoneModal");
+      })
+      .catch((error: any) =>
+        console.log("ERROR failed to upload images", error)
+      );
   };
 
   renderNavigationButtons = () => {

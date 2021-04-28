@@ -6,7 +6,7 @@ import React from "react";
 
 const ImagesList = (props: any) => {
   const { images, showAddImageModal, caption } = props;
-
+  console.log("images:", images);
   return (
     <Container>
       <FlatList
