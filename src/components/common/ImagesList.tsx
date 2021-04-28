@@ -5,8 +5,8 @@ import Container from "./Container";
 import React from "react";
 
 const ImagesList = (props: any) => {
-  const { images, showAddImageModal, caption } = props;
-  console.log("images:", images);
+  const { images, showAddImageModal, caption, imageSize, margins } = props;
+
   return (
     <Container>
       <FlatList
@@ -16,8 +16,8 @@ const ImagesList = (props: any) => {
         data={images}
         renderItem={({ item, index }) => (
           <React.Fragment>
-            <Image source={{ uri: item.uri }} style={styles.image} />
-            {images.length === index + 1 && (
+            <Image source={{ uri: item.uri }} style={[styles.image, imageSize, margins]} />
+            {images.length === index + 1 && caption && (
               <Container>
                 <AddImageButton
                   handleOnPress={() => showAddImageModal()}

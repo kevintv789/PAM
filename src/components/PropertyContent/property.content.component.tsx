@@ -1,4 +1,10 @@
-import { Button, Container, DataOutline, Text } from "components/common";
+import {
+  Button,
+  Container,
+  DataOutline,
+  ImagesList,
+  Text,
+} from "components/common";
 import {
   Image,
   Modal,
@@ -34,6 +40,46 @@ class PropertyContentComponent extends Component<
       notesValue: null,
     };
   }
+
+  renderImageSection = () => {
+    const { imagesUrl } = this.props;
+
+    if (imagesUrl && imagesUrl.length > 0) {
+      return (
+        <Container>
+          {/* IMAGE SECTION HEADER */}
+          <Container row padding={11} style={styles.tenantheader} flex={false}>
+            <Entypo name="camera" size={15} color={theme.colors.accent} />
+            <Text accent bold size={13} style={{ paddingLeft: 3 }}>
+              Images
+            </Text>
+            <Button
+              color="transparent"
+              style={[styles.addTenantButton, { width: 130 }]}
+              onPress={() => console.log("Adding more images")}
+            >
+              <Text light accent style={{ top: 2 }} size={13}>
+                Add More Images
+              </Text>
+              <Image
+                source={require("assets/icons/plus.png")}
+                style={{ width: 20, height: 20 }}
+              />
+            </Button>
+          </Container>
+
+          {/* IMAGE SECTION BODY */}
+          <Container margin={[0, 5, 0, 5]}>
+            <ImagesList
+              images={imagesUrl}
+              imageSize={{ width: 125, height: 125 }}
+              margins={{ marginTop: 8, marginHorizontal: 5 }}
+            />
+          </Container>
+        </Container>
+      );
+    }
+  };
 
   renderTenantHeader = () => {
     const { navigation, propertyData } = this.props;
@@ -117,7 +163,7 @@ class PropertyContentComponent extends Component<
   renderTenantInfo = () => {
     const { navigation, propertyData, tenantsData } = this.props;
 
-    if (!tenantsData.length) {
+    if (!tenantsData || !tenantsData.length) {
       return (
         <Container flex={false} center middle padding={[15, 0, 0]}>
           <Text bold center>
@@ -559,6 +605,7 @@ class PropertyContentComponent extends Component<
   render() {
     return (
       <Container>
+        {this.renderImageSection()}
         {this.renderTenantHeader()}
         {this.renderTenantInfo()}
         {this.renderReport()}

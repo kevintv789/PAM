@@ -30,8 +30,8 @@ const CommonModal = (props: any) => {
   const renderNavButtons = () => (
     <Container row flex={false} margin={[20, 0, 0, 0]}>
       <Container left>
-        <Button style={styles.navButtons}>
-          <Text center offWhite onPress={() => hideModal()}>
+        <Button style={styles.navButtons} onPress={() => hideModal()}>
+          <Text center offWhite>
             No
           </Text>
         </Button>
@@ -78,7 +78,12 @@ const CommonModal = (props: any) => {
           />
         </Container>
         {!customTextProp && (
-          <Text center size={theme.fontSizes.medium} offWhite style={{ width: '90%'}}>
+          <Text
+            center
+            size={theme.fontSizes.medium}
+            offWhite
+            style={{ width: "90%" }}
+          >
             {descriptorText}
           </Text>
         )}

@@ -26,6 +26,7 @@ import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
+import { isEqual } from "lodash";
 import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
@@ -78,13 +79,21 @@ class AddPropertyComponent extends Component<
         // TODO -- Add notes later
       });
 
-      this.renderImageWhileEditting(this.routePropertyData.images);
+      this.retrieveImageDownloadUrl(this.routePropertyData.images);
+    }
+  }
+
+  componentDidUpdate(_: any, prevState: AddPropertyModel.State) {
+    const { images } = this.state;
+
+    if (!isEqual(images, prevState.images)) {
+      this.updateImageDownloadUrl();
     }
   }
 
   renderImageSection = () => {
     const { images, imageStorageDownloadUrls } = this.state;
-    if (images.length === 0) {
+    if (images && images.length === 0) {
       return (
         <AddImageButton
           handleOnPress={() => this.setState({ showAddImageModal: true })}
@@ -119,11 +128,31 @@ class AddPropertyComponent extends Component<
     }
   };
 
-  renderImageWhileEditting = async (images: any[]) => {
-    const data = await this.commonService.getImageDownloadUri(images);
+  retrieveImageDownloadUrl = async (images: any[]) => {
+    if (images && images.length > 0) {
+      const data = await this.commonService.getImageDownloadUri(images);
 
-    if (data && data.length > 0) {
-      this.setState({ imageStorageDownloadUrls: data });
+      if (data && data.length > 0) {
+        this.setState({ imageStorageDownloadUrls: data });
+      }
+    }
+  };
+
+  updateImageDownloadUrl = () => {
+    const { images, imageStorageDownloadUrls } = this.state;
+
+    if (images && images.length > imageStorageDownloadUrls.length) {
+      // If the regular images state is bigger than the loaded URLs, then we know
+      // there are additional images being added during edit
+      const tempDownloadedUrls = [...imageStorageDownloadUrls];
+
+      images.forEach((image, index) => {
+        if (index === tempDownloadedUrls.length) {
+          tempDownloadedUrls.push({ uri: image.uri });
+        }
+      });
+
+      this.setState({ imageStorageDownloadUrls: tempDownloadedUrls });
     }
   };
 
@@ -222,7 +251,6 @@ class AddPropertyComponent extends Component<
       propertyAddress: streetAddress,
       notesId: "",
       tenants: [],
-      images: null,
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
       createdOn: this.isEditting
@@ -246,7 +274,7 @@ class AddPropertyComponent extends Component<
               .updateUserDataWithProperty(propertyId)
               .then(() => {
                 // Upload any images if there are any
-                if (images.length > 0) {
+                if (images && images.length > 0) {
                   this.uploadImages(propertyId);
                 } else {
                   navigation.goBack();
@@ -269,8 +297,8 @@ class AddPropertyComponent extends Component<
         payload.tenants = tenants;
 
         this.commonService
-          .handleUpdate(payload, id, PROPERTIES_DOC)
-          .then(() => navigation.goBack())
+          .handleUpdateWithImages(payload, id, PROPERTIES_DOC, images)
+          .then(() => this.uploadImages(id))
           .catch((error) => console.log("ERROR in updating property: ", error));
       }
     }
@@ -286,7 +314,10 @@ class AddPropertyComponent extends Component<
       .handleUploadImages(images, propertyId)
       .then(() => {
         navigation.goBack();
-        navigation.navigate("AddPropertyDoneModal");
+
+        if (!this.isEditting) {
+          navigation.navigate("AddPropertyDoneModal");
+        }
       })
       .catch((error: any) =>
         console.log("ERROR failed to upload images", error)
@@ -469,6 +500,7 @@ class AddPropertyComponent extends Component<
       autoFill,
       showKeyboard,
       showAddImageModal,
+      images,
     } = this.state;
 
     if (streetAddressResults.length > 0 && autoFill) {
@@ -510,7 +542,11 @@ class AddPropertyComponent extends Component<
         <AddImageModalComponent
           visible={showAddImageModal}
           hideModal={() => this.setState({ showAddImageModal: false })}
-          onSelectImages={(data: any[]) => this.setState({ images: data })}
+          onSelectImages={(data: any[]) => {
+            const tempImages = [...images];
+            data.forEach((image) => tempImages.push(image));
+            this.setState({ images: tempImages });
+          }}
         />
       </React.Fragment>
     );

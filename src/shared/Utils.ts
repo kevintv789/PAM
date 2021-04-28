@@ -84,8 +84,8 @@ export const getPropertyTypeIcons = (type: string) => {
  * @param image
  * @param type
  */
-export const getPropertyImage = (image: any, type: string) => {
-  if (!image) {
+export const getPropertyImage = (images: any[], type: string) => {
+  if (!images || images.length === 0) {
     switch (type) {
       case constants.PROPERTY_TYPES.APT_CONDO:
         return require("../assets/images/apartment_default.png");
@@ -96,11 +96,11 @@ export const getPropertyImage = (image: any, type: string) => {
       case constants.PROPERTY_TYPES.MULTI_FAM:
         return require("../assets/images/multiplex_default.png");
       default:
-        break;
+        return;
     }
+  } else {
+    return { uri: images[0].uri };
   }
-
-  return image;
 };
 
 /**

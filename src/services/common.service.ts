@@ -37,7 +37,7 @@ export default class CommonService {
 
     images.forEach((image, index) => {
       imagesUri.push({
-        name: `images/${ref.id}-${index}`,
+        name: `images/property/${ref.id}-${index}`,
         uri: image.uri,
       });
     });
@@ -65,6 +65,34 @@ export default class CommonService {
   };
 
   /**
+   * This function handles any updates to the firebase documents with images
+   * @param payload
+   * @param docId
+   * @param collection
+   */
+  handleUpdateWithImages = (
+    payload: any,
+    docId: string,
+    collection: string,
+    images: any[]
+  ) => {
+    const imagesUri: object[] = [];
+
+    images.forEach((image, index) => {
+      imagesUri.push({
+        name: `images/property/${docId}-${index}`,
+        uri: image.uri,
+      });
+    });
+
+    return firebase
+      .firestore()
+      .collection(collection)
+      .doc(docId)
+      .set({ ...payload, id: docId, updatedOn: new Date(), images: imagesUri });
+  };
+
+  /**
    * This function takes in a collection, property of an object and a particular data type
    * that will be used within the where() clause
    * @param collection
@@ -84,15 +112,20 @@ export default class CommonService {
    * @param images
    */
   handleUploadImages = async (images: any[], propertyId: string) => {
-    return images.forEach(async (image, index) => {
-      const response = await fetch(image.uri);
-      const blob = await response.blob();
+    return await images.forEach(async (image, index) => {
+      if (image.name == null) {
+        // only add to storage if the image isn't already in storage
+        const imageUri: string = image.uri;
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
 
-      const ref = firebase
-        .storage()
-        .ref()
-        .child(`images/${propertyId}-${index}`);
-      return ref.put(blob);
+        const ref = firebase
+          .storage()
+          .ref()
+          .child(`images/property/${propertyId}-${index}`);
+
+        return await ref.put(blob);
+      }
     });
   };
 
@@ -110,7 +143,20 @@ export default class CommonService {
 
       return { uri: url };
     });
-    
+
     return await Promise.all(imageDownloadUrls);
+  };
+
+  /**
+   * This function takes in an array of images and removes them one by one
+   * @param images
+   */
+  deleteStorageFile = async (images: any[]) => {
+    return await Promise.all(
+      images.map(async (image) => {
+        const ref = firebase.storage().ref().child(image.name);
+        return await ref.delete();
+      })
+    );
   };
 }
