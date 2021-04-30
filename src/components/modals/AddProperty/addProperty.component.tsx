@@ -557,6 +557,11 @@ class AddPropertyComponent extends Component<
             data.forEach((image) => tempImages.push(image));
             this.setState({ images: tempImages });
           }}
+          onCaptureImages={(data: any[]) => {
+            const tempImages = [...images];
+            data.forEach((image) => tempImages.push(image));
+            this.setState({ images: tempImages });
+          }}
         />
       </React.Fragment>
     );

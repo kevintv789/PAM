@@ -11,7 +11,7 @@ import Modal from "react-native-modal";
 import { theme } from "shared";
 
 const AddImageModalComponent = (props: any) => {
-  const { visible, hideModal, onSelectImages } = props;
+  const { visible, hideModal, onSelectImages, onCaptureImages } = props;
 
   const [showCameraModal, setshowCameraModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
@@ -34,6 +34,11 @@ const AddImageModalComponent = (props: any) => {
     setShowGalleryModal(false);
     onSelectImages(data);
   };
+
+  const captureImagesFromCamera = (data: any[]) => {
+    setshowCameraModal(false);
+    onCaptureImages(data);
+  }
 
   return (
     <React.Fragment>
@@ -114,7 +119,7 @@ const AddImageModalComponent = (props: any) => {
       <CameraComponent
         visible={showCameraModal}
         hideModal={() => setshowCameraModal(false)}
-        capturePics={(images: any) => {}}
+        capturePics={(images: any) => captureImagesFromCamera(images)}
       />
     </React.Fragment>
   );
