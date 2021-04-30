@@ -113,7 +113,9 @@ class PropertyComponent extends Component<
       !isEqual(prevProps.tenantData, tenantData)
     ) {
       this.getTenantData(propertyData);
-      this.updateImageDownloadUrl(propertyData.images);
+      setTimeout(() => {
+        this.updateImageDownloadUrl(propertyData.images);
+      }, 1000);
     }
 
     if (!isEqual(prevProps.financesData, financesData)) {
@@ -277,7 +279,9 @@ class PropertyComponent extends Component<
 
   updateImageDownloadUrl = async (images: any[]) => {
     if (images && images.length > 0) {
-      const data = await this.commonService.getImageDownloadUri(images);
+      const data = await (
+        await this.commonService.getImageDownloadUri(images)
+      ).filter((i: any) => i.uri != null);
 
       if (data && data.length > 0) {
         this.setState({ imagesUrl: data });

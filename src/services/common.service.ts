@@ -74,13 +74,14 @@ export default class CommonService {
     payload: any,
     docId: string,
     collection: string,
-    images: any[]
+    images: any[],
+    type: string
   ) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
       imagesUri.push({
-        name: `images/property/${docId}-${index}`,
+        name: `images/${type}/${docId}-${index}`,
         uri: image.uri,
       });
     });
@@ -111,22 +112,24 @@ export default class CommonService {
    * using an array of images
    * @param images
    */
-  handleUploadImages = async (images: any[], propertyId: string) => {
-    return await images.forEach(async (image, index) => {
-      if (image.name == null) {
-        // only add to storage if the image isn't already in storage
-        const imageUri: string = image.uri;
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
+  handleUploadImages = async (images: any[], id: string, type: string) => {
+    return await Promise.all(
+      images.map(async (image, index) => {
+        if (image.name == null) {
+          // only add to storage if the image isn't already in storage
+          const imageUri: string = image.uri;
+          const response = await fetch(imageUri);
+          const blob = await response.blob();
 
-        const ref = firebase
-          .storage()
-          .ref()
-          .child(`images/property/${propertyId}-${index}`);
+          const ref = firebase
+            .storage()
+            .ref()
+            .child(`images/${type}/${id}-${index}`);
 
-        return await ref.put(blob);
-      }
-    });
+          return await ref.put(blob);
+        }
+      })
+    );
   };
 
   /**
@@ -136,7 +139,7 @@ export default class CommonService {
   getImageDownloadUri = async (images: any[]) => {
     const imageDownloadUrls = images.map(async (image) => {
       const ref = firebase.storage().ref().child(image.name);
-      const url = await ref
+      let url = await ref
         .getDownloadURL()
         .then((url) => url)
         .catch((error) => console.log("ERROR can't retrieve image: ", error));

@@ -5,6 +5,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Platform, StyleSheet } from "react-native";
 import React, { useEffect, useState } from "react";
 
+import CameraComponent from "./Camera Modal/camera.component";
 import GalleryComponent from "components/Modals/Add Image/Gallery Modal/gallery.component";
 import Modal from "react-native-modal";
 import { theme } from "shared";
@@ -12,7 +13,7 @@ import { theme } from "shared";
 const AddImageModalComponent = (props: any) => {
   const { visible, hideModal, onSelectImages } = props;
 
-  const [galleryImage, setGalleryImage] = useState(null);
+  const [showCameraModal, setshowCameraModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
 
   const renderCameraPermission = async () => {
@@ -27,17 +28,6 @@ const AddImageModalComponent = (props: any) => {
 
       return;
     }
-  };
-
-  const takePhotoFromCamera = async () => {
-    let result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
   };
 
   const pickImagesFromGallery = (data: any[]) => {
@@ -58,7 +48,7 @@ const AddImageModalComponent = (props: any) => {
           <Button
             style={styles.button}
             onPress={() =>
-              renderCameraPermission().then(() => takePhotoFromCamera())
+              renderCameraPermission().then(() => setshowCameraModal(true))
             }
             flat
           >
@@ -120,6 +110,11 @@ const AddImageModalComponent = (props: any) => {
         visible={showGalleryModal}
         onDone={(data: any[]) => pickImagesFromGallery(data)}
         hideModal={() => setShowGalleryModal(false)}
+      />
+      <CameraComponent
+        visible={showCameraModal}
+        hideModal={() => setshowCameraModal(false)}
+        capturePics={(images: any) => {}}
       />
     </React.Fragment>
   );

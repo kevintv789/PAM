@@ -130,7 +130,9 @@ class AddPropertyComponent extends Component<
 
   retrieveImageDownloadUrl = async (images: any[]) => {
     if (images && images.length > 0) {
-      const data = await this.commonService.getImageDownloadUri(images);
+      const data = await (
+        await this.commonService.getImageDownloadUri(images)
+      ).filter((i: any) => i.uri != null);
 
       if (data && data.length > 0) {
         this.setState({ imageStorageDownloadUrls: data });
@@ -297,7 +299,13 @@ class AddPropertyComponent extends Component<
         payload.tenants = tenants;
 
         this.commonService
-          .handleUpdateWithImages(payload, id, PROPERTIES_DOC, images)
+          .handleUpdateWithImages(
+            payload,
+            id,
+            PROPERTIES_DOC,
+            images,
+            "property"
+          )
           .then(() => this.uploadImages(id))
           .catch((error) => console.log("ERROR in updating property: ", error));
       }
@@ -311,13 +319,15 @@ class AddPropertyComponent extends Component<
     const { navigation } = this.props;
 
     this.commonService
-      .handleUploadImages(images, propertyId)
+      .handleUploadImages(images, propertyId, "property")
       .then(() => {
-        navigation.goBack();
+        setTimeout(() => {
+          navigation.goBack();
 
-        if (!this.isEditting) {
-          navigation.navigate("AddPropertyDoneModal");
-        }
+          if (!this.isEditting) {
+            navigation.navigate("AddPropertyDoneModal");
+          }
+        }, 2000);
       })
       .catch((error: any) =>
         console.log("ERROR failed to upload images", error)

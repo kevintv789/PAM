@@ -1,10 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
-
 import { AssetsSelector } from "expo-images-picker";
-import { Container } from "components/common";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import React from "react";
+import { StyleSheet } from "react-native";
 import { theme } from "shared";
 
 const GalleryComponent = (props: any) => {
