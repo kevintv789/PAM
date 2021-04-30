@@ -8,6 +8,7 @@ import Counter from "./Counter";
 import CurrencyInput from "./CurrencyInput";
 import DataOutline from "./DataOutline";
 import HeaderDivider from "./HeaderDivider";
+import ImagesList from './ImagesList';
 import LoadingIndicator from "./LoadingIndicator";
 import Pills from "./Pills";
 import PillsList from "./PillsList";
@@ -40,4 +41,5 @@ export {
   TooltipWrapper,
   CommonModal,
   SearchInput,
+  ImagesList
 };

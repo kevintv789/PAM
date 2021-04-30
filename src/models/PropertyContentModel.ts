@@ -10,4 +10,5 @@ export interface Props {
   navigation?: any;
   getTenants?: (tenantIds: string[]) => {};
   tenantsData?: any[];
+  imagesUrl?: any[]
 }

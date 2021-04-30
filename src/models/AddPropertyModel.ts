@@ -10,6 +10,9 @@ export interface State {
   autoFill: boolean;
   showKeyboard: boolean;
   isLoading: boolean;
+  showAddImageModal: boolean;
+  images: any[];
+  imageStorageDownloadUrls: any[];
 }
 
 export interface Props {

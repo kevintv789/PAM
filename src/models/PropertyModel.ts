@@ -15,6 +15,7 @@ export interface State {
   showTooltip: boolean;
   showCommonModal: boolean;
   isRemoving: boolean;
+  imagesUrl: any[];
 }
 
 export interface Props {

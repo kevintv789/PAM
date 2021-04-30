@@ -34,6 +34,7 @@ import {
 } from "shared/Utils";
 
 import AuthService from "services/auth.service";
+import CommonService from "services/common.service";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
 import PropertyService from "services/property.service";
@@ -56,6 +57,7 @@ class PropertyComponent extends Component<
   private tooltipRef: React.RefObject<any>;
   private propertyService = new PropertyService();
   private authService = new AuthService();
+  private commonService = new CommonService();
 
   constructor(props: PropertyModel.Props) {
     super(props);
@@ -75,14 +77,21 @@ class PropertyComponent extends Component<
       showTooltip: false,
       showCommonModal: false,
       isRemoving: false,
+      imagesUrl: [],
     };
 
     this.tooltipRef = React.createRef();
   }
 
   componentDidMount() {
-    this.getTenantData(this.state.propertyData);
+    const { propertyData } = this.state;
+
+    this.getTenantData(propertyData);
     this.setFinancialData();
+
+    if (propertyData.images && propertyData.images.length > 0) {
+      this.updateImageDownloadUrl(propertyData.images);
+    }
   }
 
   static getDerivedStateFromProps(
@@ -104,6 +113,9 @@ class PropertyComponent extends Component<
       !isEqual(prevProps.tenantData, tenantData)
     ) {
       this.getTenantData(propertyData);
+      setTimeout(() => {
+        this.updateImageDownloadUrl(propertyData.images);
+      }, 1000);
     }
 
     if (!isEqual(prevProps.financesData, financesData)) {
@@ -204,7 +216,6 @@ class PropertyComponent extends Component<
         name="dots-three-vertical"
         size={20}
         color={theme.colors.accent}
-        style={{ textAlign: "right" }}
       />
     );
   };
@@ -266,6 +277,18 @@ class PropertyComponent extends Component<
     );
   };
 
+  updateImageDownloadUrl = async (images: any[]) => {
+    if (images && images.length > 0) {
+      const data = await (
+        await this.commonService.getImageDownloadUri(images)
+      ).filter((i: any) => i.uri != null);
+
+      if (data && data.length > 0) {
+        this.setState({ imagesUrl: data });
+      }
+    }
+  };
+
   renderHeader = () => {
     const {
       animatedHeaderHeight,
@@ -274,6 +297,7 @@ class PropertyComponent extends Component<
       animatedHeaderPropertyAddressTop,
       expanded,
       propertyData,
+      imagesUrl,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
@@ -295,7 +319,7 @@ class PropertyComponent extends Component<
           ]}
         >
           <AnimatedImage
-            source={getPropertyImage(propertyData.image, propertyData.unitType)}
+            source={getPropertyImage(imagesUrl, propertyData.unitType)}
             style={[
               styles.propertyImages,
               {
@@ -583,6 +607,7 @@ class PropertyComponent extends Component<
   onRemoveProperty = () => {
     const { propertyData, userData } = this.props;
     const propertyId = propertyData.id;
+    const images = propertyData.images;
     const promises: Promise<any>[] = [];
 
     const propertyFinancesPromise = this.propertyService
@@ -607,6 +632,16 @@ class PropertyComponent extends Component<
       promises.push(tenantsPromise);
     }
 
+    if (images && images.length > 0) {
+      const imagesPromise = this.commonService
+        .deleteStorageFile(images)
+        .catch((error) =>
+          console.log("ERROR in removing image files: ", error)
+        );
+
+      promises.push(imagesPromise);
+    }
+
     const propertiesPromise = this.propertyService
       .handleRemoveProperty(propertyId)
       .catch((error) =>
@@ -627,22 +662,23 @@ class PropertyComponent extends Component<
     promises.push(propertiesPromise);
     promises.push(userPromise);
 
-    Promise.all(promises)
-      .then(() => {
-        this.updateUserData();
-      })
-      .finally(() => this.setState({ isRemoving: false }));
+    Promise.all(promises).finally(() => {
+      this.setState({ isRemoving: false }, () => this.updateUserData());
+    });
 
     this.setState({ isRemoving: true });
   };
 
   updateUserData = () => {
     const { getUser } = this.props;
+    const { isRemoving } = this.state;
 
     this.authService
       .getCurrentUserPromise()
       .then((res) => {
-        getUser(res.data());
+        if (!isRemoving) {
+          getUser(res.data());
+        }
       })
       .catch((error) =>
         console.log(
@@ -659,6 +695,7 @@ class PropertyComponent extends Component<
       animatedExpandedContentOpacity,
       showCommonModal,
       isRemoving,
+      imagesUrl,
     } = this.state;
 
     const { financesData, tenantsData, propertyData } = this.state;
@@ -693,6 +730,7 @@ class PropertyComponent extends Component<
                 tenantsData={tenantsData}
                 financesData={financesData}
                 propertyData={propertyData}
+                imagesUrl={imagesUrl}
                 totalIncome={this.sumIncomeForTimePeriod(
                   constants.RECURRING_PAYMENT_TYPE.MONTHLY
                 )}
@@ -750,6 +788,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginLeft: -5,
     marginVertical: -5,
+    borderRadius: 100,
   },
   right: {
     left: -55,

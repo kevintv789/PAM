@@ -5,6 +5,7 @@ import {
   CheckBox,
   Container,
   HeaderDivider,
+  ImagesList,
   LoadingIndicator,
   PillsList,
   Text,
@@ -15,6 +16,7 @@ import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
 
+import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
 import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
@@ -24,6 +26,7 @@ import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
+import { isEqual } from "lodash";
 import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
@@ -55,6 +58,9 @@ class AddPropertyComponent extends Component<
       autoFill: true,
       showKeyboard: true,
       isLoading: false,
+      showAddImageModal: false,
+      images: [],
+      imageStorageDownloadUrls: [],
     };
 
     this.scrollViewRef = React.createRef();
@@ -69,18 +75,87 @@ class AddPropertyComponent extends Component<
         autoFill: false,
         propertyNickName: this.routePropertyData.propertyName,
         typeSelected: this.routePropertyData.unitType,
+        images: this.routePropertyData.images,
         // TODO -- Add notes later
       });
+
+      this.retrieveImageDownloadUrl(this.routePropertyData.images);
+    }
+  }
+
+  componentDidUpdate(_: any, prevState: AddPropertyModel.State) {
+    const { images } = this.state;
+
+    if (!isEqual(images, prevState.images)) {
+      this.updateImageDownloadUrl();
     }
   }
 
   renderImageSection = () => {
-    return (
-      <AddImageButton
-        handleOnPress={() => console.log("Adding a property image")}
-        caption="Add property images or related documents"
-      />
-    );
+    const { images, imageStorageDownloadUrls } = this.state;
+    if (images && images.length === 0) {
+      return (
+        <AddImageButton
+          handleOnPress={() => this.setState({ showAddImageModal: true })}
+          caption="Add property images or related documents"
+        />
+      );
+    }
+
+    if (!this.isEditting) {
+      return (
+        <Container style={{ flex: 1 }}>
+          <ImagesList
+            images={images}
+            showAddImageModal={() => this.setState({ showAddImageModal: true })}
+            caption="Add property images or related documents"
+          />
+        </Container>
+      );
+    } else {
+      if (imageStorageDownloadUrls.length > 0)
+        return (
+          <Container style={{ flex: 1 }}>
+            <ImagesList
+              images={imageStorageDownloadUrls}
+              showAddImageModal={() =>
+                this.setState({ showAddImageModal: true })
+              }
+              caption="Add property images or related documents"
+            />
+          </Container>
+        );
+    }
+  };
+
+  retrieveImageDownloadUrl = async (images: any[]) => {
+    if (images && images.length > 0) {
+      const data = await (
+        await this.commonService.getImageDownloadUri(images)
+      ).filter((i: any) => i.uri != null);
+
+      if (data && data.length > 0) {
+        this.setState({ imageStorageDownloadUrls: data });
+      }
+    }
+  };
+
+  updateImageDownloadUrl = () => {
+    const { images, imageStorageDownloadUrls } = this.state;
+
+    if (images && images.length > imageStorageDownloadUrls.length) {
+      // If the regular images state is bigger than the loaded URLs, then we know
+      // there are additional images being added during edit
+      const tempDownloadedUrls = [...imageStorageDownloadUrls];
+
+      images.forEach((image, index) => {
+        if (index === tempDownloadedUrls.length) {
+          tempDownloadedUrls.push({ uri: image.uri });
+        }
+      });
+
+      this.setState({ imageStorageDownloadUrls: tempDownloadedUrls });
+    }
   };
 
   renderPropertyTypeSelection = () => {
@@ -158,7 +233,12 @@ class AddPropertyComponent extends Component<
    */
   handleSaveProperty = () => {
     const { navigation } = this.props;
-    const { typeSelected, propertyNickName, streetAddress } = this.state;
+    const {
+      typeSelected,
+      propertyNickName,
+      streetAddress,
+      images,
+    } = this.state;
 
     const errors = [];
 
@@ -173,7 +253,6 @@ class AddPropertyComponent extends Component<
       propertyAddress: streetAddress,
       notesId: "",
       tenants: [],
-      image: null,
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
       createdOn: this.isEditting
@@ -188,7 +267,7 @@ class AddPropertyComponent extends Component<
         );
 
         this.commonService
-          .handleCreate(payload, propertiesCollection)
+          .handleCreateWithImages(payload, propertiesCollection, images)
           .then(() => {
             const propertyId = propertiesCollection.id;
 
@@ -196,8 +275,13 @@ class AddPropertyComponent extends Component<
             this.propertyService
               .updateUserDataWithProperty(propertyId)
               .then(() => {
-                navigation.goBack();
-                navigation.navigate("AddPropertyDoneModal");
+                // Upload any images if there are any
+                if (images && images.length > 0) {
+                  this.uploadImages(propertyId);
+                } else {
+                  navigation.goBack();
+                  navigation.navigate("AddPropertyDoneModal");
+                }
               })
               .catch((error) =>
                 console.log(
@@ -215,13 +299,39 @@ class AddPropertyComponent extends Component<
         payload.tenants = tenants;
 
         this.commonService
-          .handleUpdate(payload, id, PROPERTIES_DOC)
-          .then(() => navigation.goBack())
+          .handleUpdateWithImages(
+            payload,
+            id,
+            PROPERTIES_DOC,
+            images,
+            "property"
+          )
+          .then(() => this.uploadImages(id))
           .catch((error) => console.log("ERROR in updating property: ", error));
       }
     }
 
     this.setState({ errors, isLoading: true });
+  };
+
+  uploadImages = (propertyId: string) => {
+    const { images } = this.state;
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleUploadImages(images, propertyId, "property")
+      .then(() => {
+        setTimeout(() => {
+          navigation.goBack();
+
+          if (!this.isEditting) {
+            navigation.navigate("AddPropertyDoneModal");
+          }
+        }, 2000);
+      })
+      .catch((error: any) =>
+        console.log("ERROR failed to upload images", error)
+      );
   };
 
   renderNavigationButtons = () => {
@@ -395,7 +505,13 @@ class AddPropertyComponent extends Component<
   };
 
   render() {
-    const { streetAddressResults, autoFill, showKeyboard } = this.state;
+    const {
+      streetAddressResults,
+      autoFill,
+      showKeyboard,
+      showAddImageModal,
+      images,
+    } = this.state;
 
     if (streetAddressResults.length > 0 && autoFill) {
       this.scrollToBottom();
@@ -406,32 +522,48 @@ class AddPropertyComponent extends Component<
     }
 
     return (
-      <ScrollView
-        keyboardShouldPersistTaps={"handled"}
-        ref={this.scrollViewRef}
-      >
-        <Container center color="accent">
-          <KeyboardAwareScrollView
-            contentContainerStyle={{ flex: 1 }}
-            scrollEnabled={false}
-            keyboardShouldPersistTaps={"handled"}
-          >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
+      <React.Fragment>
+        <ScrollView
+          keyboardShouldPersistTaps={"handled"}
+          ref={this.scrollViewRef}
+        >
+          <Container center color="accent">
+            <KeyboardAwareScrollView
+              contentContainerStyle={{ flex: 1 }}
+              scrollEnabled={false}
+              keyboardShouldPersistTaps={"handled"}
             >
-              {this.isEditting ? "Edit Property" : "Add Property"}
-            </Text>
-            {this.renderImageSection()}
-            {this.renderPropertyTypeSelection()}
-            {this.renderPropertyDetails()}
-            {this.renderNavigationButtons()}
-            {this.renderNotesModal()}
-          </KeyboardAwareScrollView>
-        </Container>
-      </ScrollView>
+              <Text
+                h1
+                offWhite
+                center
+                style={{ paddingTop: theme.sizes.padding }}
+              >
+                {this.isEditting ? "Edit Property" : "Add Property"}
+              </Text>
+              {this.renderImageSection()}
+              {this.renderPropertyTypeSelection()}
+              {this.renderPropertyDetails()}
+              {this.renderNavigationButtons()}
+              {this.renderNotesModal()}
+            </KeyboardAwareScrollView>
+          </Container>
+        </ScrollView>
+        <AddImageModalComponent
+          visible={showAddImageModal}
+          hideModal={() => this.setState({ showAddImageModal: false })}
+          onSelectImages={(data: any[]) => {
+            const tempImages = [...images];
+            data.forEach((image) => tempImages.push(image));
+            this.setState({ images: tempImages });
+          }}
+          onCaptureImages={(data: any[]) => {
+            const tempImages = [...images];
+            data.forEach((image) => tempImages.push(image));
+            this.setState({ images: tempImages });
+          }}
+        />
+      </React.Fragment>
     );
   }
 }
