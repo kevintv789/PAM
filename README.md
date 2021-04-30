@@ -1,5 +1,17 @@
 # PAM Test Branch
 
+# Beta Release v0.15.20210430
+- Major feature
+    - Added camera functionality (WORK IN PROGRESS)
+        - User can now capture images using their camera within the Add/Edit property modal
+        - This can be accessed by clicking on the BIG Camera icon within the modal, and by selecting the 'Take photo' button
+        - Work in progress with additional features (flash, retake, rotate, delete and other animations)
+    - Added image selection functionality using photo gallery
+        - User can now select multiple images using their photo library within the Add/Edit property modal
+        - This can be accessed by clicking on the BIG camera icon within the modal, and by selecting the 'Add from gallery' button
+    - User can now upload multiple images tied to a specific property
+    - When deleting the property, the images will be automatically deleted with the property
+
 # Beta Release v0.15.20210425
 - Bug fixes
     - Fixed a bug where pulling down to refresh on the home screen would cause a jumpy graphic glitch
