@@ -2,10 +2,12 @@
 
 # Beta Release v0.15.20210430
 - Major feature
-    - Added camera functionality (WORK IN PROGRESS)
+    - Added camera functionality
         - User can now capture images using their camera within the Add/Edit property modal
         - This can be accessed by clicking on the BIG Camera icon within the modal, and by selecting the 'Take photo' button
-        - Work in progress with additional features (flash, retake, rotate, delete and other animations)
+        - User can enable flash mode when taking pictures
+        - User can preview the captured images and expand each image to full screen size, or remove an individual image
+        - Removed retake and rotate functionality as it's unnecessary for now
     - Added image selection functionality using photo gallery
         - User can now select multiple images using their photo library within the Add/Edit property modal
         - This can be accessed by clicking on the BIG camera icon within the modal, and by selecting the 'Add from gallery' button
