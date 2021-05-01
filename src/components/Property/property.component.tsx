@@ -361,7 +361,7 @@ class PropertyComponent extends Component<
                 {propertyData.propertyAddress}
               </AnimatedText>
 
-              <Container style={{ width: 28 }} flex={false}>
+              <Container style={{ width: 28 }} flex={1}>
                 <TooltipWrapper
                   anchor={this.renderEditPropertyButton()}
                   content={this.renderTooltipOptions(125)}

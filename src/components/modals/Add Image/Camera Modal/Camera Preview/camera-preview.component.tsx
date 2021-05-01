@@ -5,26 +5,19 @@ import {
   Dimensions,
   Image,
   ImageBackground,
-  KeyboardAvoidingView,
   StyleSheet,
-  View,
 } from "react-native";
 import { Container, Text } from "components/common";
-import {
-  Feather,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
-import React, { useRef, useState } from "react";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
-import { animations, theme } from "shared";
 
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Modal from "react-native-modal";
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView";
 import Swiper from "react-native-swiper";
 import moment from "moment";
+import { theme } from "shared";
 
 const { width, height } = Dimensions.get("window");
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
@@ -32,9 +25,8 @@ const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const CameraPreviewModalComponent = (props: any) => {
   const [expanded, setExpanded] = useState(false);
   const [expandedImageUri, setExpandedImageUri] = useState("");
-  const [expandedWidth, setExpandedWidth] = useState(0);
 
-  const { visible, hideModal, images } = props;
+  const { visible, hideModal, images, removeImageOnIndex } = props;
 
   const formatCurrentDate = () => {
     return (
@@ -42,16 +34,13 @@ const CameraPreviewModalComponent = (props: any) => {
     );
   };
 
-  const renderClickableButtons = (containerStyle: any, image?: any) => {
+  const renderClickableButtons = (
+    containerStyle: any,
+    image?: any,
+    index?: number
+  ) => {
     return (
       <Container style={containerStyle} flex={false} middle center>
-        <TouchableOpacity style={{ marginBottom: 20, marginTop: 0 }}>
-          <MaterialCommunityIcons
-            name="camera-retake-outline"
-            size={26}
-            color={theme.colors.offWhite}
-          />
-        </TouchableOpacity>
         <TouchableOpacity
           style={{ marginBottom: 20, marginTop: 0 }}
           onPress={() => {
@@ -67,14 +56,11 @@ const CameraPreviewModalComponent = (props: any) => {
             color={theme.colors.offWhite}
           />
         </TouchableOpacity>
-        <TouchableOpacity style={{ marginBottom: 20, marginTop: 0 }}>
-          <MaterialIcons
-            name="rotate-90-degrees-ccw"
-            size={26}
-            color={theme.colors.offWhite}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={{ marginBottom: 0, marginTop: 0 }}>
+
+        <TouchableOpacity
+          style={{ marginBottom: 0, marginTop: 0 }}
+          onPress={() => removeImageOnIndex(index)}
+        >
           <Feather name="trash-2" size={26} color={theme.colors.red} />
         </TouchableOpacity>
       </Container>
@@ -90,9 +76,11 @@ const CameraPreviewModalComponent = (props: any) => {
             size={22}
             color={theme.colors.gray}
           />
-          <Text>{formatCurrentDate()}</Text>
+          <Text style={{ marginTop: 3, opacity: 0.6 }} accent>
+            {formatCurrentDate()}
+          </Text>
         </Container>
-        <Container padding={[10, 0]}>
+        <Container padding={[10, 0, 0, 5]}>
           <TextInput
             placeholder="Add note..."
             placeholderTextColor={theme.colors.gray}
@@ -109,7 +97,7 @@ const CameraPreviewModalComponent = (props: any) => {
       <Modal isVisible={visible} style={styles.modal}>
         <KeyboardAwareScrollView
           contentContainerStyle={{ flex: 1 }}
-          scrollEnabled={true}
+          scrollEnabled={false}
           keyboardShouldPersistTaps={"handled"}
         >
           {expanded && (
@@ -123,7 +111,7 @@ const CameraPreviewModalComponent = (props: any) => {
               <ReactNativeZoomableView
                 initialZoom={1}
                 maxZoom={3}
-                minZoom={1}
+                minZoom={0.9}
                 captureEvent
               >
                 <ImageBackground
@@ -163,42 +151,42 @@ const CameraPreviewModalComponent = (props: any) => {
             </Container>
           )}
 
-          <Swiper scrollEnabled showsPagination={false}>
-            {!expanded &&
-              images.map((image: any, index: number) => (
-                <Container
-                  style={styles.imageContainer}
-                  middle
-                  flex={false}
-                  key={image.uri}
+          <Swiper showsPagination={false}>
+            {images.map((image: any, index: number) => (
+              <Container
+                style={styles.imageContainer}
+                middle
+                flex={false}
+                key={image.uri}
+              >
+                <ImageBackground
+                  source={{ uri: image.uri }}
+                  style={styles.imageBackground}
+                  imageStyle={{
+                    borderTopRightRadius: 20,
+                    borderTopLeftRadius: 20,
+                  }}
                 >
-                  <ImageBackground
-                    source={{ uri: image.uri }}
-                    style={styles.imageBackground}
-                    imageStyle={{
-                      borderTopRightRadius: 20,
-                      borderTopLeftRadius: 20,
-                    }}
-                  >
-                    <Container flex={false} right>
-                      <Container
-                        style={styles.counterContainer}
-                        flex={false}
-                        middle
-                      >
-                        <Text center offWhite>{`${index + 1} / ${
-                          images.length
-                        }`}</Text>
-                      </Container>
-                      {renderClickableButtons(
-                        styles.clickableButtonsContainer,
-                        image
-                      )}
+                  <Container flex={false} right>
+                    <Container
+                      style={styles.counterContainer}
+                      flex={false}
+                      middle
+                    >
+                      <Text center offWhite>{`${index + 1} / ${
+                        images.length
+                      }`}</Text>
                     </Container>
-                  </ImageBackground>
-                  {renderNotesSection()}
-                </Container>
-              ))}
+                    {renderClickableButtons(
+                      styles.clickableButtonsContainer,
+                      image,
+                      index
+                    )}
+                  </Container>
+                </ImageBackground>
+                {renderNotesSection()}
+              </Container>
+            ))}
           </Swiper>
         </KeyboardAwareScrollView>
       </Modal>
@@ -242,7 +230,7 @@ const styles = StyleSheet.create({
   },
   clickableButtonsContainer: {
     width: 50,
-    height: 200,
+    height: 120,
     backgroundColor: "rgba(1, 1, 1, 0.4)",
     alignSelf: "flex-end",
     borderRadius: 10,
@@ -250,12 +238,12 @@ const styles = StyleSheet.create({
   },
   expandedClickableButtonContainer: {
     width: 50,
-    height: 200,
+    height: 120,
     backgroundColor: "rgba(1, 1, 1, 0.4)",
     alignSelf: "flex-end",
     borderRadius: 10,
     margin: 10,
-    marginTop: 50,
+    marginTop: 100,
   },
   fullSizedImage: {
     resizeMode: "stretch",
