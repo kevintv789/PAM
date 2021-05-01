@@ -1,4 +1,10 @@
 import { Button, Container, Text } from "components/common";
+import {
+  GestureHandlerRootView,
+  PinchGestureHandler,
+  State,
+  TouchableOpacity,
+} from "react-native-gesture-handler";
 import React, { useEffect, useState } from "react";
 
 import { Camera } from "expo-camera";
@@ -7,16 +13,20 @@ import CapturedImagesListComponent from "./Captured Images/captured-images-list.
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import { StyleSheet } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { theme } from "shared";
+
+const MAX_ZOOM = 8; // iOS only
+const ZOOM_F = 0.1;
 
 const CameraComponent = (props: any) => {
   const { visible, hideModal, capturePics } = props;
   const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [capturedImages, setCapturedImages]: any[] = useState([]);
+  const [flashMode, setFlashMode] = useState(false);
 
   let cameraRef: Camera | null;
+  let prevPinch = 0;
 
   const switchCamera = () => {
     if (cameraType === Camera.Constants.Type.back) {
@@ -50,6 +60,9 @@ const CameraComponent = (props: any) => {
             cameraRef = ref;
           }}
           type={cameraType}
+          flashMode={flashMode}
+          focusable
+          autoFocus
         >
           <Container
             style={styles.topButtonContainer}
@@ -69,16 +82,30 @@ const CameraComponent = (props: any) => {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => switchCamera()}
-              style={{ margin: -5 }}
-            >
-              <Ionicons
-                name="camera-reverse-outline"
-                size={36}
-                color={theme.colors.offWhite}
-              />
-            </TouchableOpacity>
+            <Container right flex={false} row>
+              <TouchableOpacity
+                onPress={() => setFlashMode(!flashMode)}
+                style={{ margin: -5, marginRight: 20 }}
+              >
+                <Ionicons
+                  name={flashMode ? "flash-sharp" : "flash-outline"}
+                  size={32}
+                  color={
+                    flashMode ? theme.colors.tertiary : theme.colors.offWhite
+                  }
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => switchCamera()}
+                style={{ margin: -5 }}
+              >
+                <Ionicons
+                  name="camera-reverse-outline"
+                  size={36}
+                  color={theme.colors.offWhite}
+                />
+              </TouchableOpacity>
+            </Container>
           </Container>
 
           <Container
@@ -132,6 +159,15 @@ const CameraComponent = (props: any) => {
             visible={showImagePreview}
             hideModal={() => setShowImagePreview(false)}
             images={capturedImages}
+            removeImageOnIndex={(index: number) => {
+              let tempImages = [...capturedImages];
+              tempImages.splice(index, 1);
+              setCapturedImages(tempImages);
+
+              if (tempImages.length === 0) {
+                setShowImagePreview(false);
+              }
+            }}
           />
         </Container>
       </Modal>
