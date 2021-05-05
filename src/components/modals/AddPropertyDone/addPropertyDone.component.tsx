@@ -12,10 +12,10 @@ const AddPropertyDoneComponent = (props: any) => {
   const authService = new AuthService();
   const dispatch = useDispatch();
 
-  const [isLoading, setisLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = () => {
-    setisLoading(true);
+    setIsLoading(true);
     authService
       .getCurrentUserPromise()
       .then((res) => {
@@ -23,7 +23,7 @@ const AddPropertyDoneComponent = (props: any) => {
         navigation.goBack();
       })
       .catch((error) => console.log("ERROR in retrieving user data: ", error))
-      .finally(() => setisLoading(false));
+      .finally(() => setIsLoading(false));
   };
 
   return (

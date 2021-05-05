@@ -76,7 +76,6 @@ class PropertyComponent extends Component<
       propertyData: this.props.propertyData,
       showTooltip: false,
       showCommonModal: false,
-      isRemoving: false,
       imagesUrl: [],
     };
 
@@ -115,7 +114,7 @@ class PropertyComponent extends Component<
       this.getTenantData(propertyData);
       setTimeout(() => {
         this.updateImageDownloadUrl(propertyData.images);
-      }, 1000);
+      }, 3000);
     }
 
     if (!isEqual(prevProps.financesData, financesData)) {
@@ -212,11 +211,13 @@ class PropertyComponent extends Component<
 
   renderEditPropertyButton = () => {
     return (
-      <Entypo
-        name="dots-three-vertical"
-        size={20}
-        color={theme.colors.accent}
-      />
+      <Container flex={false} style={{ width: 50 }}>
+        <Entypo
+          name="dots-three-vertical"
+          size={20}
+          color={theme.colors.accent}
+        />
+      </Container>
     );
   };
 
@@ -604,7 +605,7 @@ class PropertyComponent extends Component<
     );
   };
 
-  onRemoveProperty = () => {
+  onRemoveProperty = async () => {
     const { propertyData, userData } = this.props;
     const propertyId = propertyData.id;
     const images = propertyData.images;
@@ -642,6 +643,13 @@ class PropertyComponent extends Component<
       promises.push(imagesPromise);
     }
 
+    // Remove all references of properties from the user collection
+    const userPromise = this.propertyService
+      .handleRemovePropertyFromUser(propertyId, userData)
+      .catch((error) =>
+        console.log("ERROR in removing property from user", error)
+      );
+
     const propertiesPromise = this.propertyService
       .handleRemoveProperty(propertyId)
       .catch((error) =>
@@ -651,34 +659,22 @@ class PropertyComponent extends Component<
         )
       );
 
-    // Remove all references of properties from the user collection
-    const userPromise = this.propertyService
-      .handleRemovePropertyFromUser(propertyId, userData)
-      .catch((error) =>
-        console.log("ERROR in removing property from user", error)
-      );
-
     promises.push(propertyFinancesPromise);
-    promises.push(propertiesPromise);
     promises.push(userPromise);
+    promises.push(propertiesPromise);
 
-    Promise.all(promises).finally(() => {
-      this.setState({ isRemoving: false }, () => this.updateUserData());
+    return await Promise.all(promises).finally(() => {
+      this.updateUserData();
     });
-
-    this.setState({ isRemoving: true });
   };
 
-  updateUserData = () => {
+  updateUserData = async () => {
     const { getUser } = this.props;
-    const { isRemoving } = this.state;
 
-    this.authService
+    return await this.authService
       .getCurrentUserPromise()
       .then((res) => {
-        if (!isRemoving) {
-          getUser(res.data());
-        }
+        getUser(res.data());
       })
       .catch((error) =>
         console.log(
@@ -694,7 +690,6 @@ class PropertyComponent extends Component<
       animatedContainerHeight,
       animatedExpandedContentOpacity,
       showCommonModal,
-      isRemoving,
       imagesUrl,
     } = this.state;
 
@@ -752,7 +747,6 @@ class PropertyComponent extends Component<
             }
             headerIconBackground={theme.colors.primary}
             title="Confirm"
-            isLoading={isRemoving}
           />
         </AnimatedContainer>
       );

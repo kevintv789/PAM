@@ -291,7 +291,11 @@ class AddPropertyComponent extends Component<
               );
           })
           .catch((error: any) => console.log(error))
-          .finally(() => this.setState({ isLoading: false }));
+          .finally(() => {
+            if (!images || images.length === 0) {
+              this.setState({ isLoading: false });
+            }
+          });
       } else {
         const { id, notesId, color, tenants } = this.routePropertyData;
         payload.notesId = notesId;
@@ -331,6 +335,9 @@ class AddPropertyComponent extends Component<
       })
       .catch((error: any) =>
         console.log("ERROR failed to upload images", error)
+      )
+      .finally(() =>
+        setTimeout(() => this.setState({ isLoading: false }), 2500)
       );
   };
 

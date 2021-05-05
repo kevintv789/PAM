@@ -1,9 +1,10 @@
+import React, { useState } from "react";
+
 import Button from "./Button";
 import Container from "./Container";
 import HeaderDivider from "./HeaderDivider";
 import LoadingIndicator from "./LoadingIndicator";
 import Modal from "react-native-modal";
-import React from "react";
 import { StyleSheet } from "react-native";
 import Text from "./Text";
 import { theme } from "shared";
@@ -24,8 +25,10 @@ const CommonModal = (props: any) => {
     headerIcon,
     headerIconBackground,
     title,
-    isLoading,
+    // isLoading,
   } = props;
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const renderNavButtons = () => (
     <Container row flex={false} margin={[20, 0, 0, 0]}>
@@ -41,7 +44,10 @@ const CommonModal = (props: any) => {
         <Button
           color="secondary"
           style={styles.navButtons}
-          onPress={() => onRemoveProperty()}
+          onPress={() => {
+            setIsLoading(true)
+            onRemoveProperty().finally(() => setIsLoading(false));
+          }}
           disabled={isLoading}
         >
           <Text center offWhite style={{ alignSelf: "center" }}>
