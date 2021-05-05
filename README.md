@@ -1,6 +1,12 @@
 # PAM Test Branch
 
-# Beta Release v0.15.20210430
+# Beta Release v0.17.20210504
+- Bug fixes
+    - Fixed a bug that won't allow users that have more than one property to delete the last property
+    - Fixed a bug when adding or editing a property with images, the 'Save' button would freeze up and show no loading icon
+    - Made touching the vertical dots easier when property is expanded
+
+# Beta Release v0.16.20210430
 - Major feature
     - Added camera functionality
         - User can now capture images using their camera within the Add/Edit property modal
