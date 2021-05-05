@@ -5,37 +5,33 @@ import {
   Counter,
   CurrencyInput,
   HeaderDivider,
+  LoadingIndicator,
   PillsList,
   Text,
   TextInput,
   Toggle,
 } from "components/common";
 import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
+import {
+  PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
+} from "shared/constants/databaseConsts";
 import React, { Component } from "react";
-import {
-  addFinances,
-  addTenant,
-  updateProperty,
-  updateTenant,
-} from "reducks/modules/property";
 import { constants, theme } from "shared";
-import {
-  formatCurrencyFromCents,
-  formatMobileNumber,
-  hasErrors,
-} from "shared/Utils";
+import { formatMobileNumber, hasErrors } from "shared/Utils";
 
 import { AddTenantModel } from "models";
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import PropertyService from "services/property.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { connect } from "react-redux";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
-import update from "react-addons-update";
 
 const { width, height } = Dimensions.get("window");
+const date = Date.now();
 
 class AddTenantComponent extends Component<
   AddTenantModel.Props,
@@ -44,6 +40,8 @@ class AddTenantComponent extends Component<
   private scrollViewRef: any;
   private isEditting: boolean = false;
   private tenantInfo: any;
+  private propertyService = new PropertyService();
+  private commonService = new CommonService();
 
   constructor(props: AddTenantModel.Props) {
     super(props);
@@ -52,18 +50,23 @@ class AddTenantComponent extends Component<
       primaryTenantName: "",
       phone: "",
       email: "",
-      leaseType: "",
-      leaseStartDate: moment(new Date()).format("MM/DD/YYYY"),
+      leaseType: constants.LEASE_TYPE.FIXED_TERM,
+      leaseStartDate: moment(new Date(date), moment.ISO_8601).format(
+        "MM/DD/YYYY"
+      ),
       leaseEndDate: "",
       rentPaidPeriod: "Monthly",
       rent: 0,
       deposit: 0,
       totalOccupants: 1,
-      notes: undefined,
+      notes: null,
       showNotesModal: false,
-      lastPaymentDate: moment().format("MM/DD/YYYY"),
+      lastPaymentDate: moment(new Date(date), moment.ISO_8601).format(
+        "MM/DD/YYYY"
+      ),
       hasTenantPaidFirstRent: false,
       errors: [],
+      isLoading: false,
     };
 
     this.scrollViewRef = React.createRef();
@@ -89,13 +92,13 @@ class AddTenantComponent extends Component<
         deposit: this.tenantInfo.securityDeposit,
         totalOccupants: this.tenantInfo.totalOccupants,
         lastPaymentDate: this.tenantInfo.lastPaymentDate,
-        hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate !== "",
+        hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate != null,
       });
     }
   }
 
   handleAddTenant = () => {
-    const { navigation, addTenant, updateProperty, updateTenant } = this.props;
+    const { navigation } = this.props;
     const {
       primaryTenantName,
       phone,
@@ -114,20 +117,16 @@ class AddTenantComponent extends Component<
     const errors = [];
     const propertyData = navigation.getParam("propertyData");
 
-    const tenantId = this.isEditting
-      ? this.tenantInfo.id
-      : Math.floor(10 + Math.random() * 10000);
-
     if (!primaryTenantName.length) {
       errors.push("tenantName");
     }
 
     const tenantPayload = {
-      id: tenantId,
+      id: this.isEditting ? this.tenantInfo.id : "",
       propertyId: this.isEditting
         ? this.tenantInfo.propertyId
         : propertyData.id,
-      name: primaryTenantName,
+      name: primaryTenantName.trim(),
       phone,
       email,
       leaseType,
@@ -138,55 +137,87 @@ class AddTenantComponent extends Component<
       totalOccupants,
       rent,
       collectionDay: 1, // Day of the month that rent is collected. if 0 or null, then default to the lease start date day
-      lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : undefined,
+      lastPaymentDate: hasTenantPaidFirstRent ? lastPaymentDate : null,
       nextPaymentDate: this.isEditting
         ? this.tenantInfo.nextPaymentDate
         : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
+      createdOn: this.isEditting ? this.tenantInfo.createdOn : new Date(),
     };
 
     if (!errors.length) {
       if (!this.isEditting) {
-        addTenant(tenantPayload);
+        const tenantDocRef = this.commonService.createNewDocId(TENANTS_DOC);
 
-        const propertyPayload = update(propertyData, {
-          tenants: { $push: [tenantId] },
-        });
+        this.commonService
+          .handleCreate(tenantPayload, tenantDocRef)
+          .then(() => {
+            // Update property on the backend with the new tenant ID
+            this.propertyService.addTenantIdToProperty(
+              tenantDocRef.id,
+              tenantPayload.propertyId
+            );
 
-        updateProperty(propertyPayload);
-        this.addToPropertyFinances(tenantPayload);
+            // Add tenant's income/rent to finances
+            if (
+              tenantPayload.lastPaymentDate &&
+              moment(
+                new Date(tenantPayload.lastPaymentDate),
+                moment.ISO_8601
+              ).isValid() &&
+              tenantPayload.lastPaymentDate
+            ) {
+              this.addToPropertyFinances(tenantPayload);
+            } else {
+              navigation.goBack();
+            }
+          })
+          .catch((error: any) =>
+            console.log("ERROR in creating a new tenant: ", error)
+          )
+          .finally(() => this.setState({ isLoading: false }));
       } else {
-        updateTenant(tenantPayload);
+        this.commonService
+          .handleUpdate(tenantPayload, tenantPayload.id, TENANTS_DOC)
+          .then(() => navigation.goBack())
+          .catch((error: any) =>
+            console.log("ERROR in updating tenant: ", error)
+          )
+          .finally(() => this.setState({ isLoading: false }));
       }
-
-      navigation.goBack();
     } else {
       this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
     }
 
-    this.setState({ errors });
+    this.setState({ errors, isLoading: true });
   };
 
   addToPropertyFinances = (payload: any) => {
-    if (payload.lastPaymentDate) {
-      const { addFinances } = this.props;
+    const { navigation } = this.props;
 
-      const financePayload = {
-        id: Math.floor(Math.random() * 1000),
-        amount: payload.rent,
-        status: constants.EXPENSE_STATUS_TYPE.PAID,
-        description: "",
-        paidOn: payload.lastPaymentDate,
-        paymentDue: "",
-        recurring: undefined,
-        additionalNotes: "",
-        image: null,
-        propertyId: payload.propertyId,
-        name: payload.name,
-        type: "income",
-      };
+    const financePayload = {
+      amount: payload.rent,
+      status: constants.EXPENSE_STATUS_TYPE.PAID,
+      description: "",
+      paidOn: payload.lastPaymentDate,
+      paymentDue: "",
+      recurring: null,
+      additionalNotes: "",
+      image: null,
+      propertyId: payload.propertyId,
+      name: payload.name,
+      type: "income",
+    };
 
-      addFinances(financePayload);
-    }
+    const collectionRef = this.commonService.createNewDocId(
+      PROPERTY_FINANCES_DOC
+    );
+
+    this.commonService
+      .handleCreate(financePayload, collectionRef)
+      .then(() => navigation.goBack())
+      .catch((error: any) =>
+        console.log("ERROR in creating a new finance object: ", error)
+      );
   };
 
   renderImageSection = () => {
@@ -248,6 +279,7 @@ class AddTenantComponent extends Component<
       notes,
       hasTenantPaidFirstRent,
       lastPaymentDate,
+      leaseType,
     } = this.state;
 
     const leaseTypes = Object.values(constants.LEASE_TYPE);
@@ -265,7 +297,9 @@ class AddTenantComponent extends Component<
       <Container center>
         <PillsList
           label="Select a lease type:"
-          defaultSelected={constants.LEASE_TYPE.FIXED_TERM}
+          defaultSelected={
+            this.isEditting ? this.tenantInfo.leaseType : leaseType
+          }
           data={leaseTypes}
           handlePillSelected={(leaseType: string) =>
             this.setState({ leaseType })
@@ -276,7 +310,7 @@ class AddTenantComponent extends Component<
           label="Lease starts on"
           style={styles.input}
           value={leaseStartDate}
-          dateValue={moment(leaseStartDate).toDate()}
+          dateValue={new Date(leaseStartDate)}
           onChangeDate={(leaseStartDate: string) =>
             this.setState({ leaseStartDate })
           }
@@ -308,7 +342,7 @@ class AddTenantComponent extends Component<
           <Toggle
             options={options}
             initialIndex={
-              this.isEditting && this.tenantInfo.lastPaymentDate !== "" ? 1 : 0
+              this.isEditting && this.tenantInfo.lastPaymentDate != null ? 1 : 0
             }
             handleToggled={(value: boolean) => {
               this.setState({ hasTenantPaidFirstRent: value });
@@ -324,10 +358,12 @@ class AddTenantComponent extends Component<
           <TextInput
             dateTime
             label="Rent paid on"
-            value={lastPaymentDate}
+            value={hasTenantPaidFirstRent ? lastPaymentDate : ""}
             style={styles.input}
             onChangeDate={(lastPaymentDate: string) =>
-              this.setState({ lastPaymentDate })
+              hasTenantPaidFirstRent
+                ? this.setState({ lastPaymentDate })
+                : this.setState({ lastPaymentDate: "" })
             }
           />
         )}
@@ -335,7 +371,11 @@ class AddTenantComponent extends Component<
         {/* ------ RENT IS PAID PILLS LIST ------ */}
         <PillsList
           label="Rent is paid:"
-          defaultSelected={constants.RECURRING_PAYMENT_TYPE.MONTHLY}
+          defaultSelected={
+            this.isEditting
+              ? this.tenantInfo.recurringPaymentType
+              : constants.RECURRING_PAYMENT_TYPE.MONTHLY
+          }
           data={rentPeriods}
           handlePillSelected={(rentPaidPeriod: string) =>
             this.setState({ rentPaidPeriod })
@@ -346,14 +386,14 @@ class AddTenantComponent extends Component<
           label={`Rent / ${rentPaidPeriod}`}
           handleChange={(rent: number) => this.setState({ rent })}
           value={rent}
-          textFieldWidth={350}
+          textFieldWidth={"94%"}
         />
 
         <CurrencyInput
           label="Deposit paid"
           handleChange={(deposit: number) => this.setState({ deposit })}
           value={deposit}
-          textFieldWidth={350}
+          textFieldWidth={"94%"}
         />
 
         {/* ------- TOTAL OCCUPANTS COUNTER ------- */}
@@ -375,6 +415,9 @@ class AddTenantComponent extends Component<
 
           <Container right flex={false}>
             <Counter
+              defaultValue={
+                this.isEditting ? this.tenantInfo.totalOccupants : null
+              }
               min={1}
               max={99}
               onCountChange={(count: number) =>
@@ -411,6 +454,7 @@ class AddTenantComponent extends Component<
 
   renderNavigationButtons = () => {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
 
     return (
       <Container
@@ -438,9 +482,13 @@ class AddTenantComponent extends Component<
           color="secondary"
           style={styles.navigationButtons}
           onPress={() => this.handleAddTenant()}
+          disabled={isLoading}
         >
-          <Text offWhite center semibold>
-            Save
+          <Text offWhite center semibold style={{ alignSelf: "center" }}>
+            {!isLoading && "Save"}
+            {isLoading && (
+              <LoadingIndicator size="small" color={theme.colors.offWhite} />
+            )}
           </Text>
         </Button>
       </Container>
@@ -535,11 +583,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapDispatchToProps = {
-  addTenant,
-  updateProperty,
-  updateTenant,
-  addFinances,
-};
-
-export default connect(null, mapDispatchToProps)(AddTenantComponent);
+export default AddTenantComponent;

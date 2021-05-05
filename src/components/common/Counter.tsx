@@ -7,8 +7,8 @@ import Text from "components/common/Text";
 import { theme } from "shared";
 
 export default function Counter(props: any) {
-  const { min, max, onCountChange } = props;
-  const [counter, setCounter] = useState(min);
+  const { min, max, onCountChange, defaultValue } = props;
+  const [counter, setCounter] = useState(defaultValue ? defaultValue : min);
 
   const reduce = () => {
     let count = counter;

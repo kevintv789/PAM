@@ -1,11 +1,12 @@
-import { mockData } from "shared";
 // Action Types
 const GET_USER = "GET_USER";
 
 // Action Creators
-export const getUser = () => ({
-  type: GET_USER,
-});
+export const getUser = (payload: any) => {
+  return (dispatch: any) => {
+    dispatch({ type: GET_USER, payload });
+  };
+};
 
 // Reducer
 const initialState = {
@@ -15,7 +16,7 @@ const initialState = {
 export const userReducer = (state = initialState, action: any) => {
   switch (action.type) {
     case GET_USER:
-      return { ...state, user: mockData.User };
+      return { ...state, user: action.payload };
     default:
       return state;
   }

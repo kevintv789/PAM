@@ -1,3 +1,5 @@
+import "firebase/firestore";
+
 import { Button, Container, Text, TextInput } from "../../components/common";
 import {
   Dimensions,
@@ -8,8 +10,12 @@ import {
 import React, { Component } from "react";
 import { formatMobileNumber, validateEmail } from "../../shared/Utils";
 
+import AuthService from "services/auth.service";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SignUpModel } from "../../models";
+import { USER_DOC } from "shared/constants/databaseConsts";
+import { User } from "models/User.model";
+import firebase from "firebase";
 import { theme } from "../../shared";
 
 const { width, height } = Dimensions.get("window");
@@ -18,19 +24,20 @@ export default class SignUpScreen extends Component<
   SignUpModel.Props,
   SignUpModel.State
 > {
+  private authService = new AuthService();
   constructor(props: any) {
     super(props);
     this.state = {
       email: "",
       password: "",
       phone: "",
-      firstName: "",
+      name: "",
       errors: [],
     };
   }
 
-  handleSignIn = () => {
-    const { email, password, phone, firstName } = this.state;
+  handleSignUp = () => {
+    const { email, password, phone, name } = this.state;
     const { navigation } = this.props;
 
     const errors = [];
@@ -47,21 +54,47 @@ export default class SignUpScreen extends Component<
       errors.push("phone");
     }
 
-    if (!firstName.length) {
-      errors.push("firstName");
+    if (!name.length) {
+      errors.push("name");
     }
 
     if (!errors.length) {
-      navigation.navigate("HomeScreen");
-    } else {
-      // TODO: Add warning pop up or something to give notice to user that there are errors
+      const userObj: User = {
+        email,
+        password,
+        phone,
+        name,
+      };
+
+      this.authService
+        .handleSignUpWithEmailAndPassword(userObj, navigation)
+        .then(() => {
+          firebase
+            .firestore()
+            .collection(USER_DOC)
+            .doc(firebase.auth().currentUser?.uid)
+            .set({
+              name,
+              email,
+              phone,
+              properties: [],
+            })
+            .then(() => navigation.navigate("HomeScreen"))
+            .catch((error) =>
+              console.log("ERROR Data could not be saved", error)
+            );
+        })
+        .catch((error) => {
+          console.log(error);
+          // TODO: Add warning pop up or something to give notice to user that there are errors
+        });
     }
 
-    this.setState({ email, password, phone, firstName, errors });
+    this.setState({ email, password, phone, name, errors });
   };
 
   render() {
-    const { email, password, errors, phone, firstName } = this.state;
+    const { email, password, errors, phone, name } = this.state;
     const hasErrors = (key: string) =>
       errors.includes(key) ? styles.hasErrors : null;
 
@@ -83,14 +116,14 @@ export default class SignUpScreen extends Component<
             </Text>
             <Container margin={[theme.sizes.padding * 1.6]}>
               <TextInput
-                label="First Name"
-                error={hasErrors("firstName")}
-                style={[styles.input, hasErrors("firstName")]}
-                value={firstName}
-                onChangeText={(firstName: string) =>
+                label="Name"
+                error={hasErrors("name")}
+                style={[styles.input, hasErrors("name")]}
+                value={name}
+                onChangeText={(name: string) =>
                   this.setState({
-                    firstName,
-                    errors: errors.filter((e) => e !== "firstName"),
+                    name,
+                    errors: errors.filter((e) => e !== "name"),
                   })
                 }
               />
@@ -136,7 +169,7 @@ export default class SignUpScreen extends Component<
             </Container>
 
             <Container flex={1} paddingBottom={theme.sizes.base * 10}>
-              <Button onPress={() => this.handleSignIn()}>
+              <Button onPress={() => this.handleSignUp()}>
                 <Text center offWhite size={theme.fontSizes.medium}>
                   Get Started
                 </Text>

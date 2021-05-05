@@ -25,7 +25,7 @@ const AddImageButton = (props: any) => {
         </Container>
       </TouchableOpacity>
 
-      <Text offWhite light>
+      <Text offWhite light center>
         {caption}
       </Text>
     </Container>

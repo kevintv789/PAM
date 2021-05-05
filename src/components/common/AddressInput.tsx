@@ -17,8 +17,11 @@ const AddressInput = (props: any) => {
       onSelect={(place: any) => handleSelect(place.result.name)}
       resultRender={(place: any) => place.structured_formatting.main_text}
       queryFields="name"
-      requiredTimeBeforeSearch={100}
-      onChangeText={(text: string, value: any) => handleResults(text, value.state.places)}
+      queryCountries={["usa"]}
+      requiredTimeBeforeSearch={500}
+      onChangeText={(text: string, value: any) =>
+        handleResults(text, value.state.places)
+      }
       textInputProps={{
         style: textStyle,
         placeholder: "Street Address *",

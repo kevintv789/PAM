@@ -1,6 +1,8 @@
 import { constants, theme } from ".";
 
+import { USER_DOC } from "shared/constants/databaseConsts";
 import { filter } from "lodash";
+import firebase from "firebase";
 import moment from "moment";
 
 /**
@@ -82,8 +84,8 @@ export const getPropertyTypeIcons = (type: string) => {
  * @param image
  * @param type
  */
-export const getPropertyImage = (image: any, type: string) => {
-  if (!image) {
+export const getPropertyImage = (images: any[], type: string) => {
+  if (!images || images.length === 0) {
     switch (type) {
       case constants.PROPERTY_TYPES.APT_CONDO:
         return require("../assets/images/apartment_default.png");
@@ -94,11 +96,11 @@ export const getPropertyImage = (image: any, type: string) => {
       case constants.PROPERTY_TYPES.MULTI_FAM:
         return require("../assets/images/multiplex_default.png");
       default:
-        break;
+        return;
     }
+  } else {
+    return { uri: images[0].uri };
   }
-
-  return image;
 };
 
 /**
@@ -158,8 +160,8 @@ export const getDaysDiffFrom = (
   endDate: any,
   inclusive: boolean = false
 ) => {
-  const start = moment(startDate);
-  const end = moment(endDate);
+  const start = moment(new Date(startDate), moment.ISO_8601);
+  const end = moment(new Date(endDate), moment.ISO_8601);
 
   if (!start.isValid() || !end.isValid()) {
     return;
@@ -266,7 +268,9 @@ export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
   }
 
   if (timeToAdd >= 0) {
-    return moment(startDate).add(timeToAdd, dateType).format("MM/DD/YYYY");
+    return moment(new Date(startDate), moment.ISO_8601)
+      .add(timeToAdd, dateType)
+      .format("MM/DD/YYYY");
   }
 };
 
@@ -296,9 +300,27 @@ export const filterArrayForTimePeriod = (
     case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
       const curMonth = new Date().getMonth() + 1;
       return array.filter(
-        (item) => moment(item[prop]).month() + 1 === curMonth
+        (item) =>
+          moment(new Date(item[prop]), moment.ISO_8601).month() + 1 === curMonth
       );
     default:
       return;
   }
+};
+
+/**
+ * This function returns the current user's UID
+ */
+export const getCurrentUserId = () => {
+  return firebase.auth().currentUser?.uid;
+};
+
+/**
+ * This function returns the current user data
+ */
+export const getCurrentUserData = () => {
+  return firebase
+    .firestore()
+    .collection(USER_DOC)
+    .doc(firebase.auth().currentUser?.uid);
 };

@@ -8,12 +8,12 @@ import { theme } from "shared";
 const { width } = Dimensions.get("window");
 
 const HeaderDivider = (props: any) => {
-  const { title, style } = props;
+  const { title, color = "offWhite", style } = props;
 
   const containerStyle = [styles.container, style];
 
   return (
-    <Container color="offWhite" style={containerStyle} middle flex={false}>
+    <Container color={color} style={containerStyle} middle flex={false}>
       <Text semibold accent style={{ paddingLeft: theme.sizes.base }}>
         {title}
       </Text>

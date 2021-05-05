@@ -1,4 +1,10 @@
-import { Button, Container, Text, TextInput } from "../../components/common";
+import {
+  Button,
+  Container,
+  LoadingIndicator,
+  Text,
+  TextInput,
+} from "components/common";
 import {
   Dimensions,
   Keyboard,
@@ -8,10 +14,12 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import React, { Component } from "react";
-import { mockData, theme } from "../../shared";
 
-import { LoginModel } from "../../models";
-import { validateEmail } from "../../shared/Utils";
+import AuthService from "services/auth.service";
+import { LoginModel } from "models";
+import { User } from "models/User.model";
+import { theme } from "shared";
+import { validateEmail } from "shared/Utils";
 
 const { width } = Dimensions.get("window");
 
@@ -19,12 +27,14 @@ export default class LoginScreen extends Component<
   LoginModel.Props,
   LoginModel.State
 > {
+  private authService = new AuthService();
   constructor(props: any) {
     super(props);
     this.state = {
-      email: mockData.VALID_EMAIL,
-      password: mockData.VALID_PASSWORD,
+      email: "",
+      password: "",
       errors: [],
+      isLoading: false,
     };
   }
 
@@ -32,27 +42,38 @@ export default class LoginScreen extends Component<
     const { email, password } = this.state;
     const { navigation } = this.props;
 
-    const errors = [];
+    const errors: string[] = [];
 
-    if (!validateEmail(email) || email !== mockData.VALID_EMAIL) {
+    if (!validateEmail(email)) {
       errors.push("email");
     }
 
-    if (password !== mockData.VALID_PASSWORD) {
+    if (!password.length) {
       errors.push("password");
     }
 
-    if (!errors.length) {
-      navigation.navigate("HomeScreen");
-    } else {
-      // TODO: Add warning pop up or something to give notice to user that there are errors
-    }
+    const userObj: User = {
+      email,
+      password,
+    };
 
-    this.setState({ email, errors });
+    // TODO -- Add loading indicator
+    this.authService
+      .handleSignInWithEmailAndPassword(userObj)
+      .then(() => navigation.navigate("HomeScreen"))
+      .catch(() => {
+        errors.push("wrongCredentials");
+        errors.push("password");
+        errors.push("email");
+        this.setState({ errors });
+      })
+      .finally(() => this.setState({ isLoading: false }));
+
+    this.setState({ email, errors, isLoading: true });
   };
 
   render() {
-    const { email, password, errors } = this.state;
+    const { email, password, errors, isLoading } = this.state;
     const hasErrors = (key: string) =>
       errors.includes(key) ? styles.hasErrors : null;
 
@@ -83,20 +104,35 @@ export default class LoginScreen extends Component<
             </Container>
           </KeyboardAvoidingView>
 
-          <Container flex={1.4}>
-            <Button onPress={() => this.handleSignIn()}>
-              <Text center offWhite size={theme.fontSizes.medium}>
-                Log In
-              </Text>
-            </Button>
+          {hasErrors("wrongCredentials") && (
+            <Container
+              flex={false}
+              margin={[-theme.sizes.base * 2, 0, theme.sizes.base * 2, 0]}
+            >
+              <Text red>Incorrect email or password, please try again.</Text>
+            </Container>
+          )}
 
-            <TouchableOpacity>
+          <Container flex={1.4}>
+            <Button onPress={() => this.handleSignIn()} disabled={isLoading}>
               <Text
                 center
                 offWhite
-                style={styles.forgotPassword}
-                onPress={() => {}}
+                size={theme.fontSizes.medium}
+                style={styles.loginText}
               >
+                {!isLoading && "Log In"}
+                {isLoading && (
+                  <LoadingIndicator
+                    size="small"
+                    color={theme.colors.offWhite}
+                  />
+                )}
+              </Text>
+            </Button>
+
+            <TouchableOpacity onPress={() => {}}>
+              <Text center offWhite style={styles.forgotPassword}>
                 Forgot your password?
               </Text>
             </TouchableOpacity>
@@ -124,5 +160,8 @@ const styles = StyleSheet.create({
   },
   hasErrors: {
     borderBottomColor: theme.colors.red,
+  },
+  loginText: {
+    alignSelf: "center",
   },
 });

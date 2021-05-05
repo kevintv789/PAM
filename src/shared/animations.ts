@@ -3,8 +3,8 @@ import { Animated } from "react-native";
 export const animateOnToggle = (
   animation: Animated.Value,
   toggle: boolean,
-  fromValue: number,
-  toValue: number,
+  fromValue: any,
+  toValue: any,
   duration: number = 500
 ) => {
   Animated.timing(animation, {

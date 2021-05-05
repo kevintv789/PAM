@@ -163,7 +163,7 @@ export default class Input extends Component<TextInputProps, TextInputState> {
           date={dateValue || new Date()}
           mode="date"
           onConfirm={(value) =>
-            this.datePickerOnChange(moment(value).format("MM/DD/YYYY"))
+            this.datePickerOnChange(moment(value, moment.ISO_8601).format("MM/DD/YYYY"))
           }
           onCancel={() => this.setState({ datePickerShow: false })}
         />

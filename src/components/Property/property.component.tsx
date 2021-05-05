@@ -4,24 +4,44 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Container, Text, VerticalDivider } from "components/common";
+import {
+  AntDesign,
+  Entypo,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import {
+  CommonModal,
+  Container,
+  HeaderDivider,
+  Text,
+  TooltipWrapper,
+  VerticalDivider,
+} from "components/common";
+import {
+  PROPERTIES_DOC,
+  PROPERTY_FINANCES_DOC,
+  TENANTS_DOC,
+} from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, findIndex, isEqual, sortBy, sumBy } from "lodash";
+import { filter, isEqual, sortBy } from "lodash";
 import {
-  filterArrayForTimePeriod,
   formatNumber,
-  getDataFromProperty,
   getPropertyImage,
   getPropertyTypeIcons,
 } from "shared/Utils";
-import { getExpense, getTenants } from "reducks/modules/property";
 
-import { Entypo } from "@expo/vector-icons";
+import AuthService from "services/auth.service";
+import CommonService from "services/common.service";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
+import PropertyService from "services/property.service";
+import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
+import { getUser } from "reducks/modules/user";
 import moment from "moment";
 
 const { width } = Dimensions.get("window");
@@ -29,11 +49,17 @@ const { width } = Dimensions.get("window");
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedText = Animated.createAnimatedComponent(Text);
+const date = Date.now();
 
 class PropertyComponent extends Component<
   PropertyModel.Props,
   PropertyModel.State
 > {
+  private tooltipRef: React.RefObject<any>;
+  private propertyService = new PropertyService();
+  private authService = new AuthService();
+  private commonService = new CommonService();
+
   constructor(props: PropertyModel.Props) {
     super(props);
 
@@ -42,45 +68,103 @@ class PropertyComponent extends Component<
       animatedHeaderHeight: new Animated.Value(100),
       animatedHeaderImageWidth: new Animated.Value(74),
       animatedHeaderImageHeight: new Animated.Value(74),
-      animatedContainerHeight: new Animated.Value(200),
+      animatedContainerHeight: new Animated.Value(0),
       animatedHeaderPropertyAddressTop: new Animated.Value(0),
       animatedExpandedContentOpacity: new Animated.Value(0),
       animatedPropertyAddressWidth: new Animated.Value(180),
-      financesData: this.props.financesData,
-      tenantData: this.props.tenantData,
+      financesData: [],
+      tenantsData: [],
       propertyData: this.props.propertyData,
+      showTooltip: false,
+      showCommonModal: false,
+      imagesUrl: [],
     };
+
+    this.tooltipRef = React.createRef();
   }
 
   componentDidMount() {
-    const { getExpense, getTenants } = this.props;
-    const { propertyData, financesData } = this.state;
+    const { propertyData } = this.state;
 
-    // This is where app needs to call action to read from Database
-    getExpense();
-    getTenants();
+    this.getTenantData(propertyData);
+    this.setFinancialData();
 
-    const filteredExpenses = filter(
+    if (propertyData.images && propertyData.images.length > 0) {
+      this.updateImageDownloadUrl(propertyData.images);
+    }
+  }
+
+  static getDerivedStateFromProps(
+    props: PropertyModel.Props,
+    state: PropertyModel.State
+  ) {
+    if (!isEqual(props.propertyData, state.propertyData)) {
+      return { propertyData: props.propertyData };
+    }
+
+    return null;
+  }
+
+  componentDidUpdate(prevProps: PropertyModel.Props) {
+    const { financesData, tenantData, propertyData } = this.props;
+
+    if (
+      !isEqual(prevProps.propertyData, propertyData) ||
+      !isEqual(prevProps.tenantData, tenantData)
+    ) {
+      this.getTenantData(propertyData);
+      setTimeout(() => {
+        this.updateImageDownloadUrl(propertyData.images);
+      }, 3000);
+    }
+
+    if (!isEqual(prevProps.financesData, financesData)) {
+      this.setFinancialData();
+    }
+  }
+
+  setFinancialData = () => {
+    const { financesData } = this.props;
+    const { propertyData } = this.state;
+
+    const filteredFinancialData = filter(
       financesData,
       (e: any) => e.propertyId === propertyData.id
     );
 
-    this.setState({ financesData: filteredExpenses });
-  }
+    this.setState({ financesData: filteredFinancialData });
+  };
 
-  togglePropertyContent = (timePeriod: string) => {
+  getTenantData = (propertyData: any) => {
+    const { tenantData } = this.props;
+    const tenants = propertyData.tenants;
+
+    if (tenants && tenants.length > 0) {
+      const filteredTenants: any[] = [];
+
+      tenants.map((id: string) => {
+        tenantData.map((tenant: any) => {
+          if (tenant.id === id) {
+            filteredTenants.push(tenant);
+          }
+        });
+      });
+
+      this.setState({ tenantsData: filteredTenants });
+    }
+  };
+
+  togglePropertyContent = () => {
     const { onPropertySelect } = this.props;
     const {
       animatedHeaderHeight,
       expanded,
       animatedHeaderImageWidth,
       animatedHeaderImageHeight,
-      animatedContainerHeight,
       animatedHeaderPropertyAddressTop,
       animatedExpandedContentOpacity,
       animatedPropertyAddressWidth,
-      propertyData,
-      financesData,
+      animatedContainerHeight,
     } = this.state;
 
     // animate header height
@@ -92,44 +176,16 @@ class PropertyComponent extends Component<
     // animate header image height
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
-    // animate entire container height
-    const totalIncome =
-      this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
-      0;
-
-    let height = 750;
-
-    // TODO --- Super hacky conditional, find a better way to do this shiz
-    if (
-      (!propertyData.tenants.length && financesData.length) ||
-      (propertyData.tenants.length && !financesData.length && totalIncome === 0) ||
-      (propertyData.tenants.length && financesData.length && totalIncome === 0)
-    ) {
-      height = 600;
-
-      const reportDetailsLength = filterArrayForTimePeriod(financesData, 'paidOn', timePeriod)?.length;
-      if (reportDetailsLength) {
-        if (reportDetailsLength > 0 && reportDetailsLength < 6) {
-          height += 40 * reportDetailsLength;
-        }
-      }
-
-    } else if (
-      (!propertyData.tenants.length && !financesData.length) ||
-      totalIncome === 0
-    ) {
-      height = 550;
-    }
-
-    animations.animateOnToggle(animatedContainerHeight, expanded, 200, height);
-
     // animate property address width
     animations.animateOnToggle(
       animatedPropertyAddressWidth,
       expanded,
       180,
-      215
+      210
     );
+
+    // Animate content height
+    animations.animateOnToggle(animatedContainerHeight, expanded, 0, 1);
 
     // animate property address on header
     animations.animateOnToggle(
@@ -145,7 +201,7 @@ class PropertyComponent extends Component<
       expanded,
       0,
       1,
-      800
+      1000
     );
 
     // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
@@ -154,22 +210,106 @@ class PropertyComponent extends Component<
     this.setState({ expanded: !expanded });
   };
 
+  renderEditPropertyButton = () => {
+    return (
+      <View
+        style={{ width: 50 }}
+        hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
+      >
+        <Entypo
+          name="dots-three-vertical"
+          size={20}
+          color={theme.colors.accent}
+        />
+      </View>
+    );
+  };
+
+  renderTooltipOptions = (width: number) => {
+    const { navigation } = this.props;
+    const { propertyData } = this.state;
+
+    return (
+      <React.Fragment>
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            this.tooltipRef.current?.toggleTooltip();
+            navigation.navigate("AddPropertyModal", {
+              editting: true,
+              propertyData,
+            });
+          }}
+        >
+          <Container row flex={false}>
+            <AntDesign name="edit" size={18} color={theme.colors.accent} />
+            <Text
+              accent
+              style={{ paddingLeft: 5 }}
+              size={theme.fontSizes.medium}
+            >
+              Edit
+            </Text>
+          </Container>
+        </TouchableOpacity>
+        <HeaderDivider
+          color="accent"
+          style={{ width, height: StyleSheet.hairlineWidth, marginTop: 0 }}
+        />
+        <TouchableOpacity
+          style={{ width: "100%" }}
+          onPress={() => {
+            this.tooltipRef.current?.toggleTooltip();
+            this.setState({ showCommonModal: true });
+          }}
+        >
+          <Container row flex={false}>
+            <MaterialCommunityIcons
+              name="bulldozer"
+              size={18}
+              color={theme.colors.red}
+            />
+            <Text
+              accent
+              style={{ paddingLeft: 5 }}
+              size={theme.fontSizes.medium}
+            >
+              Bulldoze
+            </Text>
+          </Container>
+        </TouchableOpacity>
+      </React.Fragment>
+    );
+  };
+
+  updateImageDownloadUrl = async (images: any[]) => {
+    if (images && images.length > 0) {
+      const data = await (
+        await this.commonService.getImageDownloadUri(images)
+      ).filter((i: any) => i.uri != null);
+
+      if (data && data.length > 0) {
+        this.setState({ imagesUrl: data });
+      }
+    }
+  };
+
   renderHeader = () => {
-    const { propertyData, navigation } = this.props;
     const {
       animatedHeaderHeight,
       animatedHeaderImageWidth,
       animatedHeaderImageHeight,
       animatedHeaderPropertyAddressTop,
-      animatedPropertyAddressWidth,
       expanded,
+      propertyData,
+      imagesUrl,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
 
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
-        onPress={() => this.togglePropertyContent(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
+        onPress={() => this.togglePropertyContent()}
         activeOpacity={0.9}
       >
         <AnimatedContainer
@@ -184,7 +324,7 @@ class PropertyComponent extends Component<
           ]}
         >
           <AnimatedImage
-            source={getPropertyImage(propertyData.image, propertyData.unitType)}
+            source={getPropertyImage(imagesUrl, propertyData.unitType)}
             style={[
               styles.propertyImages,
               {
@@ -197,6 +337,7 @@ class PropertyComponent extends Component<
             <AnimatedContainer
               row
               center
+              left
               flex={1}
               style={{ top: animatedHeaderPropertyAddressTop }}
             >
@@ -220,30 +361,28 @@ class PropertyComponent extends Component<
                 light
                 size={theme.fontSizes.medium}
                 numberOfLines={1}
-                style={{ width: animatedPropertyAddressWidth }}
+                style={{ width: "80%" }}
               >
                 {propertyData.propertyAddress}
               </AnimatedText>
-              <TouchableOpacity
-                style={{ position: "absolute", right: -5 }}
-                onPress={() =>
-                  navigation.navigate("AddPropertyModal", {
-                    editting: true,
-                    propertyData,
-                  })
-                }
-              >
-                <Container flex={false}>
-                  <Entypo
-                    name="dots-three-vertical"
-                    size={18}
-                    color={theme.colors.accent}
-                  />
-                </Container>
-              </TouchableOpacity>
+
+              <Container style={{ width: 28 }} flex={false}>
+                <TooltipWrapper
+                  anchor={this.renderEditPropertyButton()}
+                  content={this.renderTooltipOptions(125)}
+                  width={125}
+                  height={100}
+                  tooltipRef={this.tooltipRef}
+                />
+              </Container>
             </AnimatedContainer>
 
-            <Text accent semibold size={theme.fontSizes.medium}>
+            <Text
+              accent
+              semibold
+              size={theme.fontSizes.medium}
+              numberOfLines={1}
+            >
               {!expanded && propertyData.propertyName}
             </Text>
           </Container>
@@ -252,26 +391,15 @@ class PropertyComponent extends Component<
     );
   };
 
-  getOneTenantFromData = (index: number) => {
-    const { propertyData } = this.props;
-    const { tenantData } = this.state;
-    const tenantIdToFind = propertyData.tenants[index];
-    return tenantData[
-      findIndex(tenantData, (e: any) => e.id === tenantIdToFind)
-    ];
-  };
-
   findEarliestMoveInDate = () => {
-    const { propertyData } = this.props;
-    const { tenantData } = this.state;
-    const tenants = getDataFromProperty(propertyData.tenants, tenantData);
+    const { tenantsData } = this.state;
 
     // sort on leaseStartDate
-    if (tenants && tenants.length > 0) {
-      const earliestMoveIn = sortBy(tenants, (e: any) =>
-        moment(e.leaseStartDate)
+    if (tenantsData && tenantsData.length > 0) {
+      const earliestMoveIn = sortBy(tenantsData, (e: any) =>
+        moment(new Date(e.leaseStartDate), moment.ISO_8601)
       )[0].leaseStartDate;
-      return moment(earliestMoveIn).format("MM/DD/YYYY");
+      return moment(earliestMoveIn, "MM/DD/YYYY").format("MM/DD/YYYY");
     }
   };
 
@@ -284,11 +412,12 @@ class PropertyComponent extends Component<
     switch (timePeriod) {
       case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
         const curMonth = date.getMonth() + 1;
-        const curDate = moment();
+        const curDate = moment(new Date(date), moment.ISO_8601);
 
         expenseData.forEach((data: any) => {
-          const paidMonth = moment(data.paidOn).month() + 1;
-          const paidDate = moment(data.paidOn);
+          const paidMonth =
+            moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+          const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
           if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
             totalExpense += data.amount;
@@ -303,30 +432,27 @@ class PropertyComponent extends Component<
   };
 
   renderTenantNames = () => {
-    const { propertyData } = this.props;
+    const { tenantsData } = this.state;
 
-    if (propertyData.tenants) {
-      if (!propertyData.tenants.length) {
+    if (tenantsData) {
+      if (!tenantsData.length) {
         return (
           <Text accent semibold size={theme.fontSizes.big}>
             Vacant
           </Text>
         );
-      } else if (
-        propertyData.tenants.length > 0 &&
-        propertyData.tenants.length < 4
-      ) {
+      } else if (tenantsData.length > 0 && tenantsData.length < 4) {
         return (
           <Container>
-            {propertyData.tenants.map((e: any, index: number) => {
-              if (this.getOneTenantFromData(index)) {
+            {tenantsData.map((tenant: any) => {
+              if (typeof tenant === "object") {
                 return (
-                  <Container row space="between" middle key={index}>
+                  <Container row space="between" middle key={tenant.id}>
                     <Text accent medium>
-                      {this.getOneTenantFromData(index).name.split(" ")[0]}
+                      {tenant.name.split(" ")[0]}
                     </Text>
                     <Text light size={11} style={{ top: 2 }}>
-                      From {this.getOneTenantFromData(index).leaseStartDate}
+                      From {tenant.leaseStartDate}
                     </Text>
                   </Container>
                 );
@@ -338,7 +464,7 @@ class PropertyComponent extends Component<
         return (
           <Container>
             <Text accent semibold>
-              {propertyData.tenants.length} Occupants
+              {tenantsData.length} Occupants
             </Text>
             <Text light>From {this.findEarliestMoveInDate()}</Text>
           </Container>
@@ -357,16 +483,17 @@ class PropertyComponent extends Component<
       (i: any) => i.type === "income"
     );
 
-    if (filteredFinancesData.length) {
+    if (filteredFinancesData && filteredFinancesData.length > 0) {
       switch (timePeriod) {
         case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
           const curMonth = date.getMonth() + 1;
-          const curDate = moment();
+          const curDate = moment(new Date(date), moment.ISO_8601);
 
           filteredFinancesData.forEach((data: any) => {
             if (data.paidOn) {
-              const paidMonth = moment(data.paidOn).month() + 1;
-              const paidDate = moment(data.paidOn);
+              const paidMonth =
+                moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+              const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
                 totalIncome += data.amount;
@@ -384,14 +511,16 @@ class PropertyComponent extends Component<
   };
 
   renderBottom = () => {
-    const expensesSum = this.sumExpenseForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY);
+    const expensesSum = this.sumExpenseForTimePeriod(
+      constants.RECURRING_PAYMENT_TYPE.MONTHLY
+    );
     const totalIncome =
       this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
       0;
     const totalProfit = totalIncome - expensesSum;
 
     return (
-      <Container row>
+      <Container row style={{ position: "relative", height: 0 }}>
         <Container>
           <Container row padding={8}>
             <Image
@@ -402,7 +531,10 @@ class PropertyComponent extends Component<
               Tenants
             </Text>
           </Container>
-          <Container padding={8} flex={4} style={{ width: width / 2.3 }}>
+          <Container
+            padding={8}
+            style={{ width: width / 2.3, position: "absolute", top: 30 }}
+          >
             {this.renderTenantNames()}
           </Container>
         </Container>
@@ -420,13 +552,14 @@ class PropertyComponent extends Component<
               }}
             />
             <Text light accent>
-              {moment(new Date()).format("MMM, YYYY")} Report
+              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")}{" "}
+              Report
             </Text>
           </Container>
           <Container
-            padding={[0, 0, 0, 3]}
-            flex={3}
-            style={{ width: width / 2.3 }}
+            padding={[0, 5, 0, 3]}
+            flex={false}
+            style={{ width: width / 2.3, position: "absolute", top: 40 }}
           >
             <Container row space="between" style={styles.dollarContainers}>
               <Text accent medium style={styles.dollars}>
@@ -476,18 +609,98 @@ class PropertyComponent extends Component<
     );
   };
 
+  onRemoveProperty = async () => {
+    const { propertyData, userData } = this.props;
+    const propertyId = propertyData.id;
+    const images = propertyData.images;
+    const promises: Promise<any>[] = [];
+
+    const propertyFinancesPromise = this.propertyService
+      .handleRemovePropertyFromFinances(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTY_FINANCES_DOC}`,
+          error
+        )
+      );
+
+    if (propertyData.tenants && propertyData.tenants.length > 0) {
+      const tenantsPromise = this.propertyService
+        .handleRemovePropertyFromTenant(propertyId)
+        .catch((error) =>
+          console.log(
+            `ERROR in removing property references from ${TENANTS_DOC}`,
+            error
+          )
+        );
+
+      promises.push(tenantsPromise);
+    }
+
+    if (images && images.length > 0) {
+      const imagesPromise = this.commonService
+        .deleteStorageFile(images)
+        .catch((error) =>
+          console.log("ERROR in removing image files: ", error)
+        );
+
+      promises.push(imagesPromise);
+    }
+
+    // Remove all references of properties from the user collection
+    const userPromise = this.propertyService
+      .handleRemovePropertyFromUser(propertyId, userData)
+      .catch((error) =>
+        console.log("ERROR in removing property from user", error)
+      );
+
+    const propertiesPromise = this.propertyService
+      .handleRemoveProperty(propertyId)
+      .catch((error) =>
+        console.log(
+          `ERROR in removing property references from ${PROPERTIES_DOC}`,
+          error
+        )
+      );
+
+    promises.push(propertyFinancesPromise);
+    promises.push(userPromise);
+    promises.push(propertiesPromise);
+
+    return await Promise.all(promises).finally(() => {
+      this.updateUserData();
+    });
+  };
+
+  updateUserData = async () => {
+    const { getUser } = this.props;
+
+    return await this.authService
+      .getCurrentUserPromise()
+      .then((res) => {
+        getUser(res.data());
+      })
+      .catch((error) =>
+        console.log(
+          "ERROR in getting user after removal of properties: ",
+          error
+        )
+      );
+  };
+
   render() {
     const {
       expanded,
       animatedContainerHeight,
       animatedExpandedContentOpacity,
+      showCommonModal,
+      imagesUrl,
     } = this.state;
 
-    const { propertyData } = this.props;
-    const { financesData, tenantData } = this.state;
+    const { financesData, tenantsData, propertyData } = this.state;
 
     // TODO -- add in an actual loading icon when state is finally being called from API
-    if (!propertyData || !tenantData.length) {
+    if (!propertyData) {
       return (
         <Container>
           <Text offWhite>Loading...</Text>
@@ -499,7 +712,10 @@ class PropertyComponent extends Component<
           style={[
             styles.mainContainer,
             {
-              height: animatedContainerHeight,
+              maxHeight: animatedContainerHeight.interpolate({
+                inputRange: [0, 1],
+                outputRange: ["60%", "100%"],
+              }),
             },
           ]}
         >
@@ -510,18 +726,32 @@ class PropertyComponent extends Component<
               style={{ opacity: animatedExpandedContentOpacity }}
             >
               <PropertyContentComponent
-                tenantData={getDataFromProperty(
-                  propertyData.tenants,
-                  tenantData
-                )}
+                tenantsData={tenantsData}
                 financesData={financesData}
                 propertyData={propertyData}
+                imagesUrl={imagesUrl}
                 totalIncome={this.sumIncomeForTimePeriod(
                   constants.RECURRING_PAYMENT_TYPE.MONTHLY
                 )}
               />
             </AnimatedContainer>
           )}
+          <CommonModal
+            visible={showCommonModal}
+            compact
+            descriptorText={`Are you sure you want to bulldoze this property?\n\nYou can't undo this action.`}
+            hideModal={() => this.setState({ showCommonModal: false })}
+            onRemoveProperty={() => this.onRemoveProperty()}
+            headerIcon={
+              <FontAwesome
+                name="warning"
+                size={36}
+                color={theme.colors.offWhite}
+              />
+            }
+            headerIconBackground={theme.colors.primary}
+            title="Confirm"
+          />
         </AnimatedContainer>
       );
     }
@@ -534,8 +764,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     minHeight: 200,
-    maxHeight: 750,
     marginBottom: theme.sizes.padding,
+    overflow: "hidden",
   },
   touchableArea: {
     width: "100%",
@@ -556,6 +786,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginLeft: -5,
     marginVertical: -5,
+    borderRadius: 100,
   },
   right: {
     left: -55,
@@ -564,32 +795,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
     top: -10,
+    paddingBottom: 3,
   },
   dollars: {
     top: 5,
-  },
-  editButton: {
-    width: 60,
-    position: "absolute",
-    right: 0,
-    height: 40,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: theme.colors.accent,
-    borderRadius: 10,
   },
 });
 
 const mapStateToProps = (state: any) => {
   return {
+    userData: state.userState.user,
     financesData: state.propertyState.finances,
-    tenantData: state.propertyState.tenants,
   };
 };
 
-const mapDispatchToprops = {
-  getExpense,
-  getTenants,
+const mapDispatchToProps = (dispatch: any) => {
+  return bindActionCreators(
+    {
+      getUser,
+    },
+    dispatch
+  );
 };
 
-export default connect(mapStateToProps, mapDispatchToprops)(PropertyComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(PropertyComponent);

@@ -10,8 +10,11 @@ export interface State {
   animatedExpandedContentOpacity: Animated.Value;
   animatedPropertyAddressWidth: Animated.Value;
   financesData: any;
-  tenantData: any;
   propertyData: any;
+  tenantsData: any[];
+  showTooltip: boolean;
+  showCommonModal: boolean;
+  imagesUrl: any[];
 }
 
 export interface Props {
@@ -22,4 +25,6 @@ export interface Props {
   tenantData: any;
   navigation?: any;
   onPropertySelect: () => void;
+  userData?: any;
+  getUser?: any
 }

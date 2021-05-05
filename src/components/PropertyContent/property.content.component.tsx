@@ -1,4 +1,11 @@
-import { Button, Container, DataOutline, Text } from "components/common";
+import {
+  Button,
+  Container,
+  DataOutline,
+  ImagesList,
+  LoadingIndicator,
+  Text,
+} from "components/common";
 import {
   Image,
   Modal,
@@ -10,29 +17,124 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, sumBy } from "lodash";
+import { orderBy, property, sumBy } from "lodash";
 
+import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import { PropertyContentModel } from "models";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
 
 const notesData = mockData.Notes;
+const date = Date.now();
 
 class PropertyContentComponent extends Component<
   PropertyContentModel.Props,
   PropertyContentModel.State
 > {
+  private commonService = new CommonService();
+
   constructor(props: PropertyContentModel.Props) {
     super(props);
 
     this.state = {
       showNotesModal: false,
       notesValue: null,
+      showUploadImagesModal: false,
+      isUploadingImages: false,
     };
   }
+
+  renderImageSection = () => {
+    const { imagesUrl } = this.props;
+
+    if (imagesUrl && imagesUrl.length > 0) {
+      return (
+        <Container>
+          {/* IMAGE SECTION HEADER */}
+          <Container row padding={11} style={styles.tenantheader} flex={false}>
+            <Entypo name="camera" size={15} color={theme.colors.accent} />
+            <Text accent bold size={13} style={{ paddingLeft: 3 }}>
+              Images
+            </Text>
+            <Button
+              color="transparent"
+              style={[styles.addTenantButton, { width: 130 }]}
+              onPress={() => this.setState({ showUploadImagesModal: true })}
+            >
+              <Text light accent style={{ top: 2 }} size={13}>
+                Add More Images
+              </Text>
+              <Image
+                source={require("assets/icons/plus.png")}
+                style={{ width: 20, height: 20 }}
+              />
+            </Button>
+          </Container>
+
+          {/* IMAGE SECTION BODY */}
+          <Container margin={[0, 5, 0, 5]}>
+            <ImagesList
+              images={imagesUrl}
+              imageSize={{ width: 125, height: 125 }}
+              margins={{ marginTop: 8, marginHorizontal: 5 }}
+            />
+          </Container>
+        </Container>
+      );
+    }
+  };
+
+  handleUploadImages = (images: any[]) => {
+    const { propertyData } = this.props;
+    const imagesToUpload = [...propertyData.images];
+
+    images.forEach((image) => imagesToUpload.push(image));
+
+    this.commonService
+      .handleUploadImages(imagesToUpload, propertyData.id, "property")
+      .then(() => {
+        this.updatePropertyWithImage(images);
+      })
+      .catch((error) =>
+        console.log(
+          "ERROR couldn't upload additional images to the property: ",
+          error
+        )
+      )
+      .finally(() =>
+        this.setState({
+          isUploadingImages: false,
+        })
+      );
+
+    this.setState({ isUploadingImages: true, showUploadImagesModal: false });
+  };
+
+  updatePropertyWithImage = (images: any[]) => {
+    const { propertyData } = this.props;
+    const tempImages = [...propertyData.images];
+
+    images.forEach((image) => {
+      const imageObj = {
+        name: `images/property/${propertyData.id}-${tempImages.length}`,
+        uri: image.uri,
+      };
+      tempImages.push(imageObj);
+    });
+
+    this.commonService.handleUpdateSingleField(
+      PROPERTIES_DOC,
+      propertyData.id,
+      {
+        images: tempImages,
+      }
+    );
+  };
 
   renderTenantHeader = () => {
     const { navigation, propertyData } = this.props;
@@ -47,7 +149,7 @@ class PropertyContentComponent extends Component<
           All Tenants {"  "}
         </Text>
         <Text light accent size={13}>
-          {moment(new Date()).format("MMMM DD, YYYY")}
+          {moment(new Date(date), moment.ISO_8601).format("MMMM DD, YYYY")}
         </Text>
         <Button
           color="transparent"
@@ -69,7 +171,7 @@ class PropertyContentComponent extends Component<
   };
 
   renderDueDate = (tenant: any) => {
-    const dueDate = getDaysDiffFrom(new Date(), tenant.nextPaymentDate);
+    const dueDate = getDaysDiffFrom(new Date(date), tenant.nextPaymentDate);
     let text;
 
     if (dueDate === 0) {
@@ -114,9 +216,9 @@ class PropertyContentComponent extends Component<
   };
 
   renderTenantInfo = () => {
-    const { tenantData, navigation, propertyData } = this.props;
+    const { navigation, propertyData, tenantsData } = this.props;
 
-    if (!tenantData.length) {
+    if (!tenantsData || !tenantsData.length) {
       return (
         <Container flex={false} center middle padding={[15, 0, 0]}>
           <Text bold center>
@@ -141,19 +243,21 @@ class PropertyContentComponent extends Component<
       <Container
         onStartShouldSetResponder={() => true}
         style={{ maxHeight: 150, paddingTop: 5 }}
-        flex={1}
+        flex={false}
       >
         <ScrollView
           keyboardShouldPersistTaps={"handled"}
-          //   contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={true}
           horizontal={false}
           nestedScrollEnabled
         >
-          {tenantData &&
-            tenantData.map((tenant: any) => {
+          {tenantsData &&
+            tenantsData.map((tenant: any, index: number) => {
               return (
-                <Container style={styles.tenantInfoItem} key={tenant.id}>
+                <Container
+                  style={styles.tenantInfoItem}
+                  key={tenant.id + "-" + index}
+                >
                   <TouchableWithoutFeedback>
                     <TouchableOpacity
                       onPress={() =>
@@ -185,7 +289,7 @@ class PropertyContentComponent extends Component<
                           semibold
                           accent
                           size={13}
-                          style={{ width: "32%" }}
+                          style={{ width: "32%", left: 8 }}
                         >
                           Next Payment
                         </Text>
@@ -219,14 +323,18 @@ class PropertyContentComponent extends Component<
                         </Text>
                         <Text
                           light
-                          style={{ width: "38%" }}
+                          style={{ width: "38%", left: 8 }}
                           size={theme.fontSizes.small}
                           numberOfLines={1}
                         >
                           <Text secondary medium>
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
-                          on {moment(tenant.nextPaymentDate).format("MM/DD")}
+                          on{" "}
+                          {moment(
+                            new Date(tenant.nextPaymentDate),
+                            moment.ISO_8601
+                          ).format("MM/DD")}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -251,9 +359,11 @@ class PropertyContentComponent extends Component<
           }}
         />
         <Text accent size={13} bold>
-          Monthly Report for {moment().format("MMMM")}
+          Monthly Report for{" "}
+          {moment(new Date(date), moment.ISO_8601).format("MMMM")}
         </Text>
-        <Container row style={{}} flex={1}>
+
+        <Container row>
           <Button
             color="transparent"
             style={styles.addFinanceButton}
@@ -263,14 +373,12 @@ class PropertyContentComponent extends Component<
               })
             }
           >
-            {/* <Text light accent style={{ top: 2, right: 4 }} size={13}>
-              Add Expense
-            </Text> */}
             <Image
               source={require("assets/icons/plus.png")}
               style={{ width: 20, height: 20 }}
             />
           </Button>
+
           <Button
             color="transparent"
             style={styles.filterButton}
@@ -291,10 +399,10 @@ class PropertyContentComponent extends Component<
 
     switch (timePeriod) {
       case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
-        const curDate = moment();
+        const curDate = moment(new Date(date), moment.ISO_8601);
 
         list.forEach((item) => {
-          const monthPaid = moment(item.paidOn);
+          const monthPaid = moment(new Date(item.paidOn), moment.ISO_8601);
           if (
             monthPaid.diff(curDate) <= 0 &&
             curDate.month() + 1 === monthPaid.month() + 1
@@ -307,7 +415,13 @@ class PropertyContentComponent extends Component<
         break;
     }
 
-    return orderBy(newList, "paidOn", ["desc"]);
+    return orderBy(
+      newList,
+      (e: any) => {
+        return moment(new Date(e.paidOn), moment.ISO_8601).format("YYYYMMDD");
+      },
+      ["desc"]
+    );
   };
 
   formatAmount = (amount: number, type: string) => {
@@ -544,13 +658,37 @@ class PropertyContentComponent extends Component<
   };
 
   render() {
+    const { showUploadImagesModal, isUploadingImages } = this.state;
+
     return (
       <Container>
+        <Container style={isUploadingImages ? styles.overlay : {}}>
+          {isUploadingImages && (
+            <LoadingIndicator
+              size="large"
+              color={theme.colors.offWhite}
+              containerStyle={styles.loading}
+            />
+          )}
+        </Container>
+
+        {this.renderImageSection()}
         {this.renderTenantHeader()}
         {this.renderTenantInfo()}
         {this.renderReport()}
         {this.renderNotesSection()}
         {this.renderNotesModal()}
+
+        <AddImageModalComponent
+          visible={showUploadImagesModal}
+          hideModal={() => this.setState({ showUploadImagesModal: false })}
+          onSelectImages={(data: any[]) => {
+            this.handleUploadImages(data);
+          }}
+          onCaptureImages={(data: any[]) => {
+            this.handleUploadImages(data);
+          }}
+        />
       </Container>
     );
   }
@@ -565,6 +703,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.gray,
     height: 29,
+    width: "100%",
   },
   expensesContainer: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -588,14 +727,19 @@ const styles = StyleSheet.create({
   },
   addFinanceButton: {
     flexDirection: "row",
-    paddingRight: 90,
-    bottom: 10,
+    position: "absolute",
+    right: 0,
+    top: -7,
+    justifyContent: "space-between",
+    width: 50,
   },
   filterButton: {
+    flexDirection: "row",
     position: "absolute",
-    top: -24,
-    right: -25,
-    width: 40,
+    right: 0,
+    top: -7,
+    justifyContent: "space-between",
+    width: 15,
   },
   tenantInfoItem: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -615,6 +759,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.secondary,
     alignItems: "center",
+  },
+  loading: {
+    alignSelf: "center",
+    top: "30%",
+  },
+  overlay: {
+    position: 'absolute',
+    backgroundColor: theme.colors.accent,
+    flex: 1,
+    left: 0,
+    top: 0,
+    opacity: 0.5,
+    width: '100%',
+    height: '100%'
   },
 });
 
