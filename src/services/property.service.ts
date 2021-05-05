@@ -9,6 +9,7 @@ import {
 
 import CommonService from "services/common.service";
 import firebase from "firebase";
+import { remove } from "lodash";
 
 export default class PropertyService {
   private commonService = new CommonService();
@@ -120,17 +121,13 @@ export default class PropertyService {
    */
   handleRemovePropertyFromUser = (propertyId: string, userData: any) => {
     const properties = userData.properties;
-
-    // Filters out property to be deleted
-    const filteredProperties = properties.filter(
-      (id: string) => id !== propertyId
-    );
+    remove(properties, (p: string) => p === propertyId);
 
     // Sets the new properties array
     return firebase
       .firestore()
       .collection(USER_DOC)
       .doc(firebase.auth().currentUser?.uid)
-      .update({ properties: filteredProperties });
+      .update({ properties });
   };
 }

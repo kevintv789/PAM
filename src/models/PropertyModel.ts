@@ -14,7 +14,6 @@ export interface State {
   tenantsData: any[];
   showTooltip: boolean;
   showCommonModal: boolean;
-  isRemoving: boolean;
   imagesUrl: any[];
 }
 
