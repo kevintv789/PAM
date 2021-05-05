@@ -1,6 +1,6 @@
 # PAM Test Branch
 
-# Beta Release v0.1.20210505
+# Beta Release v0.18.20210505
 - Minor features
     - Allow the user to add additional images to their property within their expanded property content without having to go through the Edit screen
 - Bug fixes
