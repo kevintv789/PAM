@@ -4,6 +4,7 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
 import {
   AntDesign,
@@ -211,13 +212,16 @@ class PropertyComponent extends Component<
 
   renderEditPropertyButton = () => {
     return (
-      <Container flex={false} style={{ width: 50 }}>
+      <View
+        style={{ width: 50 }}
+        hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
+      >
         <Entypo
           name="dots-three-vertical"
           size={20}
           color={theme.colors.accent}
         />
-      </Container>
+      </View>
     );
   };
 
@@ -362,7 +366,7 @@ class PropertyComponent extends Component<
                 {propertyData.propertyAddress}
               </AnimatedText>
 
-              <Container style={{ width: 28 }} flex={1}>
+              <Container style={{ width: 28 }} flex={false}>
                 <TooltipWrapper
                   anchor={this.renderEditPropertyButton()}
                   content={this.renderTooltipOptions(125)}

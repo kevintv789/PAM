@@ -1,6 +1,8 @@
 export interface State {
   showNotesModal: boolean;
   notesValue: any;
+  showUploadImagesModal: boolean;
+  isUploadingImages: boolean;
 }
 
 export interface Props {
