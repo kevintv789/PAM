@@ -13,6 +13,7 @@ Any other info will be written out at a future date.
     - Allow the user to add additional images to their property within their expanded property content without having to go through the Edit screen
 - Bug fixes
     - Made touching the vertical dots even easier when property is expanded.
+    - Drastically reduced cloud storage bandwidth by only downloading images when new images are uploaded
 
 # Beta Release v0.17.20210504
 - Bug fixes
