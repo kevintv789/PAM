@@ -17,7 +17,7 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, property, sumBy } from "lodash";
+import { orderBy, sumBy } from "lodash";
 
 import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
 import CommonService from "services/common.service";

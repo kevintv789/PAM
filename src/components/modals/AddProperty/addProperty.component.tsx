@@ -337,7 +337,7 @@ class AddPropertyComponent extends Component<
         console.log("ERROR failed to upload images", error)
       )
       .finally(() =>
-        setTimeout(() => this.setState({ isLoading: false }), 2500)
+        setTimeout(() => this.setState({ isLoading: false }), 3500)
       );
   };
 

@@ -7460,6 +7460,11 @@ react-native-measureme@0.0.2:
   resolved "https://registry.yarnpkg.com/react-native-measureme/-/react-native-measureme-0.0.2.tgz#7f54eeb0813d461ef6c49d921e42e253d649c47a"
   integrity sha512-m7Td7w1pVdIf7a3ejN7K/67AU+TtkZqTt9/ieKamirLRI3fjLToupmOKDtIOU3Y56oKojzTKz1lBbYSPN28HWA==
 
+react-native-mmkv-storage@^0.5.7:
+  version "0.5.7"
+  resolved "https://registry.yarnpkg.com/react-native-mmkv-storage/-/react-native-mmkv-storage-0.5.7.tgz#b3688fc0b9f895482b2bc64e5133a12eac0c5c78"
+  integrity sha512-gLI0UWcu4MyZ21zYhsXNYOCQ8lUNBE9isDSzSHnEI7JjVopvrNiOsSgPdFAmQEP6Z5RZUNZ/KxY7Deo+v+3Kyg==
+
 react-native-modal-datetime-picker@^9.2.0:
   version "9.2.0"
   resolved "https://registry.yarnpkg.com/react-native-modal-datetime-picker/-/react-native-modal-datetime-picker-9.2.0.tgz#6a5fe70dd0dc86e7f594b76c1c84bb2d9796619a"
