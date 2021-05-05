@@ -94,6 +94,24 @@ export default class CommonService {
   };
 
   /**
+   * This function handles the updating of a single field within a collection
+   * @param collection
+   * @param docId
+   * @param fieldToUpdate
+   */
+  handleUpdateSingleField = (
+    collection: string,
+    docId: string,
+    fieldToUpdate: any
+  ) => {
+    return firebase
+      .firestore()
+      .collection(collection)
+      .doc(docId)
+      .update(fieldToUpdate);
+  };
+
+  /**
    * This function takes in a collection, property of an object and a particular data type
    * that will be used within the where() clause
    * @param collection

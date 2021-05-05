@@ -3,6 +3,7 @@ import {
   Container,
   DataOutline,
   ImagesList,
+  LoadingIndicator,
   Text,
 } from "components/common";
 import {
@@ -16,11 +17,14 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, sumBy } from "lodash";
+import { orderBy, property, sumBy } from "lodash";
 
+import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
+import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import { PropertyContentModel } from "models";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
@@ -32,12 +36,16 @@ class PropertyContentComponent extends Component<
   PropertyContentModel.Props,
   PropertyContentModel.State
 > {
+  private commonService = new CommonService();
+
   constructor(props: PropertyContentModel.Props) {
     super(props);
 
     this.state = {
       showNotesModal: false,
       notesValue: null,
+      showUploadImagesModal: false,
+      isUploadingImages: false,
     };
   }
 
@@ -56,7 +64,7 @@ class PropertyContentComponent extends Component<
             <Button
               color="transparent"
               style={[styles.addTenantButton, { width: 130 }]}
-              onPress={() => console.log("Adding more images")}
+              onPress={() => this.setState({ showUploadImagesModal: true })}
             >
               <Text light accent style={{ top: 2 }} size={13}>
                 Add More Images
@@ -79,6 +87,53 @@ class PropertyContentComponent extends Component<
         </Container>
       );
     }
+  };
+
+  handleUploadImages = (images: any[]) => {
+    const { propertyData } = this.props;
+    const imagesToUpload = [...propertyData.images];
+
+    images.forEach((image) => imagesToUpload.push(image));
+
+    this.commonService
+      .handleUploadImages(imagesToUpload, propertyData.id, "property")
+      .then(() => {
+        this.updatePropertyWithImage(images);
+      })
+      .catch((error) =>
+        console.log(
+          "ERROR couldn't upload additional images to the property: ",
+          error
+        )
+      )
+      .finally(() =>
+        this.setState({
+          isUploadingImages: false,
+        })
+      );
+
+    this.setState({ isUploadingImages: true, showUploadImagesModal: false });
+  };
+
+  updatePropertyWithImage = (images: any[]) => {
+    const { propertyData } = this.props;
+    const tempImages = [...propertyData.images];
+
+    images.forEach((image) => {
+      const imageObj = {
+        name: `images/property/${propertyData.id}-${tempImages.length}`,
+        uri: image.uri,
+      };
+      tempImages.push(imageObj);
+    });
+
+    this.commonService.handleUpdateSingleField(
+      PROPERTIES_DOC,
+      propertyData.id,
+      {
+        images: tempImages,
+      }
+    );
   };
 
   renderTenantHeader = () => {
@@ -603,14 +658,37 @@ class PropertyContentComponent extends Component<
   };
 
   render() {
+    const { showUploadImagesModal, isUploadingImages } = this.state;
+
     return (
       <Container>
+        <Container style={isUploadingImages ? styles.overlay : {}}>
+          {isUploadingImages && (
+            <LoadingIndicator
+              size="large"
+              color={theme.colors.offWhite}
+              containerStyle={styles.loading}
+            />
+          )}
+        </Container>
+
         {this.renderImageSection()}
         {this.renderTenantHeader()}
         {this.renderTenantInfo()}
         {this.renderReport()}
         {this.renderNotesSection()}
         {this.renderNotesModal()}
+
+        <AddImageModalComponent
+          visible={showUploadImagesModal}
+          hideModal={() => this.setState({ showUploadImagesModal: false })}
+          onSelectImages={(data: any[]) => {
+            this.handleUploadImages(data);
+          }}
+          onCaptureImages={(data: any[]) => {
+            this.handleUploadImages(data);
+          }}
+        />
       </Container>
     );
   }
@@ -681,6 +759,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.secondary,
     alignItems: "center",
+  },
+  loading: {
+    alignSelf: "center",
+    top: "30%",
+  },
+  overlay: {
+    position: 'absolute',
+    backgroundColor: theme.colors.accent,
+    flex: 1,
+    left: 0,
+    top: 0,
+    opacity: 0.5,
+    width: '100%',
+    height: '100%'
   },
 });
 
