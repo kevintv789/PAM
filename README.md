@@ -1,5 +1,11 @@
 # PAM Test Branch
 
+# Beta Release v0.1.20210505
+- Minor features
+    - Allow the user to add additional images to their property within their expanded property content without having to go through the Edit screen
+- Bug fixes
+    - Made touching the vertical dots even easier when property is expanded.
+
 # Beta Release v0.17.20210504
 - Bug fixes
     - Fixed a bug that won't allow users that have more than one property to delete the last property
