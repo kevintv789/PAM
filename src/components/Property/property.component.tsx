@@ -27,7 +27,7 @@ import {
 } from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, sortBy } from "lodash";
+import { filter, isEqual, pick, sortBy, uniqBy } from "lodash";
 import {
   formatNumber,
   getPropertyImage,
@@ -283,13 +283,35 @@ class PropertyComponent extends Component<
   };
 
   updateImageDownloadUrl = async (images: any[]) => {
-    if (images && images.length > 0) {
+    const { propertyData } = this.props;
+
+    // use this to only download images if and only if said property doesn't have download path
+    const filteredPropertyImages = images.filter(
+      (p: any) => p.downloadPath == null
+    );
+
+    if (filteredPropertyImages && filteredPropertyImages.length > 0) {
       const data = await (
-        await this.commonService.getImageDownloadUri(images)
+        await this.commonService.getImageDownloadUri(filteredPropertyImages)
       ).filter((i: any) => i.uri != null);
 
       if (data && data.length > 0) {
-        this.setState({ imagesUrl: data });
+        // update property object collection to include the full uri
+        const tempImages = [...filteredPropertyImages];
+        tempImages.map((image, index) => {
+          image.downloadPath = data[index].uri;
+        });
+
+        const propertyImages = [...images];
+        tempImages.forEach((image) => propertyImages.push(image));
+
+        this.commonService
+          .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
+            images: uniqBy(propertyImages, 'uri'),
+          })
+          .then(() =>
+            console.log("Updated property document with new image list")
+          );
       }
     }
   };
@@ -324,7 +346,10 @@ class PropertyComponent extends Component<
           ]}
         >
           <AnimatedImage
-            source={getPropertyImage(imagesUrl, propertyData.unitType)}
+            source={getPropertyImage(
+              propertyData.images,
+              propertyData.unitType
+            )}
             style={[
               styles.propertyImages,
               {
@@ -694,10 +719,14 @@ class PropertyComponent extends Component<
       animatedContainerHeight,
       animatedExpandedContentOpacity,
       showCommonModal,
-      imagesUrl,
+      financesData,
+      tenantsData,
+      propertyData,
     } = this.state;
 
-    const { financesData, tenantsData, propertyData } = this.state;
+    const imagesUrl = propertyData.images.map((image: any) => ({
+      uri: image.downloadPath,
+    }));
 
     // TODO -- add in an actual loading icon when state is finally being called from API
     if (!propertyData) {

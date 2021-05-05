@@ -99,7 +99,7 @@ export const getPropertyImage = (images: any[], type: string) => {
         return;
     }
   } else {
-    return { uri: images[0].uri };
+    return { uri: images[0].downloadPath };
   }
 };
 
