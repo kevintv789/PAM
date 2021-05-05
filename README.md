@@ -1,3 +1,11 @@
+# PAM - Property Assistant Manager
+
+This pet project is created in React Native using Expo CLI. 
+
+Any other info will be written out at a future date.
+
+================================================================================================================================================
+
 # PAM Test Branch
 
 # Beta Release v0.18.20210505
