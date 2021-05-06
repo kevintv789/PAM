@@ -8,6 +8,10 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.18.20210506
+- Minor features
+    - Added caching to images being downloaded from external sources, which should increase the speed at which it loads (except the first time).
+
 # Beta Release v0.18.20210505
 - Minor features
     - Allow the user to add additional images to their property within their expanded property content without having to go through the Edit screen
