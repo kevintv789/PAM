@@ -8,7 +8,7 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
-# Beta Release v0.18.20210506
+# Beta Release v0.19.20210506
 - Minor features
     - Added caching to images being downloaded from external sources, which should increase the speed at which it loads (except the first time).
 
