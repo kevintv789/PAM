@@ -1,7 +1,8 @@
-import { FlatList, Image, StyleSheet } from "react-native";
+import { FlatList, StyleSheet } from "react-native";
 
 import AddImageButton from "./AddImageButton";
 import Container from "./Container";
+import { Image } from "react-native-expo-image-cache";
 import React from "react";
 
 const ImagesList = (props: any) => {
@@ -16,7 +17,7 @@ const ImagesList = (props: any) => {
         data={images}
         renderItem={({ item, index }) => (
           <React.Fragment>
-            <Image source={{ uri: item.uri }} style={[styles.image, imageSize, margins]} />
+            <Image uri={item.uri} style={[styles.image, imageSize, margins]} />
             {images.length === index + 1 && caption && (
               <Container>
                 <AddImageButton
