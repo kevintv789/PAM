@@ -109,6 +109,7 @@ class AddPropertyComponent extends Component<
             images={images}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
             caption="Add property images or related documents"
+            isCached={false}
           />
         </Container>
       );

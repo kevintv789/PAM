@@ -82,6 +82,7 @@ class PropertyContentComponent extends Component<
               images={imagesUrl}
               imageSize={{ width: 125, height: 125 }}
               margins={{ marginTop: 8, marginHorizontal: 5 }}
+              isCached
             />
           </Container>
         </Container>

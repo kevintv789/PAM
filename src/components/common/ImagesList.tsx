@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList, Image as RNImage, StyleSheet } from "react-native";
 
 import AddImageButton from "./AddImageButton";
 import Container from "./Container";
@@ -6,7 +6,14 @@ import { Image } from "react-native-expo-image-cache";
 import React from "react";
 
 const ImagesList = (props: any) => {
-  const { images, showAddImageModal, caption, imageSize, margins } = props;
+  const {
+    images,
+    showAddImageModal,
+    caption,
+    imageSize,
+    margins,
+    isCached = false,
+  } = props;
 
   return (
     <Container>
@@ -17,7 +24,19 @@ const ImagesList = (props: any) => {
         data={images}
         renderItem={({ item, index }) => (
           <React.Fragment>
-            <Image uri={item.uri} style={[styles.image, imageSize, margins]} />
+            {isCached && (
+              <Image
+                uri={item.uri}
+                style={[styles.image, imageSize, margins]}
+              />
+            )}
+            {!isCached && (
+              <RNImage
+                source={{ uri: item.uri }}
+                style={[styles.image, imageSize, margins]}
+              />
+            )}
+
             {images.length === index + 1 && caption && (
               <Container>
                 <AddImageButton
