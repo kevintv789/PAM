@@ -88,13 +88,25 @@ export const getPropertyImage = (images: any[], type: string) => {
   if (!images || images.length === 0) {
     switch (type) {
       case constants.PROPERTY_TYPES.APT_CONDO:
-        return require("../assets/images/apartment_default.png");
+        return {
+          uri:
+            "https://firebasestorage.googleapis.com/v0/b/pam-property-manager.appspot.com/o/images%2Fdefault_images%2Fapartment_default.png?alt=media&token=b9a3d245-de18-4a44-b37f-6d953b40a0d9",
+        };
       case constants.PROPERTY_TYPES.SINGLE_FAM:
-        return require("../assets/images/default_house_img_circle.png");
+        return {
+          uri:
+            "https://firebasestorage.googleapis.com/v0/b/pam-property-manager.appspot.com/o/images%2Fdefault_images%2Fdefault_house_img_circle.png?alt=media&token=1368be1e-2961-4c79-a49c-ac0044e8d825",
+        };
       case constants.PROPERTY_TYPES.TOWNHOUSE:
-        return require("../assets/images/prop_type_townhouse.png");
+        return {
+          uri:
+            "https://firebasestorage.googleapis.com/v0/b/pam-property-manager.appspot.com/o/images%2Fdefault_images%2Fdefault_townhouse.png?alt=media&token=21c41548-d75c-4989-a471-0884b8da3462",
+        };
       case constants.PROPERTY_TYPES.MULTI_FAM:
-        return require("../assets/images/multiplex_default.png");
+        return {
+          uri:
+            "https://firebasestorage.googleapis.com/v0/b/pam-property-manager.appspot.com/o/images%2Fdefault_images%2Fmultiplex_default.png?alt=media&token=6a8f471c-cb78-46c2-b74a-6714765b1be8",
+        };
       default:
         return;
     }

@@ -1,7 +1,7 @@
 import {
   Animated,
   Dimensions,
-  Image,
+  Image as RNImage,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -27,7 +27,7 @@ import {
 } from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, pick, sortBy, uniqBy } from "lodash";
+import { filter, isEqual, sortBy, uniqBy } from "lodash";
 import {
   formatNumber,
   getPropertyImage,
@@ -36,6 +36,7 @@ import {
 
 import AuthService from "services/auth.service";
 import CommonService from "services/common.service";
+import { Image } from "react-native-expo-image-cache";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
 import PropertyService from "services/property.service";
@@ -307,7 +308,7 @@ class PropertyComponent extends Component<
 
         this.commonService
           .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
-            images: uniqBy(propertyImages, 'uri'),
+            images: uniqBy(propertyImages, "uri"),
           })
           .then(() =>
             console.log("Updated property document with new image list")
@@ -327,7 +328,6 @@ class PropertyComponent extends Component<
       imagesUrl,
     } = this.state;
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
-
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
@@ -346,10 +346,10 @@ class PropertyComponent extends Component<
           ]}
         >
           <AnimatedImage
-            source={getPropertyImage(
-              propertyData.images,
-              propertyData.unitType
-            )}
+            uri={
+              getPropertyImage(propertyData.images, propertyData.unitType).uri
+            }
+            onError={() => console.log("ERROR in retrieving cache image")}
             style={[
               styles.propertyImages,
               {
@@ -366,7 +366,7 @@ class PropertyComponent extends Component<
               flex={1}
               style={{ top: animatedHeaderPropertyAddressTop }}
             >
-              <Image
+              <RNImage
                 source={iconImageData.imagePath}
                 style={[
                   styles.propIcons,
@@ -548,7 +548,7 @@ class PropertyComponent extends Component<
       <Container row style={{ position: "relative", height: 0 }}>
         <Container>
           <Container row padding={8}>
-            <Image
+            <RNImage
               source={require("assets/icons/key.png")}
               style={{ width: theme.sizes.base, height: theme.sizes.base }}
             />
@@ -568,7 +568,7 @@ class PropertyComponent extends Component<
 
         <Container style={styles.right}>
           <Container row padding={8} style={{ width: width / 2.3 }}>
-            <Image
+            <RNImage
               source={require("assets/icons/dollar_sign.png")}
               style={{
                 width: theme.sizes.base,
