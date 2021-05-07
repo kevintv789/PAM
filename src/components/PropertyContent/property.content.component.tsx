@@ -1,5 +1,6 @@
 import {
   Button,
+  CommonModal,
   Container,
   DataOutline,
   ImagesList,
@@ -22,6 +23,7 @@ import { orderBy, sumBy } from "lodash";
 import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
 import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
@@ -46,8 +48,16 @@ class PropertyContentComponent extends Component<
       notesValue: null,
       showUploadImagesModal: false,
       isUploadingImages: false,
+      showWarningModal: false,
+      imageToDelete: null,
     };
   }
+
+  onDeleteSingleImage = () => {
+    const { imageToDelete } = this.state;
+    const { onDeleteImageFromProperty } = this.props;
+    if (onDeleteImageFromProperty) onDeleteImageFromProperty(imageToDelete);
+  };
 
   renderImageSection = () => {
     const { imagesUrl } = this.props;
@@ -83,6 +93,9 @@ class PropertyContentComponent extends Component<
               imageSize={{ width: 125, height: 125 }}
               margins={{ marginTop: 8, marginHorizontal: 5 }}
               isCached
+              onDeleteImage={(image: any) =>
+                this.setState({ showWarningModal: true, imageToDelete: image })
+              }
             />
           </Container>
         </Container>
@@ -659,7 +672,11 @@ class PropertyContentComponent extends Component<
   };
 
   render() {
-    const { showUploadImagesModal, isUploadingImages } = this.state;
+    const {
+      showUploadImagesModal,
+      isUploadingImages,
+      showWarningModal,
+    } = this.state;
 
     return (
       <Container>
@@ -689,6 +706,23 @@ class PropertyContentComponent extends Component<
           onCaptureImages={(data: any[]) => {
             this.handleUploadImages(data);
           }}
+        />
+
+        <CommonModal
+          visible={showWarningModal}
+          compact
+          descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
+          hideModal={() => this.setState({ showWarningModal: false })}
+          onSubmit={() => this.onDeleteSingleImage()}
+          headerIcon={
+            <FontAwesome
+              name="warning"
+              size={36}
+              color={theme.colors.offWhite}
+            />
+          }
+          headerIconBackground={theme.colors.primary}
+          title="Confirm"
         />
       </Container>
     );
@@ -766,14 +800,14 @@ const styles = StyleSheet.create({
     top: "30%",
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     backgroundColor: theme.colors.accent,
     flex: 1,
     left: 0,
     top: 0,
     opacity: 0.5,
-    width: '100%',
-    height: '100%'
+    width: "100%",
+    height: "100%",
   },
 });
 

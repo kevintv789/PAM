@@ -3,6 +3,8 @@ export interface State {
   notesValue: any;
   showUploadImagesModal: boolean;
   isUploadingImages: boolean;
+  showWarningModal: boolean;
+  imageToDelete: any;
 }
 
 export interface Props {
@@ -12,5 +14,6 @@ export interface Props {
   navigation?: any;
   getTenants?: (tenantIds: string[]) => {};
   tenantsData?: any[];
-  imagesUrl?: any[]
+  imagesUrl?: any[];
+  onDeleteImageFromProperty?: (image: any) => {};
 }

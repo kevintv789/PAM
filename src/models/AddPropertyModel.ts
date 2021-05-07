@@ -13,6 +13,8 @@ export interface State {
   showAddImageModal: boolean;
   images: any[];
   imageStorageDownloadUrls: any[];
+  showWarningModal: boolean;
+  imageToDelete: any;
 }
 
 export interface Props {

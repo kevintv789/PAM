@@ -180,4 +180,13 @@ export default class CommonService {
       })
     );
   };
+
+  /**
+   * This function deletes a single item from the storage given the file name
+   * @param fileName 
+   */
+  deleteSingleItemFromStorage = async (fileName: string) => {
+    const ref = firebase.storage().ref().child(fileName);
+    return await ref.delete();
+  }
 }

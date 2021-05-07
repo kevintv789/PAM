@@ -3,6 +3,7 @@ import {
   AddressInput,
   Button,
   CheckBox,
+  CommonModal,
   Container,
   HeaderDivider,
   ImagesList,
@@ -12,21 +13,21 @@ import {
   TextInput,
 } from "components/common";
 import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
+import { Entypo, FontAwesome } from "@expo/vector-icons";
 import React, { Component } from "react";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
+import { isEqual, property, remove } from "lodash";
 
 import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
 import CommonService from "services/common.service";
-import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
-import { isEqual } from "lodash";
 import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
@@ -61,6 +62,8 @@ class AddPropertyComponent extends Component<
       showAddImageModal: false,
       images: [],
       imageStorageDownloadUrls: [],
+      showWarningModal: false,
+      imageToDelete: null,
     };
 
     this.scrollViewRef = React.createRef();
@@ -91,6 +94,49 @@ class AddPropertyComponent extends Component<
     }
   }
 
+  onDeleteSingleImage = () => {
+    const { imageToDelete, images, imageStorageDownloadUrls } = this.state;
+    const propertyImages = [...images];
+    const imageStorageUrls = [...imageStorageDownloadUrls];
+
+    const removedItem = remove(propertyImages, (p: any) =>
+      p.downloadPath != null
+        ? p.downloadPath === imageToDelete.uri
+        : p.uri === imageToDelete.uri
+    );
+
+    remove(imageStorageUrls, (p: any) => p.uri === imageToDelete.uri);
+
+    if (
+      this.isEditting &&
+      this.routePropertyData &&
+      imageToDelete.uri.substring(0, 4) === "http"
+    ) {
+      this.commonService
+        .deleteStorageFile(removedItem)
+        .then(() => {
+          // update property images with new object
+          this.commonService
+            .handleUpdateSingleField(
+              PROPERTIES_DOC,
+              this.routePropertyData.id,
+              { images: propertyImages }
+            )
+            .then(() =>
+              this.setState({ imageStorageDownloadUrls: imageStorageUrls })
+            );
+        })
+        .catch((error) =>
+          console.log("ERROR cannot remove item: ", removedItem[0].name, error)
+        );
+    } else {
+      this.setState({
+        images: propertyImages,
+        imageStorageDownloadUrls: imageStorageUrls,
+      });
+    }
+  };
+
   renderImageSection = () => {
     const { images, imageStorageDownloadUrls } = this.state;
     if (images && images.length === 0) {
@@ -110,6 +156,9 @@ class AddPropertyComponent extends Component<
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
             caption="Add property images or related documents"
             isCached={false}
+            onDeleteImage={(image: any) =>
+              this.setState({ showWarningModal: true, imageToDelete: image })
+            }
           />
         </Container>
       );
@@ -123,6 +172,9 @@ class AddPropertyComponent extends Component<
                 this.setState({ showAddImageModal: true })
               }
               caption="Add property images or related documents"
+              onDeleteImage={(image: any) =>
+                this.setState({ showWarningModal: true, imageToDelete: image })
+              }
             />
           </Container>
         );
@@ -519,6 +571,7 @@ class AddPropertyComponent extends Component<
       showKeyboard,
       showAddImageModal,
       images,
+      showWarningModal,
     } = this.state;
 
     if (streetAddressResults.length > 0 && autoFill) {
@@ -570,6 +623,22 @@ class AddPropertyComponent extends Component<
             data.forEach((image) => tempImages.push(image));
             this.setState({ images: tempImages });
           }}
+        />
+        <CommonModal
+          visible={showWarningModal}
+          compact
+          descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
+          hideModal={() => this.setState({ showWarningModal: false })}
+          onSubmit={() => this.onDeleteSingleImage()}
+          headerIcon={
+            <FontAwesome
+              name="warning"
+              size={36}
+              color={theme.colors.offWhite}
+            />
+          }
+          headerIconBackground={theme.colors.primary}
+          title="Confirm"
         />
       </React.Fragment>
     );
