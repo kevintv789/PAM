@@ -20,11 +20,12 @@ const CommonModal = (props: any) => {
     children,
     descriptorText,
     hideModal,
-    onRemoveProperty,
+    onSubmit,
     customTextProp,
     headerIcon,
     headerIconBackground,
     title,
+    isAsync = false,
     // isLoading,
   } = props;
 
@@ -45,8 +46,13 @@ const CommonModal = (props: any) => {
           color="secondary"
           style={styles.navButtons}
           onPress={() => {
-            setIsLoading(true)
-            onRemoveProperty().finally(() => setIsLoading(false));
+            if (isAsync) {
+              setIsLoading(true);
+              onSubmit().finally(() => setIsLoading(false));
+            } else {
+              onSubmit();
+              hideModal();
+            }
           }}
           disabled={isLoading}
         >

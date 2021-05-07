@@ -27,7 +27,7 @@ import {
 } from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, sortBy, uniqBy } from "lodash";
+import { filter, isEqual, remove, sortBy, uniqBy } from "lodash";
 import {
   formatNumber,
   getPropertyImage,
@@ -123,6 +123,30 @@ class PropertyComponent extends Component<
       this.setFinancialData();
     }
   }
+
+  onDeleteSingleImage = (image: any) => {
+    const { propertyData } = this.props;
+    const propertyImages = [...propertyData.images];
+
+    const removedItem = remove(
+      propertyImages,
+      (p: any) => p.downloadPath === image.uri
+    );
+
+    this.commonService
+      .deleteStorageFile(removedItem)
+      .then(() => {
+        // update property images with new object
+        this.commonService.handleUpdateSingleField(
+          PROPERTIES_DOC,
+          propertyData.id,
+          { images: propertyImages }
+        );
+      })
+      .catch((error) =>
+        console.log("ERROR cannot remove item: ", removedItem[0].name, error)
+      );
+  };
 
   setFinancialData = () => {
     const { financesData } = this.props;
@@ -762,6 +786,9 @@ class PropertyComponent extends Component<
                 totalIncome={this.sumIncomeForTimePeriod(
                   constants.RECURRING_PAYMENT_TYPE.MONTHLY
                 )}
+                onDeleteImageFromProperty={(image: any) =>
+                  this.onDeleteSingleImage(image)
+                }
               />
             </AnimatedContainer>
           )}
@@ -770,7 +797,7 @@ class PropertyComponent extends Component<
             compact
             descriptorText={`Are you sure you want to bulldoze this property?\n\nYou can't undo this action.`}
             hideModal={() => this.setState({ showCommonModal: false })}
-            onRemoveProperty={() => this.onRemoveProperty()}
+            onSubmit={() => this.onRemoveProperty()}
             headerIcon={
               <FontAwesome
                 name="warning"
@@ -780,6 +807,7 @@ class PropertyComponent extends Component<
             }
             headerIconBackground={theme.colors.primary}
             title="Confirm"
+            isAsync
           />
         </AnimatedContainer>
       );
