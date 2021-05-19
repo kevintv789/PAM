@@ -1,5 +1,3 @@
-import * as Animatable from "react-native-animatable";
-
 import {
   Animated,
   Dimensions,
@@ -42,7 +40,7 @@ const CameraPreviewModalComponent = (props: any) => {
     return (
       <Container style={containerStyle} flex={false} middle center>
         <TouchableOpacity
-          style={{ marginBottom: 20, marginTop: 0 }}
+          style={{ marginBottom: 10, marginTop: 10 }}
           onPress={() => {
             setExpanded(!expanded);
             if (image) {
@@ -57,12 +55,14 @@ const CameraPreviewModalComponent = (props: any) => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={{ marginBottom: 0, marginTop: 0 }}
-          onPress={() => removeImageOnIndex(index)}
-        >
-          <Feather name="trash-2" size={26} color={theme.colors.red} />
-        </TouchableOpacity>
+        {removeImageOnIndex && (
+          <TouchableOpacity
+            style={{ marginBottom: 10, marginTop: 0 }}
+            onPress={() => removeImageOnIndex(index)}
+          >
+            <Feather name="trash-2" size={26} color={theme.colors.red} />
+          </TouchableOpacity>
+        )}
       </Container>
     );
   };
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
   },
   clickableButtonsContainer: {
     width: 50,
-    height: 120,
     backgroundColor: "rgba(1, 1, 1, 0.4)",
     alignSelf: "flex-end",
     borderRadius: 10,
@@ -238,7 +237,6 @@ const styles = StyleSheet.create({
   },
   expandedClickableButtonContainer: {
     width: 50,
-    height: 120,
     backgroundColor: "rgba(1, 1, 1, 0.4)",
     alignSelf: "flex-end",
     borderRadius: 10,

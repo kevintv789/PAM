@@ -81,8 +81,10 @@ export default class CommonService {
 
     images.forEach((image, index) => {
       imagesUri.push({
-        name: `images/${type}/${docId}-${index}`,
+        name:
+          image.name != null ? image.name : `images/${type}/${docId}-${index}`,
         uri: image.uri,
+        downloadPath: image.downloadPath != null ? image.downloadPath : "",
       });
     });
 
@@ -183,10 +185,10 @@ export default class CommonService {
 
   /**
    * This function deletes a single item from the storage given the file name
-   * @param fileName 
+   * @param fileName
    */
   deleteSingleItemFromStorage = async (fileName: string) => {
     const ref = firebase.storage().ref().child(fileName);
     return await ref.delete();
-  }
+  };
 }
