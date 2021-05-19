@@ -12,12 +12,22 @@ import {
   Text,
   TextInput,
 } from "components/common";
-import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
-import { Entypo, FontAwesome } from "@expo/vector-icons";
+import {
+  Dimensions,
+  Image,
+  Keyboard,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import {
+  Entypo,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import React, { Component } from "react";
-import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
-import { isEqual, property, remove } from "lodash";
+import { isEqual, remove } from "lodash";
 
 import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
@@ -26,6 +36,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
+import { ScrollView } from "react-native-gesture-handler";
 import { connect } from "react-redux";
 import { hasErrors } from "shared/Utils";
 import { updateProperty } from "reducks/modules/property";
@@ -137,8 +148,33 @@ class AddPropertyComponent extends Component<
     }
   };
 
+  updateImagePosition = (data: any) => {
+    const { images, imageStorageDownloadUrls } = this.state;
+
+    const from = data.from;
+    const to = data.to;
+    const tempImagesUrl = [...images];
+    const tempStorageDownloadUrls = [...imageStorageDownloadUrls];
+
+    [tempImagesUrl[from], tempImagesUrl[to]] = [
+      tempImagesUrl[to],
+      tempImagesUrl[from],
+    ];
+
+    [tempStorageDownloadUrls[from], tempStorageDownloadUrls[to]] = [
+      tempStorageDownloadUrls[to],
+      tempStorageDownloadUrls[from],
+    ];
+
+    this.setState({
+      imageStorageDownloadUrls: tempStorageDownloadUrls,
+      images: tempImagesUrl,
+    });
+  };
+
   renderImageSection = () => {
     const { images, imageStorageDownloadUrls } = this.state;
+
     if (images && images.length === 0) {
       return (
         <AddImageButton
@@ -154,11 +190,13 @@ class AddPropertyComponent extends Component<
           <ImagesList
             images={images}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
-            caption="Add property images or related documents"
             isCached={false}
             onDeleteImage={(image: any) =>
               this.setState({ showWarningModal: true, imageToDelete: image })
             }
+            onDragEnd={(data: any[]) => {
+              this.updateImagePosition(data, false);
+            }}
           />
         </Container>
       );
@@ -171,10 +209,12 @@ class AddPropertyComponent extends Component<
               showAddImageModal={() =>
                 this.setState({ showAddImageModal: true })
               }
-              caption="Add property images or related documents"
               onDeleteImage={(image: any) =>
                 this.setState({ showWarningModal: true, imageToDelete: image })
               }
+              onDragEnd={(data: any[]) => {
+                this.updateImagePosition(data, true);
+              }}
             />
           </Container>
         );
@@ -384,7 +424,7 @@ class AddPropertyComponent extends Component<
           if (!this.isEditting) {
             navigation.navigate("AddPropertyDoneModal");
           }
-        }, 2000);
+        }, 3000);
       })
       .catch((error: any) =>
         console.log("ERROR failed to upload images", error)
@@ -594,14 +634,33 @@ class AddPropertyComponent extends Component<
               scrollEnabled={false}
               keyboardShouldPersistTaps={"handled"}
             >
-              <Text
-                h1
-                offWhite
-                center
-                style={{ paddingTop: theme.sizes.padding }}
-              >
-                {this.isEditting ? "Edit Property" : "Add Property"}
-              </Text>
+              <Container row>
+                <Container flex={1} style={{ width: "95%" }}>
+                  <Text
+                    h1
+                    offWhite
+                    center
+                    style={{ paddingTop: theme.sizes.padding }}
+                  >
+                    {this.isEditting ? "Edit Property" : "Add Property"}
+                  </Text>
+                </Container>
+                {images && images.length > 0 && (
+                  <Container flex={false} style={{ width: "5%" }}>
+                    <TouchableOpacity
+                      style={styles.addImagesBtn}
+                      onPress={() => this.setState({ showAddImageModal: true })}
+                    >
+                      <MaterialCommunityIcons
+                        name="camera-plus-outline"
+                        size={28}
+                        color={theme.colors.tertiary}
+                      />
+                    </TouchableOpacity>
+                  </Container>
+                )}
+              </Container>
+
               {this.renderImageSection()}
               {this.renderPropertyTypeSelection()}
               {this.renderPropertyDetails()}
@@ -703,6 +762,12 @@ const styles = StyleSheet.create({
     paddingRight: theme.sizes.padding,
     justifyContent: "flex-end",
     marginBottom: -10,
+  },
+  addImagesBtn: {
+    width: 95,
+    alignSelf: "flex-end",
+    margin: 20,
+    marginTop: 25,
   },
 });
 

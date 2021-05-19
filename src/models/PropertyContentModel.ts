@@ -5,6 +5,7 @@ export interface State {
   isUploadingImages: boolean;
   showWarningModal: boolean;
   imageToDelete: any;
+  imagesUrl: any;
 }
 
 export interface Props {
@@ -16,4 +17,5 @@ export interface Props {
   tenantsData?: any[];
   imagesUrl?: any[];
   onDeleteImageFromProperty?: (image: any) => {};
+  onImageDragEnd?: (data: any) => {};
 }

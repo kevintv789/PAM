@@ -737,6 +737,30 @@ class PropertyComponent extends Component<
       );
   };
 
+  updateImagePosition = (images: any) => {
+    const { propertyData, imagesUrl } = this.state;
+
+    if (images && images.data) {
+      let oldImageData = [...propertyData.images];
+      const from = images.from;
+      const to = images.to;
+
+      // swap locations
+      [oldImageData[from], oldImageData[to]] = [
+        oldImageData[to],
+        oldImageData[from],
+      ];
+
+      this.commonService
+        .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
+          images: oldImageData,
+        })
+        .catch((error) =>
+          console.log("Could not update image positioning", error)
+        );
+    }
+  };
+
   render() {
     const {
       expanded,
@@ -789,6 +813,7 @@ class PropertyComponent extends Component<
                 onDeleteImageFromProperty={(image: any) =>
                   this.onDeleteSingleImage(image)
                 }
+                onImageDragEnd={(data: any) => this.updateImagePosition(data)}
               />
             </AnimatedContainer>
           )}

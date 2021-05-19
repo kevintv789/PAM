@@ -18,7 +18,7 @@ import {
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
-import { orderBy, sumBy } from "lodash";
+import { isEqual, orderBy, sumBy } from "lodash";
 
 import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
 import CommonService from "services/common.service";
@@ -50,7 +50,16 @@ class PropertyContentComponent extends Component<
       isUploadingImages: false,
       showWarningModal: false,
       imageToDelete: null,
+      imagesUrl: this.props.imagesUrl,
     };
+  }
+
+  componentDidUpdate(prevProps: PropertyContentModel.Props) {
+    const { imagesUrl } = this.props;
+
+    if (!isEqual(prevProps.imagesUrl, imagesUrl)) {
+      this.setState({ imagesUrl });
+    }
   }
 
   onDeleteSingleImage = () => {
@@ -59,8 +68,28 @@ class PropertyContentComponent extends Component<
     if (onDeleteImageFromProperty) onDeleteImageFromProperty(imageToDelete);
   };
 
+  /**
+   * Necessary to update the state of the image location first, or else
+   * there will be a weird lag when trying to update the backend with
+   * the new positioning
+   */
+  updateImagePosition = (data: any) => {
+    const { imagesUrl } = this.state;
+    const from = data.from;
+    const to = data.to;
+    const tempImagesUrl = [...imagesUrl];
+
+    [tempImagesUrl[from], tempImagesUrl[to]] = [
+      tempImagesUrl[to],
+      tempImagesUrl[from],
+    ];
+
+    this.setState({ imagesUrl: tempImagesUrl });
+  };
+
   renderImageSection = () => {
-    const { imagesUrl } = this.props;
+    const { onImageDragEnd } = this.props;
+    const { imagesUrl } = this.state;
 
     if (imagesUrl && imagesUrl.length > 0) {
       return (
@@ -96,6 +125,10 @@ class PropertyContentComponent extends Component<
               onDeleteImage={(image: any) =>
                 this.setState({ showWarningModal: true, imageToDelete: image })
               }
+              onDragEnd={(data: any[]) => {
+                onImageDragEnd && onImageDragEnd(data);
+                this.updateImagePosition(data);
+              }}
             />
           </Container>
         </Container>

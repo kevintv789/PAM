@@ -1,28 +1,32 @@
+import DraggableFlatList, {
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import {
   FlatList,
   Image as RNImage,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import AddImageButton from "./AddImageButton";
+import CameraPreviewModalComponent from "../Modals/Add Image/Camera Modal/Camera Preview/camera-preview.component";
 import Container from "./Container";
-import { Feather } from "@expo/vector-icons";
 import { Image } from "react-native-expo-image-cache";
 import { theme } from "shared";
 
 const ImagesList = (props: any) => {
   const [isImageSelected, setImageSelected] = useState(null);
+  const [showImagePreviewModal, setShowImagePreviewModal] = useState(false);
 
   const {
     images,
-    showAddImageModal,
-    caption,
     imageSize,
     margins,
     isCached = false,
     onDeleteImage,
+    onDragEnd,
   } = props;
 
   const onImageSelect = (image: any) => {
@@ -60,10 +64,12 @@ const ImagesList = (props: any) => {
           row
         >
           {isImageSelected === item.uri && (
-            <TouchableOpacity>
-              <RNImage
-                source={require("assets/icons/four-squares.png")}
-                style={styles.imagePreviewBtn}
+            <TouchableOpacity onPress={() => setShowImagePreviewModal(true)}>
+              <FontAwesome5
+                name="images"
+                size={26}
+                color="white"
+                style={{ paddingRight: 10, paddingLeft: 10 }}
               />
             </TouchableOpacity>
           )}
@@ -83,34 +89,40 @@ const ImagesList = (props: any) => {
     );
   };
 
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
+    return (
+      <React.Fragment>
+        <TouchableOpacity
+          onPress={() => onImageSelect(item)}
+          onLongPress={() => {
+            setImageSelected(null);
+            drag();
+          }}
+        >
+          {renderImage(item)}
+        </TouchableOpacity>
+      </React.Fragment>
+    );
+  };
+
   return (
     <Container>
-      <FlatList
+      <DraggableFlatList
         keyboardShouldPersistTaps={"handled"}
         horizontal
         showsHorizontalScrollIndicator={false}
         data={images}
-        renderItem={({ item, index }) => (
-          <React.Fragment>
-            <TouchableOpacity
-              onPress={() => onImageSelect(item)}
-              onLongPress={() => console.log("rearranging...")}
-            >
-              {renderImage(item)}
-            </TouchableOpacity>
-            {images.length === index + 1 && caption && (
-              <Container>
-                <AddImageButton
-                  handleOnPress={() => showAddImageModal()}
-                  caption={caption}
-                  containerStyle={{ marginRight: 10, width: 150 }}
-                />
-              </Container>
-            )}
-          </React.Fragment>
-        )}
-        keyExtractor={(item: any) => item.uri}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.uri}
+        onDragEnd={(data) => onDragEnd(data)}
       />
+      <Container flex={false}>
+        <CameraPreviewModalComponent
+          visible={showImagePreviewModal}
+          hideModal={() => setShowImagePreviewModal(false)}
+          images={images}
+        />
+      </Container>
     </Container>
   );
 };
