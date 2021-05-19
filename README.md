@@ -8,6 +8,11 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.21.20210519
+- Minor features
+    - The user can now preview their images on image click within the expanded property card and while editing or adding a property by clicking on the icon next to the Delete icon 
+    - The user can now rearrange their image within the expanded property card and while editing or adding a property by doing a long press on the image and dragging it to a different location
+
 # Beta Release v0.20.20210507
 - Minor features
     - Added single image deletion on an expanded property content and when the user is adding/editting their property
