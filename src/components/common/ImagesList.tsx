@@ -3,15 +3,13 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import {
-  FlatList,
   Image as RNImage,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
-import AddImageButton from "./AddImageButton";
-import CameraPreviewModalComponent from "../Modals/Add Image/Camera Modal/Camera Preview/camera-preview.component";
+import CameraPreviewModalComponent from "components/Modals/Add Image/Camera Modal/Camera Preview/camera-preview.component";
 import Container from "./Container";
 import { Image } from "react-native-expo-image-cache";
 import { theme } from "shared";
@@ -89,7 +87,7 @@ const ImagesList = (props: any) => {
     );
   };
 
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
+  const renderItem = ({ item, drag }: RenderItemParams<any>) => {
     return (
       <React.Fragment>
         <TouchableOpacity

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Text from "components/common/Text";
 import { theme } from "shared";
@@ -8,6 +9,10 @@ import { theme } from "shared";
 export default function CheckBox(props: any) {
   const { rightLabel, handleCheck, defaultChecked, touchAreaStyle } = props;
   const [checked, setChecked] = useState(defaultChecked);
+
+  useEffect(() => {
+    setChecked(defaultChecked)
+  });
 
   const handleTouch = () => {
     setChecked(!checked);

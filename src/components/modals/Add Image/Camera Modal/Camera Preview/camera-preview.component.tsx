@@ -5,15 +5,16 @@ import {
   ImageBackground,
   StyleSheet,
 } from "react-native";
-import { Container, Text } from "components/common";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler";
 
+import Container from "components/common/Container";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Modal from "react-native-modal";
 import ReactNativeZoomableView from "@dudigital/react-native-zoomable-view/src/ReactNativeZoomableView";
 import Swiper from "react-native-swiper";
+import Text from "components/common/Text";
 import moment from "moment";
 import { theme } from "shared";
 
