@@ -8,6 +8,10 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.22.20210520
+- Minor features
+    - Added a Remember me checkbox on the Login screen, which will remember the user's Email address
+
 # Beta Release v0.21.20210519
 - Minor features
     - The user can now preview their images on image click within the expanded property card and while editing or adding a property by clicking on the icon next to the Delete icon 
