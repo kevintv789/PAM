@@ -1,5 +1,6 @@
 import {
   Button,
+  CheckBox,
   Container,
   LoadingIndicator,
   Text,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthService from "services/auth.service";
 import { LoginModel } from "models";
 import { User } from "models/User.model";
@@ -31,15 +33,25 @@ export default class LoginScreen extends Component<
   constructor(props: any) {
     super(props);
     this.state = {
-      email: "test@test.com",
+      email: "",
       password: "pamisthebest",
       errors: [],
       isLoading: false,
+      rememberMe: false,
     };
   }
 
+  async componentDidMount() {
+    const email = await this.getEmailFromAsyncStorage();
+
+    this.setState({
+      rememberMe: email != null,
+      email: email || "",
+    });
+  }
+
   handleSignIn = () => {
-    const { email, password } = this.state;
+    const { email, password, rememberMe } = this.state;
     const { navigation } = this.props;
 
     const errors: string[] = [];
@@ -60,7 +72,11 @@ export default class LoginScreen extends Component<
     // TODO -- Add loading indicator
     this.authService
       .handleSignInWithEmailAndPassword(userObj)
-      .then(() => navigation.navigate("HomeScreen"))
+      .then(() => {
+        this.rememberEmail(rememberMe, email).then(() => {
+          navigation.navigate("HomeScreen");
+        });
+      })
       .catch(() => {
         errors.push("wrongCredentials");
         errors.push("password");
@@ -72,8 +88,33 @@ export default class LoginScreen extends Component<
     this.setState({ email, errors, isLoading: true });
   };
 
+  rememberEmail = async (checked: boolean, email: string) => {
+    if (checked) {
+      try {
+        await AsyncStorage.setItem(`remember-email`, email);
+      } catch (error) {
+        console.log("ERROR in remembering you", error);
+      }
+    } else {
+      try {
+        await AsyncStorage.removeItem(`remember-email`);
+      } catch (error) {
+        console.log("ERROR in forgetting you", error);
+      }
+    }
+  };
+
+  getEmailFromAsyncStorage = async () => {
+    try {
+      const email = await AsyncStorage.getItem(`remember-email`);
+      if (email != null) return email;
+    } catch (error) {
+      console.log("ERROR in retrieving remembered email", error);
+    }
+  };
+
   render() {
-    const { email, password, errors, isLoading } = this.state;
+    const { email, password, errors, isLoading, rememberMe } = this.state;
     const hasErrors = (key: string) =>
       errors.includes(key) ? styles.hasErrors : null;
 
@@ -101,42 +142,42 @@ export default class LoginScreen extends Component<
                 value={password}
                 onChangeText={(password: string) => this.setState({ password })}
               />
+              <CheckBox
+                rightLabel="Remember me"
+                defaultChecked={rememberMe}
+                handleCheck={(checked: boolean) =>
+                  this.setState({ rememberMe: !checked })
+                }
+                touchAreaStyle={styles.checkbox}
+              />
+              {hasErrors("wrongCredentials") && (
+                <Text red style={{ marginVertical: 20 }} center>
+                  Incorrect email or password
+                </Text>
+              )}
+              <Button onPress={() => this.handleSignIn()} disabled={isLoading}>
+                <Text
+                  center
+                  offWhite
+                  size={theme.fontSizes.medium}
+                  style={styles.loginText}
+                >
+                  {!isLoading && "Log In"}
+                  {isLoading && (
+                    <LoadingIndicator
+                      size="small"
+                      color={theme.colors.offWhite}
+                    />
+                  )}
+                </Text>
+              </Button>
+              <TouchableOpacity onPress={() => {}}>
+                <Text center offWhite style={styles.forgotPassword}>
+                  Forgot your password?
+                </Text>
+              </TouchableOpacity>
             </Container>
           </KeyboardAvoidingView>
-
-          {hasErrors("wrongCredentials") && (
-            <Container
-              flex={false}
-              margin={[-theme.sizes.base * 2, 0, theme.sizes.base * 2, 0]}
-            >
-              <Text red>Incorrect email or password, please try again.</Text>
-            </Container>
-          )}
-
-          <Container flex={1.4}>
-            <Button onPress={() => this.handleSignIn()} disabled={isLoading}>
-              <Text
-                center
-                offWhite
-                size={theme.fontSizes.medium}
-                style={styles.loginText}
-              >
-                {!isLoading && "Log In"}
-                {isLoading && (
-                  <LoadingIndicator
-                    size="small"
-                    color={theme.colors.offWhite}
-                  />
-                )}
-              </Text>
-            </Button>
-
-            <TouchableOpacity onPress={() => {}}>
-              <Text center offWhite style={styles.forgotPassword}>
-                Forgot your password?
-              </Text>
-            </TouchableOpacity>
-          </Container>
         </Container>
       </TouchableWithoutFeedback>
     );
@@ -163,5 +204,8 @@ const styles = StyleSheet.create({
   },
   loginText: {
     alignSelf: "center",
+  },
+  checkbox: {
+    marginVertical: 15,
   },
 });
