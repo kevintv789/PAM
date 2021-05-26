@@ -23,8 +23,8 @@ import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { hasErrors } from "shared/Utils";
+import { isEqual } from "lodash";
 import moment from "moment";
-import navigation from "@navigation";
 
 const { width, height } = Dimensions.get("window");
 class ExpenseComponent extends Component<
@@ -49,7 +49,8 @@ class ExpenseComponent extends Component<
       showRecurringModal: false,
       recurringText: "",
       errors: [],
-      isLoading: false
+      isLoading: false,
+      images: [],
     };
   }
 
@@ -60,7 +61,7 @@ class ExpenseComponent extends Component<
       reportData &&
       reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE
     ) {
-      const { amount, name, paidOn, status, recurring } = reportData;
+      const { amount, name, paidOn, status, recurring, images } = reportData;
 
       this.setState({
         name,
@@ -68,7 +69,19 @@ class ExpenseComponent extends Component<
         expenseStatusDate: paidOn,
         expenseStatus: status,
         recurring,
+        images,
       });
+    }
+  }
+
+  componentDidUpdate(
+    prevProps: FinancesModel.defaultProps,
+    prevState: FinancesModel.initialState
+  ) {
+    const { images } = this.state;
+
+    if (!isEqual(images, prevState.images)) {
+      this.updateImagesWithDownloadPath();
     }
   }
 
@@ -87,6 +100,7 @@ class ExpenseComponent extends Component<
       expenseStatusDate,
       expenseStatus,
       recurring,
+      images,
     } = this.state;
 
     const errors = [];
@@ -105,7 +119,7 @@ class ExpenseComponent extends Component<
       paymentDue: "",
       recurring,
       additionalNotes: "",
-      images: null,
+      images,
       propertyId,
       name,
       type: PROPERTY_FINANCES_TYPE.EXPENSE,
@@ -144,7 +158,8 @@ class ExpenseComponent extends Component<
       .then(() => navigation.goBack())
       .catch((error: any) =>
         console.log("ERROR in updating a new expense object: ", error)
-      ).finally(() => this.setState({ isLoading: false }));
+      )
+      .finally(() => this.setState({ isLoading: false }));
   };
 
   handleUpdateWithImages = (payload: any, reportData: any) => {
@@ -166,13 +181,52 @@ class ExpenseComponent extends Component<
 
   uploadImages = (id: string) => {
     const { expenseImages, navigation } = this.props;
-    
+
     this.commonService
       .handleUploadImages(expenseImages, id, IMAGES_PARENT_FOLDER.EXPENSES)
       .then(() => navigation.goBack())
       .catch((error) =>
         console.log("ERROR in uploading expense images, ", error)
-      ).finally(() => this.setState({ isLoading: false }));
+      )
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  updateImagesWithDownloadPath = async () => {
+    const { images } = this.state;
+    const { reportData } = this.props;
+    let newImages: any[] = [...images];
+    let shouldUpdate = false;
+
+    if (images.length > 0 && reportData) {
+      // retrieve download path from storage and update image array with download path
+      await Promise.all(
+        images.map(async (image, index) => {
+          if (image.downloadPath === "" || image.downloadPath == null) {
+            const url = await this.commonService.getSingleImageDownloadPath(
+              image
+            );
+
+            const obj = {
+              downloadPath: url,
+              name: image.name,
+              uri: image.uri,
+            };
+
+            newImages[index] = obj;
+            shouldUpdate = true;
+          }
+        })
+      );
+
+      if (shouldUpdate) {
+        // update backend with new image array
+        this.commonService.handleUpdateSingleField(
+          PROPERTY_FINANCES_DOC,
+          reportData.id,
+          { images: newImages }
+        );
+      }
+    }
   };
 
   renderTextInputs = () => {
@@ -381,7 +435,7 @@ class ExpenseComponent extends Component<
           onPress={() => this.handleExpenseSave()}
           disabled={isLoading}
         >
-           <Text offWhite center semibold style={{ alignSelf: "center" }}>
+          <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Next"}
             {isLoading && (
               <LoadingIndicator size="small" color={theme.colors.offWhite} />

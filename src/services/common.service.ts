@@ -170,6 +170,16 @@ export default class CommonService {
     return await Promise.all(imageDownloadUrls);
   };
 
+  getSingleImageDownloadPath = async (image: any) => {
+    const ref = firebase.storage().ref().child(image.name);
+    let url = await ref
+      .getDownloadURL()
+      .then((url) => url)
+      .catch((error) => console.log("ERROR can't retrieve image: ", error));
+
+    return url;
+  };
+
   /**
    * This function takes in an array of images and removes them one by one
    * @param images

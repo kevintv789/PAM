@@ -1,7 +1,19 @@
 import * as EvaUI from "@ui-kitten/components";
 
-import { AddImageButton, Container, Text } from "components/common";
-import { Keyboard, ScrollView, StyleSheet } from "react-native";
+import {
+  AddImageButton,
+  CommonModal,
+  Container,
+  ImagesList,
+  Text,
+} from "components/common";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
@@ -32,6 +44,8 @@ class AddPropertyFinancesComponent extends Component<
       showAddImageModal: false,
       expenseImages: [],
       incomeImages: [],
+      showWarningModal: false,
+      imageToDelete: null,
     };
 
     const { navigation } = this.props;
@@ -40,6 +54,15 @@ class AddPropertyFinancesComponent extends Component<
     this.isIncomeType =
       this.reportData && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME;
     this.propertyId = this.props.navigation.getParam("propertyId");
+  }
+
+  componentDidMount() {
+    const isExpenseTab = this.determineIfExpenseTab();
+    if (this.reportData && isExpenseTab) {
+      this.setState({ expenseImages: this.reportData.images });
+    } else if (this.reportData && !isExpenseTab) {
+      this.setState({ incomeImages: this.reportData.images });
+    }
   }
 
   determineIfExpenseTab = () =>
@@ -54,12 +77,37 @@ class AddPropertyFinancesComponent extends Component<
     const isExpenseTab = this.determineIfExpenseTab();
 
     if (expenseImages.length > 0 && isExpenseTab) {
+      const uris = expenseImages.map((image) => {
+        let obj = {};
+        if (image.downloadPath !== "" && image.downloadPath != null) {
+          obj["uri"] = image.downloadPath;
+        } else {
+          obj["uri"] = image.uri;
+        }
+        return obj;
+      });
+
+      return (
+        <Container style={{ flex: 1 }} margin={[-10, 0, 14]}>
+          <ImagesList
+            images={uris}
+            showAddImageModal={() => this.setState({ showAddImageModal: true })}
+            onDeleteImage={(image: any) =>
+              this.setState({ showWarningModal: true, imageToDelete: image })
+            }
+            // onDragEnd={(data: any[]) => {
+            //   this.updateImagePosition(data, false);
+            // }}
+          />
+        </Container>
+      );
     } else if (incomeImages.length > 0 && !isExpenseTab) {
     } else {
       return (
         <AddImageButton
           handleOnPress={() => this.setState({ showAddImageModal: true })}
           caption="Add receipts or other related documents"
+          containerStyle={{ marginBottom: 14 }}
         />
       );
     }
@@ -68,6 +116,7 @@ class AddPropertyFinancesComponent extends Component<
   renderTabView = () => {
     const { activeTabIndex, incomeImages, expenseImages } = this.state;
     const { navigation } = this.props;
+
     return (
       <TabView
         selectedIndex={activeTabIndex}
@@ -142,6 +191,7 @@ class AddPropertyFinancesComponent extends Component<
       showAddImageModal,
       expenseImages,
       incomeImages,
+      showWarningModal,
     } = this.state;
     const { navigation } = this.props;
 
@@ -163,6 +213,10 @@ class AddPropertyFinancesComponent extends Component<
     }
 
     const isExpenseTab = this.determineIfExpenseTab();
+    const showExpenseAddImageBtn =
+      isExpenseTab && expenseImages && expenseImages.length > 0;
+    const showIncomeAddImageBtn =
+      !isExpenseTab && incomeImages && incomeImages.length > 0;
 
     return (
       <KeyboardAwareScrollView
@@ -178,14 +232,34 @@ class AddPropertyFinancesComponent extends Component<
               flexGrow: 1,
             }}
           >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
-            >
-              {title}
-            </Text>
+            <Container row>
+              <Container style={{ width: "95%" }}>
+                <Text
+                  h1
+                  offWhite
+                  center
+                  style={{ paddingTop: theme.sizes.padding }}
+                >
+                  {title}
+                </Text>
+              </Container>
+
+              {(showExpenseAddImageBtn || showIncomeAddImageBtn) && (
+                <Container flex={false} style={{ width: "5%" }}>
+                  <TouchableOpacity
+                    style={styles.addImagesBtn}
+                    onPress={() => this.setState({ showAddImageModal: true })}
+                  >
+                    <MaterialCommunityIcons
+                      name="camera-plus-outline"
+                      size={28}
+                      color={theme.colors.tertiary}
+                    />
+                  </TouchableOpacity>
+                </Container>
+              )}
+            </Container>
+
             {this.renderImageSection()}
             {!this.isEditting && this.renderTabView()}
             {this.isEditting &&
@@ -220,6 +294,22 @@ class AddPropertyFinancesComponent extends Component<
             this.onCaptureImage(isExpenseTab, data);
           }}
         />
+        <CommonModal
+          visible={showWarningModal}
+          compact
+          descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
+          hideModal={() => this.setState({ showWarningModal: false })}
+          // onSubmit={() => this.onDeleteSingleImage()}
+          headerIcon={
+            <FontAwesome
+              name="warning"
+              size={36}
+              color={theme.colors.offWhite}
+            />
+          }
+          headerIconBackground={theme.colors.primary}
+          title="Confirm"
+        />
       </KeyboardAwareScrollView>
     );
   }
@@ -249,6 +339,12 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     height: 40,
     marginTop: theme.sizes.base,
+  },
+  addImagesBtn: {
+    width: 95,
+    alignSelf: "flex-end",
+    margin: 20,
+    marginTop: 25,
   },
 });
 

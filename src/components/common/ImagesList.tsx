@@ -2,11 +2,7 @@ import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import {
-  Image as RNImage,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Image as RNImage, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 
 import CameraPreviewModalComponent from "components/Modals/Add Image/Camera Modal/Camera Preview/camera-preview.component";
@@ -25,6 +21,7 @@ const ImagesList = (props: any) => {
     isCached = false,
     onDeleteImage,
     onDragEnd,
+    containerStyle,
   } = props;
 
   const onImageSelect = (image: any) => {
@@ -36,7 +33,9 @@ const ImagesList = (props: any) => {
   };
 
   const onDeleteSingleImage = (image: any) => {
-    onDeleteImage(image);
+    if (onDeleteImage) {
+      onDeleteImage(image);
+    }
   };
 
   const renderImage = (item: any) => {
@@ -54,7 +53,7 @@ const ImagesList = (props: any) => {
     }
 
     return (
-      <Container>
+      <Container style={containerStyle}>
         <Container
           style={isImageSelected === item.uri ? styles.selected : {}}
           center
@@ -71,7 +70,7 @@ const ImagesList = (props: any) => {
               />
             </TouchableOpacity>
           )}
-          {isImageSelected === item.uri && (
+          {isImageSelected === item.uri && onDeleteImage && (
             <TouchableOpacity onPress={() => onDeleteSingleImage(item)}>
               <Feather
                 name="trash-2"

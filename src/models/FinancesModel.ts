@@ -10,6 +10,7 @@ export interface initialState {
   recurringText?: string;
   errors: string[];
   isLoading: boolean;
+  images: any[];
 }
 
 export interface defaultProps {
@@ -28,4 +29,6 @@ export interface addFinancesState {
   showAddImageModal: boolean;
   expenseImages: any[];
   incomeImages: any[];
+  showWarningModal: boolean;
+  imageToDelete: any;
 }

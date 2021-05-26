@@ -196,7 +196,7 @@ class AddPropertyComponent extends Component<
               this.setState({ showWarningModal: true, imageToDelete: image })
             }
             onDragEnd={(data: any[]) => {
-              this.updateImagePosition(data, false);
+              this.updateImagePosition(data);
             }}
           />
         </Container>
@@ -214,7 +214,7 @@ class AddPropertyComponent extends Component<
                 this.setState({ showWarningModal: true, imageToDelete: image })
               }
               onDragEnd={(data: any[]) => {
-                this.updateImagePosition(data, true);
+                this.updateImagePosition(data);
               }}
             />
           </Container>
