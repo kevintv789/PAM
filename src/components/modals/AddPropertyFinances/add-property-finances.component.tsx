@@ -5,10 +5,12 @@ import { Keyboard, ScrollView, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
+import AddImageModalComponent from "../Add Image/addImage.component";
 import ExpenseComponent from "./Expense/expense.component";
 import { FinancesModel } from "models";
 import IncomeComponent from "./Income/income.component";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { addFinances } from "reducks/modules/property";
 import { connect } from "react-redux";
 import { theme } from "shared";
@@ -26,28 +28,45 @@ class AddPropertyFinancesComponent extends Component<
     super(props);
 
     this.state = {
-      activeTabIndex: 0,
+      activeTabIndex: PROPERTY_FINANCES_TYPE.EXPENSE_TAB,
+      showAddImageModal: false,
+      expenseImages: [],
+      incomeImages: [],
     };
 
     const { navigation } = this.props;
     this.isEditting = navigation.getParam("isEditting");
     this.reportData = navigation.getParam("reportData");
-    this.isIncomeType = this.reportData && this.reportData.type === "income";
+    this.isIncomeType =
+      this.reportData && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME;
     this.propertyId = this.props.navigation.getParam("propertyId");
   }
 
+  determineIfExpenseTab = () =>
+    (this.reportData &&
+      this.reportData.type.toUpperCase() ===
+        PROPERTY_FINANCES_TYPE.EXPENSE.toUpperCase()) ||
+    (this.reportData == null &&
+      this.state.activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB);
+
   renderImageSection = () => {
-    return (
-      <AddImageButton
-        handleOnPress={() => console.log("Adding an expense image")}
-        caption="Add receipts or other related documents"
-        containerStyle={this.isEditting ? { marginBottom: 15 } : ""}
-      />
-    );
+    const { expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
+
+    if (expenseImages.length > 0 && isExpenseTab) {
+    } else if (incomeImages.length > 0 && !isExpenseTab) {
+    } else {
+      return (
+        <AddImageButton
+          handleOnPress={() => this.setState({ showAddImageModal: true })}
+          caption="Add receipts or other related documents"
+        />
+      );
+    }
   };
 
   renderTabView = () => {
-    const { activeTabIndex } = this.state;
+    const { activeTabIndex, incomeImages, expenseImages } = this.state;
     const { navigation } = this.props;
     return (
       <TabView
@@ -64,10 +83,12 @@ class AddPropertyFinancesComponent extends Component<
             <EvaUI.Text
               {...evaProps}
               style={
-                activeTabIndex === 0 ? styles.activeTab : styles.inactiveTab
+                activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB
+                  ? styles.activeTab
+                  : styles.inactiveTab
               }
             >
-              Expense
+              {PROPERTY_FINANCES_TYPE.EXPENSE}
             </EvaUI.Text>
           )}
         >
@@ -75,6 +96,7 @@ class AddPropertyFinancesComponent extends Component<
             <ExpenseComponent
               navigation={navigation}
               propertyId={this.propertyId}
+              expenseImages={expenseImages}
             />
           </Container>
         </Tab>
@@ -83,10 +105,12 @@ class AddPropertyFinancesComponent extends Component<
             <EvaUI.Text
               {...evaProps}
               style={
-                activeTabIndex === 1 ? styles.activeTab : styles.inactiveTab
+                activeTabIndex === PROPERTY_FINANCES_TYPE.INCOME_TAB
+                  ? styles.activeTab
+                  : styles.inactiveTab
               }
             >
-              Income
+              {PROPERTY_FINANCES_TYPE.INCOME}
             </EvaUI.Text>
           )}
         >
@@ -94,6 +118,7 @@ class AddPropertyFinancesComponent extends Component<
             <IncomeComponent
               navigation={navigation}
               propertyId={this.propertyId}
+              incomeImages={incomeImages}
             />
           </Container>
         </Tab>
@@ -101,8 +126,23 @@ class AddPropertyFinancesComponent extends Component<
     );
   };
 
+  onCaptureImage = (isExpenseTab: boolean, data: any[]) => {
+    const { expenseImages, incomeImages } = this.state;
+
+    const tempImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
+    data.forEach((image) => tempImages.push(image));
+    isExpenseTab
+      ? this.setState({ expenseImages: tempImages })
+      : this.setState({ incomeImages: tempImages });
+  };
+
   render() {
-    const { activeTabIndex } = this.state;
+    const {
+      activeTabIndex,
+      showAddImageModal,
+      expenseImages,
+      incomeImages,
+    } = this.state;
     const { navigation } = this.props;
 
     let title = "";
@@ -110,17 +150,19 @@ class AddPropertyFinancesComponent extends Component<
     if (this.isEditting) {
       title += "Edit";
       if (this.isIncomeType) {
-        title += " Income";
+        title += ` ${PROPERTY_FINANCES_TYPE.INCOME}`;
       } else {
-        title += " Expense";
+        title += ` ${PROPERTY_FINANCES_TYPE.EXPENSE}`;
       }
     } else {
       if (activeTabIndex === 0) {
-        title += "Add Expense";
+        title += `Add ${PROPERTY_FINANCES_TYPE.EXPENSE}`;
       } else {
-        title += "Add Income";
+        title += `Add ${PROPERTY_FINANCES_TYPE.INCOME}`;
       }
     }
+
+    const isExpenseTab = this.determineIfExpenseTab();
 
     return (
       <KeyboardAwareScrollView
@@ -146,24 +188,38 @@ class AddPropertyFinancesComponent extends Component<
             </Text>
             {this.renderImageSection()}
             {!this.isEditting && this.renderTabView()}
-            {this.isEditting && this.reportData.type === "income" && (
-              <IncomeComponent
-                navigation={navigation}
-                isEditting={this.isEditting}
-                reportData={this.reportData}
-                propertyId={this.propertyId}
-              />
-            )}
-            {this.isEditting && this.reportData.type === "expense" && (
-              <ExpenseComponent
-                navigation={navigation}
-                isEditting={this.isEditting}
-                reportData={this.reportData}
-                propertyId={this.propertyId}
-              />
-            )}
+            {this.isEditting &&
+              this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME && (
+                <IncomeComponent
+                  navigation={navigation}
+                  isEditting={this.isEditting}
+                  reportData={this.reportData}
+                  propertyId={this.propertyId}
+                  incomeImages={incomeImages}
+                />
+              )}
+            {this.isEditting &&
+              this.reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE && (
+                <ExpenseComponent
+                  navigation={navigation}
+                  isEditting={this.isEditting}
+                  reportData={this.reportData}
+                  propertyId={this.propertyId}
+                  expenseImages={expenseImages}
+                />
+              )}
           </ScrollView>
         </Container>
+        <AddImageModalComponent
+          visible={showAddImageModal}
+          hideModal={() => this.setState({ showAddImageModal: false })}
+          onSelectImages={(data: any[]) => {
+            this.onCaptureImage(isExpenseTab, data);
+          }}
+          onCaptureImages={(data: any[]) => {
+            this.onCaptureImage(isExpenseTab, data);
+          }}
+        />
       </KeyboardAwareScrollView>
     );
   }

@@ -3,11 +3,16 @@ import {
   Container,
   CurrencyInput,
   HeaderDivider,
+  LoadingIndicator,
   Text,
   TextInput,
   Toggle,
 } from "components/common";
 import { Dimensions, Modal, StyleSheet } from "react-native";
+import {
+  IMAGES_PARENT_FOLDER,
+  PROPERTY_FINANCES_TYPE,
+} from "shared/constants/constants";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
@@ -19,6 +24,7 @@ import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { hasErrors } from "shared/Utils";
 import moment from "moment";
+import navigation from "@navigation";
 
 const { width, height } = Dimensions.get("window");
 class ExpenseComponent extends Component<
@@ -43,12 +49,17 @@ class ExpenseComponent extends Component<
       showRecurringModal: false,
       recurringText: "",
       errors: [],
+      isLoading: false
     };
   }
 
   componentDidMount() {
     const { reportData, isEditting } = this.props;
-    if (isEditting && reportData && reportData.type === "expense") {
+    if (
+      isEditting &&
+      reportData &&
+      reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE
+    ) {
       const { amount, name, paidOn, status, recurring } = reportData;
 
       this.setState({
@@ -62,7 +73,13 @@ class ExpenseComponent extends Component<
   }
 
   handleExpenseSave = () => {
-    const { navigation, isEditting, reportData, propertyId } = this.props;
+    const {
+      navigation,
+      isEditting,
+      reportData,
+      propertyId,
+      expenseImages,
+    } = this.props;
 
     const {
       name,
@@ -88,10 +105,10 @@ class ExpenseComponent extends Component<
       paymentDue: "",
       recurring,
       additionalNotes: "",
-      image: null,
+      images: null,
       propertyId,
       name,
-      type: "expense",
+      type: PROPERTY_FINANCES_TYPE.EXPENSE,
     };
 
     if (!errors.length) {
@@ -107,16 +124,55 @@ class ExpenseComponent extends Component<
             console.log("ERROR in creating a new income object: ", error)
           );
       } else {
-        this.commonService
-          .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
-          .then(() => navigation.goBack())
-          .catch((error: any) =>
-            console.log("ERROR in updating a new income object: ", error)
-          );
+        if (expenseImages.length > 0) {
+          // update with images
+          this.handleUpdateWithImages(payload, reportData);
+        } else {
+          // regular update
+          this.handleRegularUpdate(payload, reportData);
+        }
       }
     }
 
-    this.setState({ errors });
+    this.setState({ errors, isLoading: true });
+  };
+
+  handleRegularUpdate = (payload: any, reportData: any) => {
+    const { navigation } = this.props;
+    this.commonService
+      .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
+      .then(() => navigation.goBack())
+      .catch((error: any) =>
+        console.log("ERROR in updating a new expense object: ", error)
+      ).finally(() => this.setState({ isLoading: false }));
+  };
+
+  handleUpdateWithImages = (payload: any, reportData: any) => {
+    const { expenseImages } = this.props;
+
+    this.commonService
+      .handleUpdateWithImages(
+        payload,
+        reportData.id,
+        PROPERTY_FINANCES_DOC,
+        expenseImages,
+        IMAGES_PARENT_FOLDER.EXPENSES
+      )
+      .then(() => this.uploadImages(reportData.id))
+      .catch((error) =>
+        console.log("ERROR in updating expenses with images: ", error)
+      );
+  };
+
+  uploadImages = (id: string) => {
+    const { expenseImages, navigation } = this.props;
+    
+    this.commonService
+      .handleUploadImages(expenseImages, id, IMAGES_PARENT_FOLDER.EXPENSES)
+      .then(() => navigation.goBack())
+      .catch((error) =>
+        console.log("ERROR in uploading expense images, ", error)
+      ).finally(() => this.setState({ isLoading: false }));
   };
 
   renderTextInputs = () => {
@@ -170,7 +226,7 @@ class ExpenseComponent extends Component<
             })
           }
         />
-        
+
         <Container>
           <CurrencyInput
             label="Amount"
@@ -295,6 +351,7 @@ class ExpenseComponent extends Component<
 
   renderNavigationButtons = () => {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
 
     return (
       <Container
@@ -322,9 +379,13 @@ class ExpenseComponent extends Component<
           color="secondary"
           style={styles.navigationButtons}
           onPress={() => this.handleExpenseSave()}
+          disabled={isLoading}
         >
-          <Text offWhite center semibold>
-            Save
+           <Text offWhite center semibold style={{ alignSelf: "center" }}>
+            {!isLoading && "Next"}
+            {isLoading && (
+              <LoadingIndicator size="small" color={theme.colors.offWhite} />
+            )}
           </Text>
         </Button>
       </Container>

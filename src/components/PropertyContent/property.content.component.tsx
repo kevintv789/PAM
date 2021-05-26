@@ -27,6 +27,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { PropertyContentModel } from "models";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
@@ -472,7 +473,7 @@ class PropertyContentComponent extends Component<
   };
 
   formatAmount = (amount: number, type: string) => {
-    if (type === "expense") {
+    if (type === PROPERTY_FINANCES_TYPE.EXPENSE) {
       return `- $${formatNumber(amount)}`;
     }
 
@@ -524,7 +525,7 @@ class PropertyContentComponent extends Component<
                       <Container row style={{ right: 0, position: "absolute" }}>
                         <Text
                           color={
-                            data.type === "income" ? "secondary" : "primary"
+                            data.type === PROPERTY_FINANCES_TYPE.INCOME ? "secondary" : "primary"
                           }
                           semibold
                         >
@@ -551,7 +552,7 @@ class PropertyContentComponent extends Component<
 
   renderReport = () => {
     const { financesData, totalIncome } = this.props;
-    const expenseData = financesData.filter((f: any) => f.type === "expense");
+    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
     const totalExpense = sumBy(expenseData, "amount");
     const profit = totalIncome - totalExpense;
 

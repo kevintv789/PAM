@@ -37,6 +37,7 @@ import {
 import AuthService from "services/auth.service";
 import CommonService from "services/common.service";
 import { Image } from "react-native-expo-image-cache";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
 import PropertyService from "services/property.service";
@@ -455,7 +456,7 @@ class PropertyComponent extends Component<
   sumExpenseForTimePeriod = (timePeriod: string) => {
     const { financesData } = this.state;
     const date = new Date();
-    const expenseData = financesData.filter((f: any) => f.type === "expense");
+    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
     let totalExpense = 0;
 
     switch (timePeriod) {
@@ -529,7 +530,7 @@ class PropertyComponent extends Component<
 
     // filter to type of income only
     const filteredFinancesData = financesData.filter(
-      (i: any) => i.type === "income"
+      (i: any) => i.type === PROPERTY_FINANCES_TYPE.INCOME
     );
 
     if (filteredFinancesData && filteredFinancesData.length > 0) {

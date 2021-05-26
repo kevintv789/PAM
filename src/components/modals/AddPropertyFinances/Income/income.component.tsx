@@ -16,6 +16,7 @@ import { Entypo } from "@expo/vector-icons";
 import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { hasErrors } from "shared/Utils";
 import moment from "moment";
@@ -46,7 +47,11 @@ class IncomeComponent extends Component<
 
   componentDidMount() {
     const { reportData, isEditting } = this.props;
-    if (isEditting && reportData && reportData.type === "income") {
+    if (
+      isEditting &&
+      reportData &&
+      reportData.type === PROPERTY_FINANCES_TYPE.INCOME
+    ) {
       const { amount, name, paidOn, status } = reportData;
 
       this.setState({
@@ -81,7 +86,7 @@ class IncomeComponent extends Component<
       image: null,
       propertyId,
       name,
-      type: "income",
+      type: PROPERTY_FINANCES_TYPE.INCOME,
     };
 
     if (!errors.length) {

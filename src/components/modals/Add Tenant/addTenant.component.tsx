@@ -25,6 +25,7 @@ import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import PropertyService from "services/property.service";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { getNextPaymentDate } from "shared/Utils";
@@ -205,7 +206,7 @@ class AddTenantComponent extends Component<
       image: null,
       propertyId: payload.propertyId,
       name: payload.name,
-      type: "income",
+      type: PROPERTY_FINANCES_TYPE.INCOME,
     };
 
     const collectionRef = this.commonService.createNewDocId(

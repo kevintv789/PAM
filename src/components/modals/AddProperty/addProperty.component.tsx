@@ -32,6 +32,7 @@ import { isEqual, remove } from "lodash";
 import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
 import CommonService from "services/common.service";
+import { IMAGES_PARENT_FOLDER } from "shared/constants/constants";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
@@ -416,7 +417,7 @@ class AddPropertyComponent extends Component<
     const { navigation } = this.props;
 
     this.commonService
-      .handleUploadImages(images, propertyId, "property")
+      .handleUploadImages(images, propertyId, IMAGES_PARENT_FOLDER.PROPERTY)
       .then(() => {
         setTimeout(() => {
           navigation.goBack();

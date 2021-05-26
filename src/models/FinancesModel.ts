@@ -9,6 +9,7 @@ export interface initialState {
   showRecurringModal: boolean;
   recurringText?: string;
   errors: string[];
+  isLoading: boolean;
 }
 
 export interface defaultProps {
@@ -18,8 +19,13 @@ export interface defaultProps {
   reportData?: any;
   updateFinances: (payload: any) => { type: string; payload: any };
   propertyId: number;
+  incomeImages: any[];
+  expenseImages: any[];
 }
 
 export interface addFinancesState {
   activeTabIndex: number;
+  showAddImageModal: boolean;
+  expenseImages: any[];
+  incomeImages: any[];
 }
