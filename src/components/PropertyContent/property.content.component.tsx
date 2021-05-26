@@ -7,6 +7,7 @@ import {
   LoadingIndicator,
   Text,
 } from "components/common";
+import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import {
   Image,
   Modal,
@@ -17,7 +18,7 @@ import {
 } from "react-native";
 import React, { Component } from "react";
 import { constants, mockData, theme } from "shared";
-import { formatNumber, formatPlural, getDaysDiffFrom } from "shared/Utils";
+import { formatNumber, formatPlural, getDaysDiffFrom, updateArrayPosition } from "shared/Utils";
 import { isEqual, orderBy, sumBy } from "lodash";
 
 import AddImageModalComponent from "components/Modals/Add Image/addImage.component";
@@ -27,7 +28,6 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
-import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { PropertyContentModel } from "models";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
@@ -80,10 +80,7 @@ class PropertyContentComponent extends Component<
     const to = data.to;
     const tempImagesUrl = [...imagesUrl];
 
-    [tempImagesUrl[from], tempImagesUrl[to]] = [
-      tempImagesUrl[to],
-      tempImagesUrl[from],
-    ];
+    updateArrayPosition(tempImagesUrl, from, to);
 
     this.setState({ imagesUrl: tempImagesUrl });
   };
@@ -92,6 +89,10 @@ class PropertyContentComponent extends Component<
     const { onImageDragEnd } = this.props;
     const { imagesUrl } = this.state;
 
+    const nonCachedUri = imagesUrl.filter((img: any) =>
+      img.uri.includes("file")
+    );
+    
     if (imagesUrl && imagesUrl.length > 0) {
       return (
         <Container>
@@ -122,7 +123,7 @@ class PropertyContentComponent extends Component<
               images={imagesUrl}
               imageSize={{ width: 125, height: 125 }}
               margins={{ marginTop: 8, marginHorizontal: 5 }}
-              isCached
+              isCached={nonCachedUri.length === 0}
               onDeleteImage={(image: any) =>
                 this.setState({ showWarningModal: true, imageToDelete: image })
               }
@@ -144,7 +145,7 @@ class PropertyContentComponent extends Component<
     images.forEach((image) => imagesToUpload.push(image));
 
     this.commonService
-      .handleUploadImages(imagesToUpload, propertyData.id, "property")
+      .handleUploadImages(imagesToUpload, propertyData.id, IMAGES_PARENT_FOLDER.PROPERTY)
       .then(() => {
         this.updatePropertyWithImage(images);
       })
@@ -525,7 +526,9 @@ class PropertyContentComponent extends Component<
                       <Container row style={{ right: 0, position: "absolute" }}>
                         <Text
                           color={
-                            data.type === PROPERTY_FINANCES_TYPE.INCOME ? "secondary" : "primary"
+                            data.type === PROPERTY_FINANCES_TYPE.INCOME
+                              ? "secondary"
+                              : "primary"
                           }
                           semibold
                         >
@@ -552,7 +555,9 @@ class PropertyContentComponent extends Component<
 
   renderReport = () => {
     const { financesData, totalIncome } = this.props;
-    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
+    const expenseData = financesData.filter(
+      (f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE
+    );
     const totalExpense = sumBy(expenseData, "amount");
     const profit = totalIncome - totalExpense;
 

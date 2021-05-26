@@ -32,12 +32,18 @@ export default class CommonService {
    * @param ref
    * @param images
    */
-  handleCreateWithImages = (payload: any, ref: any, images: any[]) => {
+  handleCreateWithImages = (
+    payload: any,
+    ref: any,
+    images: any[],
+    type: string
+  ) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
       imagesUri.push({
-        name: `images/property/${ref.id}-${index}`,
+        downloadPath: "",
+        name: `images/${type}/${ref.id}-${index}`,
         uri: image.uri,
       });
     });

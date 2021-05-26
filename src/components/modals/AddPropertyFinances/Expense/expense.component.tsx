@@ -86,13 +86,7 @@ class ExpenseComponent extends Component<
   }
 
   handleExpenseSave = () => {
-    const {
-      navigation,
-      isEditting,
-      reportData,
-      propertyId,
-      expenseImages,
-    } = this.props;
+    const { isEditting, reportData, propertyId, expenseImages } = this.props;
 
     const {
       name,
@@ -129,14 +123,13 @@ class ExpenseComponent extends Component<
       if (!isEditting) {
         const docRef = this.commonService.createNewDocId(PROPERTY_FINANCES_DOC);
 
-        this.commonService
-          .handleCreate(payload, docRef)
-          .then(() => {
-            navigation.goBack();
-          })
-          .catch((error: any) =>
-            console.log("ERROR in creating a new income object: ", error)
-          );
+        if (expenseImages.length > 0) {
+          // create with images
+          this.handleCreateWithImages(payload, docRef);
+        } else {
+          // normal create
+          this.handleRegularCreate(payload, docRef);
+        }
       } else {
         if (expenseImages.length > 0) {
           // update with images
@@ -149,6 +142,41 @@ class ExpenseComponent extends Component<
     }
 
     this.setState({ errors, isLoading: true });
+
+    if (errors.length > 0) {
+      this.setState({ isLoading: false });
+    }
+  };
+
+  handleRegularCreate = (payload: any, docRef: any) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleCreate(payload, docRef)
+      .then(() => {
+        navigation.goBack();
+      })
+      .catch((error: any) =>
+        console.log("ERROR in creating a new income object: ", error)
+      );
+  };
+
+  handleCreateWithImages = (payload: any, docRef: any) => {
+    const { expenseImages } = this.props;
+
+    this.commonService
+      .handleCreateWithImages(
+        payload,
+        docRef,
+        expenseImages,
+        IMAGES_PARENT_FOLDER.EXPENSES
+      )
+      .then(() => {
+        this.uploadImages(docRef.id);
+      })
+      .catch((error: any) =>
+        console.log("ERROR in updating a new expense object: ", error)
+      );
   };
 
   handleRegularUpdate = (payload: any, reportData: any) => {

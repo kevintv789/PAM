@@ -18,14 +18,18 @@ import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
 import AddImageModalComponent from "../Add Image/addImage.component";
+import CommonService from "services/common.service";
 import ExpenseComponent from "./Expense/expense.component";
 import { FinancesModel } from "models";
 import IncomeComponent from "./Income/income.component";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
 import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { addFinances } from "reducks/modules/property";
 import { connect } from "react-redux";
+import { findIndex } from "lodash";
 import { theme } from "shared";
+import { updateArrayPosition } from "shared/Utils";
 
 class AddPropertyFinancesComponent extends Component<
   FinancesModel.defaultProps,
@@ -35,6 +39,7 @@ class AddPropertyFinancesComponent extends Component<
   private isEditting = false;
   private isIncomeType = false;
   private propertyId: number;
+  private commonService = new CommonService();
 
   constructor(props: FinancesModel.defaultProps) {
     super(props);
@@ -87,17 +92,21 @@ class AddPropertyFinancesComponent extends Component<
         return obj;
       });
 
+      const nonCachedUri = uris.filter((img: any) => img.uri.includes("file"));
+
       return (
         <Container style={{ flex: 1 }} margin={[-10, 0, 14]}>
           <ImagesList
+            isCached={nonCachedUri.length === 0} // caches image if there are only firebase url's available, otherwise don't cache b/c it doesn't work with source files
             images={uris}
+            iconHorizontalPadding={14}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
             onDeleteImage={(image: any) =>
               this.setState({ showWarningModal: true, imageToDelete: image })
             }
-            // onDragEnd={(data: any[]) => {
-            //   this.updateImagePosition(data, false);
-            // }}
+            onDragEnd={(data: any[]) => {
+              this.updateImagePosition(data);
+            }}
           />
         </Container>
       );
@@ -112,6 +121,18 @@ class AddPropertyFinancesComponent extends Component<
       );
     }
   };
+
+  updateImagePosition = (data: any) => {
+    const { expenseImages } = this.state;
+
+    const from = data.from;
+    const to = data.to;
+    const tempArray = [...expenseImages];
+
+    updateArrayPosition(tempArray, from, to);
+
+    this.setState({ expenseImages: tempArray });
+  }
 
   renderTabView = () => {
     const { activeTabIndex, incomeImages, expenseImages } = this.state;
@@ -183,6 +204,55 @@ class AddPropertyFinancesComponent extends Component<
     isExpenseTab
       ? this.setState({ expenseImages: tempImages })
       : this.setState({ incomeImages: tempImages });
+  };
+
+  onUpdateImagesStateOnDelete = () => {
+    const { imageToDelete, expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
+
+    const indexToDelete = findIndex(
+      isExpenseTab ? expenseImages : incomeImages,
+      (img) => {
+        if (img.downloadPath && img.downloadPath !== "") {
+          return img.downloadPath === imageToDelete.uri;
+        } else {
+          return img.uri === imageToDelete.uri;
+        }
+      }
+    );
+
+    const deletedImgObj = expenseImages[indexToDelete];
+
+    const newImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
+    newImages.splice(indexToDelete, 1);
+
+    isExpenseTab
+      ? this.setState({ expenseImages: newImages })
+      : this.setState({ incomeImages: newImages });
+
+    this.onRemoveImageFromBackend(newImages, deletedImgObj);
+  };
+
+  onRemoveImageFromBackend = (newImages: any, deletedImgObj: any) => {
+    const { imageToDelete } = this.state;
+
+    if (this.isEditting && this.reportData) {
+      this.commonService
+        .deleteSingleItemFromStorage(deletedImgObj.name)
+        .then(() => {
+          this.commonService.handleUpdateSingleField(
+            PROPERTY_FINANCES_DOC,
+            this.reportData.id,
+            { images: newImages }
+          );
+        })
+        .catch((error) =>
+          console.log(
+            `ERROR could not remove ${imageToDelete.name} from storage`,
+            error
+          )
+        );
+    }
   };
 
   render() {
@@ -299,7 +369,7 @@ class AddPropertyFinancesComponent extends Component<
           compact
           descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
           hideModal={() => this.setState({ showWarningModal: false })}
-          // onSubmit={() => this.onDeleteSingleImage()}
+          onSubmit={() => this.onUpdateImagesStateOnDelete()}
           headerIcon={
             <FontAwesome
               name="warning"

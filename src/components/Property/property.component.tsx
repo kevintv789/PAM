@@ -49,7 +49,6 @@ import moment from "moment";
 const { width } = Dimensions.get("window");
 
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
-const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const date = Date.now();
 
@@ -313,7 +312,7 @@ class PropertyComponent extends Component<
 
     // use this to only download images if and only if said property doesn't have download path
     const filteredPropertyImages = images.filter(
-      (p: any) => p.downloadPath == null
+      (p: any) => p.downloadPath == null || p.downloadPath === ""
     );
 
     if (filteredPropertyImages && filteredPropertyImages.length > 0) {
@@ -352,7 +351,16 @@ class PropertyComponent extends Component<
       propertyData,
       imagesUrl,
     } = this.state;
+
+    const imageUri = getPropertyImage(
+      propertyData.images,
+      propertyData.unitType
+    ).uri;
+
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
+    const AnimatedImage = Animated.createAnimatedComponent(Image);
+    const AnimatedRNImage = Animated.createAnimatedComponent(RNImage);
+
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
@@ -370,19 +378,32 @@ class PropertyComponent extends Component<
             },
           ]}
         >
-          <AnimatedImage
-            uri={
-              getPropertyImage(propertyData.images, propertyData.unitType).uri
-            }
-            onError={() => console.log("ERROR in retrieving cache image")}
-            style={[
-              styles.propertyImages,
-              {
-                width: animatedHeaderImageWidth,
-                height: animatedHeaderImageHeight,
-              },
-            ]}
-          />
+          {imageUri.includes("http") && (
+            <AnimatedImage
+              uri={imageUri}
+              onError={() => console.log("ERROR in retrieving cache image")}
+              style={[
+                styles.propertyImages,
+                {
+                  width: animatedHeaderImageWidth,
+                  height: animatedHeaderImageHeight,
+                },
+              ]}
+            />
+          )}
+          
+          {imageUri.includes("file") && (
+            <AnimatedRNImage
+              source={{ uri: imageUri }}
+              style={[
+                styles.propertyImages,
+                {
+                  width: animatedHeaderImageWidth,
+                  height: animatedHeaderImageHeight,
+                },
+              ]}
+            />
+          )}
           <Container>
             <AnimatedContainer
               row
@@ -456,7 +477,9 @@ class PropertyComponent extends Component<
   sumExpenseForTimePeriod = (timePeriod: string) => {
     const { financesData } = this.state;
     const date = new Date();
-    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
+    const expenseData = financesData.filter(
+      (f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE
+    );
     let totalExpense = 0;
 
     switch (timePeriod) {
@@ -774,7 +797,10 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const imagesUrl = propertyData.images.map((image: any) => ({
-      uri: image.downloadPath,
+      uri:
+        image.downloadPath && image.downloadPath !== ""
+          ? image.downloadPath
+          : image.uri,
     }));
 
     // TODO -- add in an actual loading icon when state is finally being called from API

@@ -22,6 +22,7 @@ const ImagesList = (props: any) => {
     onDeleteImage,
     onDragEnd,
     containerStyle,
+    iconHorizontalPadding,
   } = props;
 
   const onImageSelect = (image: any) => {
@@ -76,7 +77,14 @@ const ImagesList = (props: any) => {
                 name="trash-2"
                 size={32}
                 color={theme.colors.offWhite}
-                style={styles.imagePreviewBtn}
+                style={[
+                  styles.imagePreviewBtn,
+                  {
+                    marginHorizontal: iconHorizontalPadding
+                      ? iconHorizontalPadding
+                      : 7,
+                  },
+                ]}
               />
             </TouchableOpacity>
           )}
@@ -111,7 +119,9 @@ const ImagesList = (props: any) => {
         data={images}
         renderItem={renderItem}
         keyExtractor={(item) => item.uri}
-        onDragEnd={(data) => onDragEnd(data)}
+        onDragEnd={(data) => {
+          onDragEnd ? onDragEnd(data) : null;
+        }}
       />
       <Container flex={false}>
         <CameraPreviewModalComponent

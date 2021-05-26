@@ -111,7 +111,12 @@ export const getPropertyImage = (images: any[], type: string) => {
         return;
     }
   } else {
-    return { uri: images[0].downloadPath };
+    return {
+      uri:
+        images[0].downloadPath && images[0].downloadPath !== ""
+          ? images[0].downloadPath
+          : images[0].uri,
+    };
   }
 };
 
@@ -335,4 +340,21 @@ export const getCurrentUserData = () => {
     .firestore()
     .collection(USER_DOC)
     .doc(firebase.auth().currentUser?.uid);
+};
+
+/**
+ * This function takes in an array, the original index and the updated index to the new position
+ * @param array
+ * @param fromIndex
+ * @param toIndex
+ */
+export const updateArrayPosition = (
+  array: any[],
+  fromIndex: number,
+  toIndex: number
+) => {
+  return ([array[fromIndex], array[toIndex]] = [
+    array[toIndex],
+    array[fromIndex],
+  ]);
 };
