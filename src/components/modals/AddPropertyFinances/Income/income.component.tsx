@@ -97,7 +97,7 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
 
         if (incomeImages && incomeImages.length > 0) {
           // create with images
-          this.handleCreateWithImages(payload, docRef);
+          this.handleCreateWithImages(payload, docRef, propertyId);
         } else {
           // regular create
           this.handleRegularCreate(payload, docRef);
@@ -105,7 +105,7 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       } else {
         if (incomeImages && incomeImages.length > 0) {
           // update with images
-          this.handleUpdateWithImages(payload, reportData.id);
+          this.handleUpdateWithImages(payload, reportData.id, propertyId);
         } else {
           this.handleRegularUpdate(payload, reportData.id);
         }
@@ -131,15 +131,17 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       .finally(() => this.setState({ isLoading: false }));
   };
 
-  handleCreateWithImages = (payload: any, docRef: any) => {
+  handleCreateWithImages = (payload: any, docRef: any, propertyId: any) => {
     const { incomeImages } = this.props;
 
-    this.commonService
-      .handleCreateWithImages(payload, docRef, incomeImages, IMAGES_PARENT_FOLDER.INCOME)
-      .then(() => {
-        this.uploadImages(docRef.id);
-      })
-      .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
+    if (incomeImages) {
+      this.commonService
+        .handleCreateWithImages(payload, docRef, incomeImages, IMAGES_PARENT_FOLDER.INCOME, propertyId)
+        .then(() => {
+          this.uploadImages(docRef.id, propertyId);
+        })
+        .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
+    }
   };
 
   handleRegularUpdate = (payload: any, id: string) => {
@@ -151,23 +153,34 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
   };
 
-  handleUpdateWithImages = (payload: any, id: string) => {
+  handleUpdateWithImages = (payload: any, id: string, propertyId: any) => {
     const { incomeImages } = this.props;
 
-    this.commonService
-      .handleUpdateWithImages(payload, id, PROPERTY_FINANCES_DOC, incomeImages, IMAGES_PARENT_FOLDER.INCOME)
-      .then(() => this.uploadImages(id))
-      .catch((error) => console.log("ERROR in updating income with images: ", error));
+    if (incomeImages) {
+      this.commonService
+        .handleUpdateWithImages(
+          payload,
+          id,
+          PROPERTY_FINANCES_DOC,
+          incomeImages,
+          IMAGES_PARENT_FOLDER.INCOME,
+          propertyId
+        )
+        .then(() => this.uploadImages(id, propertyId))
+        .catch((error) => console.log("ERROR in updating income with images: ", error));
+    }
   };
 
-  uploadImages = (id: string) => {
+  uploadImages = (id: string, propertyId: any) => {
     const { incomeImages, navigation } = this.props;
 
-    this.commonService
-      .handleUploadImages(incomeImages, id, IMAGES_PARENT_FOLDER.INCOME)
-      .then(() => navigation.goBack())
-      .catch((error) => console.log("ERROR in uploading income images, ", error))
-      .finally(() => this.setState({ isLoading: false }));
+    if (incomeImages) {
+      this.commonService
+        .handleUploadImages(incomeImages, id, IMAGES_PARENT_FOLDER.INCOME, propertyId)
+        .then(() => navigation.goBack())
+        .catch((error) => console.log("ERROR in uploading income images, ", error))
+        .finally(() => this.setState({ isLoading: false }));
+    }
   };
 
   updateImagesWithDownloadPath = async () => {

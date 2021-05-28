@@ -33,13 +33,13 @@ export default class CommonService {
    * @param ref
    * @param images
    */
-  handleCreateWithImages = (payload: any, ref: any, images: any[], type: string) => {
+  handleCreateWithImages = (payload: any, ref: any, images: any[], type: string, subType = null) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
       imagesUri.push({
         downloadPath: "",
-        name: `images/${type}/${ref.id}-${index}`,
+        name: constructImageName(type, subType, ref.id, index),
         uri: image.uri,
       });
     });
@@ -72,22 +72,32 @@ export default class CommonService {
    * @param docId
    * @param collection
    */
-  handleUpdateWithImages = (payload: any, docId: string, collection: string, images: any[], type: string) => {
+  handleUpdateWithImages = (
+    payload: any,
+    docId: string,
+    collection: string,
+    images: any[],
+    type: string,
+    subType = null
+  ) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
       let imageName = image.name;
 
       if (imageName == null) {
-        imageName = `images/${type}/${docId}-${index}`;
+        imageName = constructImageName(type, subType, docId, index);
         let doesNameExist =
           doesElementExistArrObj(images, "name", imageName) || doesElementExistArrObj(imagesUri, "name", imageName);
         let increment = 1;
 
         while (doesNameExist) {
-          imageName = `images/${type}/${docId}-${index + increment}`;
+          alert(imageName);
+          imageName = constructImageName(type, subType, docId, index);
+          alert(imageName);
           doesNameExist =
             doesElementExistArrObj(images, "name", imageName) || doesElementExistArrObj(imagesUri, "name", imageName);
+          alert(doesNameExist);
           increment++;
         }
       }
@@ -132,7 +142,7 @@ export default class CommonService {
    * using an array of images
    * @param images
    */
-  handleUploadImages = async (images: any[], id: string, type: string) => {
+  handleUploadImages = async (images: any[], id: string, type: string, subType = null) => {
     const oldImages = images.filter((img: any) => img.name != null);
     const newImages = images.filter((img: any) => img.name == null);
 
@@ -149,7 +159,7 @@ export default class CommonService {
           const response = await fetch(imageUri);
           const blob = await response.blob();
 
-          imageName = `images/${type}/${id}-${index}`;
+          imageName = constructImageName(type, subType, id, index);
 
           const ref = firebase.storage().ref().child(imageName);
 
@@ -208,4 +218,16 @@ export default class CommonService {
     const ref = firebase.storage().ref().child(fileName);
     return await ref.delete();
   };
+
+  listAllFiles = (reference: string) => {
+    return firebase.storage().ref().child(reference).listAll();
+  }
 }
+
+const constructImageName = (type: string, subType = null, id: string, index: number) => {
+  if (subType) {
+    return `images/${type}/${subType}/${id}-${index}`;
+  }
+
+  return `images/${type}/${id}-${index}`;
+};

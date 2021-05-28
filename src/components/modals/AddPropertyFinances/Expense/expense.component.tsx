@@ -99,17 +99,17 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       if (!isEditting) {
         const docRef = this.commonService.createNewDocId(PROPERTY_FINANCES_DOC);
 
-        if (expenseImages.length > 0) {
+        if (expenseImages && expenseImages.length > 0) {
           // create with images
-          this.handleCreateWithImages(payload, docRef);
+          this.handleCreateWithImages(payload, docRef, propertyId);
         } else {
           // normal create
           this.handleRegularCreate(payload, docRef);
         }
       } else {
-        if (expenseImages.length > 0) {
+        if (expenseImages && expenseImages.length > 0) {
           // update with images
-          this.handleUpdateWithImages(payload, reportData);
+          this.handleUpdateWithImages(payload, reportData, propertyId);
         } else {
           // regular update
           this.handleRegularUpdate(payload, reportData);
@@ -135,15 +135,17 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       .catch((error: any) => console.log("ERROR in creating a new income object: ", error));
   };
 
-  handleCreateWithImages = (payload: any, docRef: any) => {
+  handleCreateWithImages = (payload: any, docRef: any, propertyId: any) => {
     const { expenseImages } = this.props;
 
-    this.commonService
-      .handleCreateWithImages(payload, docRef, expenseImages, IMAGES_PARENT_FOLDER.EXPENSES)
-      .then(() => {
-        this.uploadImages(docRef.id);
-      })
-      .catch((error: any) => console.log("ERROR in updating a new expense object: ", error));
+    if (expenseImages) {
+      this.commonService
+        .handleCreateWithImages(payload, docRef, expenseImages, IMAGES_PARENT_FOLDER.EXPENSES, propertyId)
+        .then(() => {
+          this.uploadImages(docRef.id, propertyId);
+        })
+        .catch((error: any) => console.log("ERROR in updating a new expense object: ", error));
+    }
   };
 
   handleRegularUpdate = (payload: any, reportData: any) => {
@@ -155,29 +157,34 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       .finally(() => this.setState({ isLoading: false }));
   };
 
-  handleUpdateWithImages = (payload: any, reportData: any) => {
+  handleUpdateWithImages = (payload: any, reportData: any, propertyId: any) => {
     const { expenseImages } = this.props;
 
-    this.commonService
-      .handleUpdateWithImages(
-        payload,
-        reportData.id,
-        PROPERTY_FINANCES_DOC,
-        expenseImages,
-        IMAGES_PARENT_FOLDER.EXPENSES
-      )
-      .then(() => this.uploadImages(reportData.id))
-      .catch((error) => console.log("ERROR in updating expenses with images: ", error));
+    if (expenseImages) {
+      this.commonService
+        .handleUpdateWithImages(
+          payload,
+          reportData.id,
+          PROPERTY_FINANCES_DOC,
+          expenseImages,
+          IMAGES_PARENT_FOLDER.EXPENSES,
+          propertyId
+        )
+        .then(() => this.uploadImages(reportData.id, propertyId))
+        .catch((error) => console.log("ERROR in updating expenses with images: ", error));
+    }
   };
 
-  uploadImages = (id: string) => {
+  uploadImages = (id: string, propertyId: any) => {
     const { expenseImages, navigation } = this.props;
 
-    this.commonService
-      .handleUploadImages(expenseImages, id, IMAGES_PARENT_FOLDER.EXPENSES)
-      .then(() => navigation.goBack())
-      .catch((error) => console.log("ERROR in uploading expense images, ", error))
-      .finally(() => this.setState({ isLoading: false }));
+    if (expenseImages) {
+      this.commonService
+        .handleUploadImages(expenseImages, id, IMAGES_PARENT_FOLDER.EXPENSES, propertyId)
+        .then(() => navigation.goBack())
+        .catch((error) => console.log("ERROR in uploading expense images, ", error))
+        .finally(() => this.setState({ isLoading: false }));
+    }
   };
 
   updateImagesWithDownloadPath = async () => {
