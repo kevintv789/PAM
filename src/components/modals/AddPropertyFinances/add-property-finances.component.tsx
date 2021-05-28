@@ -1,8 +1,8 @@
 import * as EvaUI from "@ui-kitten/components";
 
 import { AddImageButton, CommonModal, Container, ImagesList, Text } from "components/common";
+import { Dimensions, Keyboard, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Keyboard, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
@@ -63,8 +63,19 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
     const { expenseImages, incomeImages } = this.state;
     const isExpenseTab = this.determineIfExpenseTab();
 
-    if (expenseImages && expenseImages.length > 0 && isExpenseTab) {
-      const uris = expenseImages.map((image) => {
+    const hasExpenseImages = expenseImages && expenseImages.length > 0 && isExpenseTab;
+    const hasIncomeImages = incomeImages && incomeImages.length > 0 && !isExpenseTab;
+
+    let imagesToMap: any[] = [];
+
+    if (hasExpenseImages) {
+      imagesToMap = [...expenseImages];
+    } else if (hasIncomeImages) {
+      imagesToMap = [...incomeImages];
+    }
+
+    if (imagesToMap.length > 0) {
+      const uris = imagesToMap.map((image) => {
         let obj = {};
         if (image.downloadPath !== "" && image.downloadPath != null) {
           obj["uri"] = image.downloadPath;
@@ -90,28 +101,28 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
           />
         </Container>
       );
-    } else if (incomeImages && incomeImages.length > 0 && !isExpenseTab) {
-    } else {
-      return (
-        <AddImageButton
-          handleOnPress={() => this.setState({ showAddImageModal: true })}
-          caption="Add receipts or other related documents"
-          containerStyle={{ marginBottom: 14 }}
-        />
-      );
     }
+
+    return (
+      <AddImageButton
+        handleOnPress={() => this.setState({ showAddImageModal: true })}
+        caption="Add receipts or other related documents"
+        containerStyle={{ marginBottom: 14 }}
+      />
+    );
   };
 
   updateImagePosition = (data: any) => {
-    const { expenseImages } = this.state;
+    const { expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
 
     const from = data.from;
     const to = data.to;
-    const tempArray = [...expenseImages];
+    const tempArray = isExpenseTab ? [...expenseImages] : [...incomeImages];
 
     updateArrayPosition(tempArray, from, to);
 
-    this.setState({ expenseImages: tempArray });
+    isExpenseTab ? this.setState({ expenseImages: tempArray }) : this.setState({ incomeImages: tempArray });
   };
 
   renderTabView = () => {
@@ -125,6 +136,7 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
           this.setState({ activeTabIndex: index });
           Keyboard.dismiss();
         }}
+        style={{ height: Dimensions.get("window").height * 0.85 }}
         tabBarStyle={styles.tabBar}
         indicatorStyle={styles.tabIndicator}
       >
@@ -138,7 +150,7 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
             </EvaUI.Text>
           )}
         >
-          <Container flex={false}>
+          <Container>
             <ExpenseComponent navigation={navigation} propertyId={this.propertyId} expenseImages={expenseImages} />
           </Container>
         </Tab>
@@ -152,7 +164,7 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
             </EvaUI.Text>
           )}
         >
-          <Container flex={false}>
+          <Container>
             <IncomeComponent navigation={navigation} propertyId={this.propertyId} incomeImages={incomeImages} />
           </Container>
         </Tab>
@@ -180,13 +192,14 @@ class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps,
       }
     });
 
-    const deletedImgObj = expenseImages[indexToDelete];
+    const deletedImgObj = isExpenseTab ? expenseImages[indexToDelete] : incomeImages[indexToDelete];
 
     const newImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
     newImages.splice(indexToDelete, 1);
 
     isExpenseTab ? this.setState({ expenseImages: newImages }) : this.setState({ incomeImages: newImages });
 
+    // TODO -- might need to refactor to ONLY delete from storage when user presses the 'Save' button
     this.onRemoveImageFromBackend(newImages, deletedImgObj);
   };
 

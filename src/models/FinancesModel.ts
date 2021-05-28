@@ -10,18 +10,17 @@ export interface initialState {
   recurringText?: string;
   errors: string[];
   isLoading: boolean;
-  images: any[];
 }
 
 export interface defaultProps {
-  navigation: any;
+  navigation?: any;
   addFinances?: any;
   isEditting?: boolean;
   reportData?: any;
-  updateFinances: (payload: any) => { type: string; payload: any };
-  propertyId: number;
-  incomeImages: any[];
-  expenseImages: any[];
+  updateFinances?: (payload: any) => { type: string; payload: any };
+  propertyId?: number;
+  incomeImages?: any[];
+  expenseImages?: any[];
 }
 
 export interface addFinancesState {

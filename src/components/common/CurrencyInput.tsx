@@ -9,16 +9,13 @@ const CurrencyInput = (props: any) => {
   const { label, handleChange, value, textFieldWidth } = props;
 
   return (
-    <Container style={{ width: "100%" }}>
+    <Container style={{ width: "100%" }} flex={false}>
       <Text tertiary style={styles.label}>
         {label}
       </Text>
       <CalculatorInput
         fieldTextStyle={styles.fieldText}
-        fieldContainerStyle={[
-          styles.fieldContainer,
-          textFieldWidth ? { width: textFieldWidth } : { width: 330 },
-        ]}
+        fieldContainerStyle={[styles.fieldContainer, textFieldWidth ? { width: textFieldWidth } : { width: 330 }]}
         onChange={(value) => handleChange(value)}
         value={value}
         suffix={value.toString().split(".")[1] ? "" : ".00"}
@@ -36,11 +33,12 @@ const CurrencyInput = (props: any) => {
 
 const styles = StyleSheet.create({
   label: {
-    paddingLeft: 10,
+    paddingLeft: 24,
     top: 10,
   },
   fieldContainer: {
     height: 35,
+    alignSelf: "center",
   },
   fieldText: {
     color: theme.colors.offWhite,

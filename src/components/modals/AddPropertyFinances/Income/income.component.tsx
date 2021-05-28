@@ -1,5 +1,15 @@
-import { Button, Container, CurrencyInput, HeaderDivider, Text, TextInput, Toggle } from "components/common";
+import {
+  Button,
+  Container,
+  CurrencyInput,
+  HeaderDivider,
+  LoadingIndicator,
+  Text,
+  TextInput,
+  Toggle,
+} from "components/common";
 import { Dimensions, Modal, StyleSheet } from "react-native";
+import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
@@ -8,9 +18,9 @@ import { Entypo } from "@expo/vector-icons";
 import { FinancesModel } from "@models";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
-import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { hasErrors } from "shared/Utils";
+import { isEqual } from "lodash";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
@@ -29,7 +39,6 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       showNotesModal: false,
       showRecurringModal: false,
       errors: [],
-      images: [],
       isLoading: false,
     };
   }
@@ -48,8 +57,16 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
     }
   }
 
+  componentDidUpdate(prevProps: FinancesModel.defaultProps, _: any) {
+    const { incomeImages } = this.props;
+
+    if (!isEqual(incomeImages, prevProps.incomeImages)) {
+      this.updateImagesWithDownloadPath();
+    }
+  }
+
   handleIncomeSave = () => {
-    const { navigation, propertyId, isEditting, reportData } = this.props;
+    const { propertyId, isEditting, reportData, incomeImages } = this.props;
     const { name, amount, expenseStatusDate, expenseStatus } = this.state;
 
     const errors = [];
@@ -68,7 +85,7 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       paymentDue: "",
       recurring: null,
       additionalNotes: "",
-      image: null,
+      images: incomeImages,
       propertyId,
       name,
       type: PROPERTY_FINANCES_TYPE.INCOME,
@@ -77,21 +94,112 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
     if (!errors.length) {
       if (!isEditting) {
         const docRef = this.commonService.createNewDocId(PROPERTY_FINANCES_DOC);
-        this.commonService
-          .handleCreate(payload, docRef)
-          .then(() => {
-            navigation.goBack();
-          })
-          .catch((error: any) => console.log("ERROR in creating a new income object: ", error));
+
+        if (incomeImages && incomeImages.length > 0) {
+          // create with images
+          this.handleCreateWithImages(payload, docRef);
+        } else {
+          // regular create
+          this.handleRegularCreate(payload, docRef);
+        }
       } else {
-        this.commonService
-          .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
-          .then(() => navigation.goBack())
-          .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
+        if (incomeImages && incomeImages.length > 0) {
+          // update with images
+          this.handleUpdateWithImages(payload, reportData.id);
+        } else {
+          this.handleRegularUpdate(payload, reportData.id);
+        }
       }
     }
 
-    this.setState({ errors });
+    this.setState({ errors, isLoading: true });
+
+    if (errors.length > 0) {
+      this.setState({ isLoading: false });
+    }
+  };
+
+  handleRegularCreate = (payload: any, docRef: any) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleCreate(payload, docRef)
+      .then(() => {
+        navigation.goBack();
+      })
+      .catch((error: any) => console.log("ERROR in creating a new income object: ", error))
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  handleCreateWithImages = (payload: any, docRef: any) => {
+    const { incomeImages } = this.props;
+
+    this.commonService
+      .handleCreateWithImages(payload, docRef, incomeImages, IMAGES_PARENT_FOLDER.INCOME)
+      .then(() => {
+        this.uploadImages(docRef.id);
+      })
+      .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
+  };
+
+  handleRegularUpdate = (payload: any, id: string) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleUpdate(payload, id, PROPERTY_FINANCES_DOC)
+      .then(() => navigation.goBack())
+      .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
+  };
+
+  handleUpdateWithImages = (payload: any, id: string) => {
+    const { incomeImages } = this.props;
+
+    this.commonService
+      .handleUpdateWithImages(payload, id, PROPERTY_FINANCES_DOC, incomeImages, IMAGES_PARENT_FOLDER.INCOME)
+      .then(() => this.uploadImages(id))
+      .catch((error) => console.log("ERROR in updating income with images: ", error));
+  };
+
+  uploadImages = (id: string) => {
+    const { incomeImages, navigation } = this.props;
+
+    this.commonService
+      .handleUploadImages(incomeImages, id, IMAGES_PARENT_FOLDER.INCOME)
+      .then(() => navigation.goBack())
+      .catch((error) => console.log("ERROR in uploading income images, ", error))
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  updateImagesWithDownloadPath = async () => {
+    const { reportData } = this.props;
+    const images = reportData ? reportData.images : [];
+    let newImages: any[] = [...images];
+    let shouldUpdate = false;
+
+    if (images.length > 0 && reportData) {
+      // retrieve download path from storage and update image array with download path
+      await Promise.all(
+        images.map(async (image: any, index: number) => {
+          if (image.downloadPath === "" || image.downloadPath == null) {
+            const url = await this.commonService.getSingleImageDownloadPath(image);
+
+            const obj = {
+              downloadPath: url,
+              name: image.name,
+              uri: image.uri,
+            };
+
+            newImages[index] = obj;
+            shouldUpdate = true;
+          }
+        })
+      );
+
+      if (shouldUpdate) {
+        // update backend with new image array
+        this.commonService.handleUpdateSingleField(PROPERTY_FINANCES_DOC, reportData.id, { images: newImages });
+      }
+    }
   };
 
   renderTextInputs = () => {
@@ -109,7 +217,7 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
     ];
 
     return (
-      <Container center flex={false}>
+      <Container center>
         <TextInput
           required
           error={hasErrors("name", errors)}
@@ -124,27 +232,23 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
           }
         />
 
-        <Container>
-          <CurrencyInput
-            label="Amount"
-            handleChange={(amount: number) => this.setState({ amount })}
-            value={amount}
-            textFieldWidth={width * 0.87}
-          />
-        </Container>
+        <CurrencyInput
+          label="Amount"
+          handleChange={(amount: number) => this.setState({ amount })}
+          value={amount}
+          textFieldWidth={width * 0.87}
+        />
 
-        <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
-          <Container left>
-            <Toggle
-              options={expenseStatusOptions}
-              initialIndex={1}
-              handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
-              containerStyle={styles.expenseStatus}
-              borderRadius={13}
-              height={48}
-              topLabel="Status"
-            />
-          </Container>
+        <Container row padding={[theme.sizes.padding * 0.5, 0, 15, 0]} flex={false} style={{ alignSelf: "flex-start" }}>
+          <Toggle
+            options={expenseStatusOptions}
+            initialIndex={1}
+            handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
+            containerStyle={styles.expenseStatus}
+            borderRadius={13}
+            height={48}
+            topLabel="Status"
+          />
         </Container>
 
         {expenseStatus === constants.EXPENSE_STATUS_TYPE.PAID ? (
@@ -179,29 +283,36 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
+
+        {this.renderNavigationButtons()}
       </Container>
     );
   };
 
   renderNavigationButtons = () => {
     const { navigation } = this.props;
+    const { isLoading } = this.state;
 
     return (
       <Container
         row
         space="between"
-        flex={false}
         padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
-        style={{ height: height / 4.8 }}
       >
         <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
             Cancel
           </Text>
         </Button>
-        <Button color="secondary" style={styles.navigationButtons} onPress={() => this.handleIncomeSave()}>
-          <Text offWhite center semibold>
-            Save
+        <Button
+          color="secondary"
+          style={styles.navigationButtons}
+          onPress={() => this.handleIncomeSave()}
+          disabled={isLoading}
+        >
+          <Text offWhite center semibold style={{ alignSelf: "center" }}>
+            {!isLoading && "Save"}
+            {isLoading && <LoadingIndicator size="small" color={theme.colors.offWhite} />}
           </Text>
         </Button>
       </Container>
@@ -226,7 +337,6 @@ class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesMode
       <Container>
         <HeaderDivider title="Income Details" style={styles.divider} />
         {this.renderTextInputs()}
-        {this.renderNavigationButtons()}
         {this.renderNotesModal()}
       </Container>
     );
@@ -266,6 +376,7 @@ const styles = StyleSheet.create({
   },
   navigationButtons: {
     width: theme.sizes.padding * 5.5,
+    marginHorizontal: 27,
   },
 });
 

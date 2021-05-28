@@ -42,7 +42,6 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       recurringText: "",
       errors: [],
       isLoading: false,
-      images: [],
     };
   }
 
@@ -61,7 +60,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
     }
   }
 
-  componentDidUpdate(prevProps: FinancesModel.defaultProps, prevState: FinancesModel.initialState) {
+  componentDidUpdate(prevProps: FinancesModel.defaultProps, _: any) {
     const { expenseImages } = this.props;
 
     if (!isEqual(expenseImages, prevProps.expenseImages)) {
@@ -72,14 +71,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
   handleExpenseSave = () => {
     const { isEditting, reportData, propertyId, expenseImages } = this.props;
 
-    const {
-      name,
-      amount,
-      expenseStatusDate,
-      expenseStatus,
-      recurring,
-      // images,
-    } = this.state;
+    const { name, amount, expenseStatusDate, expenseStatus, recurring } = this.state;
 
     const errors = [];
 
@@ -248,7 +240,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
     ];
 
     return (
-      <Container center flex={false}>
+      <Container center>
         <TextInput
           required
           error={hasErrors("name", errors)}
@@ -263,27 +255,23 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
           }
         />
 
-        <Container>
-          <CurrencyInput
-            label="Amount"
-            handleChange={(amount: number) => this.setState({ amount })}
-            value={amount}
-            textFieldWidth={width * 0.87}
-          />
-        </Container>
+        <CurrencyInput
+          label="Amount"
+          handleChange={(amount: number) => this.setState({ amount })}
+          value={amount}
+          textFieldWidth={width * 0.87}
+        />
 
-        <Container row padding={[theme.sizes.padding * 0.9, 0, 10, 0]}>
-          <Container left>
-            <Toggle
-              options={expenseStatusOptions}
-              initialIndex={1}
-              handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
-              containerStyle={styles.expenseStatus}
-              borderRadius={13}
-              height={48}
-              topLabel="Status"
-            />
-          </Container>
+        <Container row center flex={false} padding={[20, 0, 20, 0]}>
+          <Toggle
+            options={expenseStatusOptions}
+            initialIndex={1}
+            handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
+            containerStyle={styles.expenseStatus}
+            borderRadius={13}
+            height={48}
+            topLabel="Status"
+          />
 
           <Toggle
             options={expenseRecurringOptions}
@@ -337,11 +325,11 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
+        <TouchableOpacity style={[styles.addNotesButton]} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
-            style={styles.addNotesButtonText}
+            style={[styles.addNotesButtonText]}
             editable={false}
             label="Add Notes"
             value={notes ? notes.text : ""}
@@ -349,6 +337,8 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
+
+        {this.renderNavigationButtons()}
       </Container>
     );
   };
@@ -361,9 +351,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       <Container
         row
         space="between"
-        flex={false}
         padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
-        style={{ height: height / 4.8 }}
       >
         <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
@@ -377,7 +365,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
           disabled={isLoading}
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
-            {!isLoading && "Next"}
+            {!isLoading && "Save"}
             {isLoading && <LoadingIndicator size="small" color={theme.colors.offWhite} />}
           </Text>
         </Button>
@@ -403,7 +391,6 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       <Container>
         <HeaderDivider title="Expense Details" style={styles.divider} />
         {this.renderTextInputs()}
-        {this.renderNavigationButtons()}
         {this.renderNotesModal()}
       </Container>
     );
@@ -443,6 +430,7 @@ const styles = StyleSheet.create({
   },
   navigationButtons: {
     width: theme.sizes.padding * 5.5,
+    marginHorizontal: 27,
   },
 });
 
