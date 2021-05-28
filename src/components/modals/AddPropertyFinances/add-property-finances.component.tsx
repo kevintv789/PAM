@@ -1,54 +1,134 @@
 import * as EvaUI from "@ui-kitten/components";
 
-import { AddImageButton, Container, Text } from "components/common";
-import { Keyboard, ScrollView, StyleSheet } from "react-native";
+import { AddImageButton, CommonModal, Container, ImagesList, Text } from "components/common";
+import { Dimensions, Keyboard, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
+import AddImageModalComponent from "../Add Image/addImage.component";
+import CommonService from "services/common.service";
 import ExpenseComponent from "./Expense/expense.component";
 import { FinancesModel } from "models";
 import IncomeComponent from "./Income/income.component";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { PROPERTY_FINANCES_DOC } from "shared/constants/databaseConsts";
+import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { addFinances } from "reducks/modules/property";
 import { connect } from "react-redux";
+import { findIndex } from "lodash";
 import { theme } from "shared";
+import { updateArrayPosition } from "shared/Utils";
 
-class AddPropertyFinancesComponent extends Component<
-  FinancesModel.defaultProps,
-  FinancesModel.addFinancesState
-> {
+class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps, FinancesModel.addFinancesState> {
   private reportData: any;
   private isEditting = false;
   private isIncomeType = false;
   private propertyId: number;
+  private commonService = new CommonService();
 
   constructor(props: FinancesModel.defaultProps) {
     super(props);
 
     this.state = {
-      activeTabIndex: 0,
+      activeTabIndex: PROPERTY_FINANCES_TYPE.EXPENSE_TAB,
+      showAddImageModal: false,
+      expenseImages: [],
+      incomeImages: [],
+      showWarningModal: false,
+      imageToDelete: null,
     };
 
     const { navigation } = this.props;
     this.isEditting = navigation.getParam("isEditting");
     this.reportData = navigation.getParam("reportData");
-    this.isIncomeType = this.reportData && this.reportData.type === "income";
+    this.isIncomeType = this.reportData && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME;
     this.propertyId = this.props.navigation.getParam("propertyId");
   }
 
+  componentDidMount() {
+    const isExpenseTab = this.determineIfExpenseTab();
+    if (this.reportData && isExpenseTab) {
+      this.setState({ expenseImages: this.reportData.images });
+    } else if (this.reportData && !isExpenseTab) {
+      this.setState({ incomeImages: this.reportData.images });
+    }
+  }
+
+  determineIfExpenseTab = () =>
+    (this.reportData && this.reportData.type.toUpperCase() === PROPERTY_FINANCES_TYPE.EXPENSE.toUpperCase()) ||
+    (this.reportData == null && this.state.activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB);
+
   renderImageSection = () => {
+    const { expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
+
+    const hasExpenseImages = expenseImages && expenseImages.length > 0 && isExpenseTab;
+    const hasIncomeImages = incomeImages && incomeImages.length > 0 && !isExpenseTab;
+
+    let imagesToMap: any[] = [];
+
+    if (hasExpenseImages) {
+      imagesToMap = [...expenseImages];
+    } else if (hasIncomeImages) {
+      imagesToMap = [...incomeImages];
+    }
+
+    if (imagesToMap.length > 0) {
+      const uris = imagesToMap.map((image) => {
+        let obj = {};
+        if (image.downloadPath !== "" && image.downloadPath != null) {
+          obj["uri"] = image.downloadPath;
+        } else {
+          obj["uri"] = image.uri;
+        }
+        return obj;
+      });
+
+      const nonCachedUri = uris.filter((img: any) => img.uri.includes("file"));
+
+      return (
+        <Container style={{ flex: 1 }} margin={[-10, 0, 14]}>
+          <ImagesList
+            isCached={nonCachedUri.length === 0} // caches image if there are only firebase url's available, otherwise don't cache b/c it doesn't work with source files
+            images={uris}
+            iconHorizontalPadding={14}
+            showAddImageModal={() => this.setState({ showAddImageModal: true })}
+            onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
+            onDragEnd={(data: any[]) => {
+              this.updateImagePosition(data);
+            }}
+          />
+        </Container>
+      );
+    }
+
     return (
       <AddImageButton
-        handleOnPress={() => console.log("Adding an expense image")}
+        handleOnPress={() => this.setState({ showAddImageModal: true })}
         caption="Add receipts or other related documents"
-        containerStyle={this.isEditting ? { marginBottom: 15 } : ""}
+        containerStyle={{ marginBottom: 14 }}
       />
     );
   };
 
+  updateImagePosition = (data: any) => {
+    const { expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
+
+    const from = data.from;
+    const to = data.to;
+    const tempArray = isExpenseTab ? [...expenseImages] : [...incomeImages];
+
+    updateArrayPosition(tempArray, from, to);
+
+    isExpenseTab ? this.setState({ expenseImages: tempArray }) : this.setState({ incomeImages: tempArray });
+  };
+
   renderTabView = () => {
-    const { activeTabIndex } = this.state;
+    const { activeTabIndex, incomeImages, expenseImages } = this.state;
     const { navigation } = this.props;
+
     return (
       <TabView
         selectedIndex={activeTabIndex}
@@ -56,6 +136,7 @@ class AddPropertyFinancesComponent extends Component<
           this.setState({ activeTabIndex: index });
           Keyboard.dismiss();
         }}
+        style={{ height: Dimensions.get("window").height * 0.85 }}
         tabBarStyle={styles.tabBar}
         indicatorStyle={styles.tabIndicator}
       >
@@ -63,46 +144,80 @@ class AddPropertyFinancesComponent extends Component<
           title={(evaProps) => (
             <EvaUI.Text
               {...evaProps}
-              style={
-                activeTabIndex === 0 ? styles.activeTab : styles.inactiveTab
-              }
+              style={activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB ? styles.activeTab : styles.inactiveTab}
             >
-              Expense
+              {PROPERTY_FINANCES_TYPE.EXPENSE}
             </EvaUI.Text>
           )}
         >
-          <Container flex={false}>
-            <ExpenseComponent
-              navigation={navigation}
-              propertyId={this.propertyId}
-            />
+          <Container>
+            <ExpenseComponent navigation={navigation} propertyId={this.propertyId} expenseImages={expenseImages} />
           </Container>
         </Tab>
         <Tab
           title={(evaProps) => (
             <EvaUI.Text
               {...evaProps}
-              style={
-                activeTabIndex === 1 ? styles.activeTab : styles.inactiveTab
-              }
+              style={activeTabIndex === PROPERTY_FINANCES_TYPE.INCOME_TAB ? styles.activeTab : styles.inactiveTab}
             >
-              Income
+              {PROPERTY_FINANCES_TYPE.INCOME}
             </EvaUI.Text>
           )}
         >
-          <Container flex={false}>
-            <IncomeComponent
-              navigation={navigation}
-              propertyId={this.propertyId}
-            />
+          <Container>
+            <IncomeComponent navigation={navigation} propertyId={this.propertyId} incomeImages={incomeImages} />
           </Container>
         </Tab>
       </TabView>
     );
   };
 
+  onCaptureImage = (isExpenseTab: boolean, data: any[]) => {
+    const { expenseImages, incomeImages } = this.state;
+
+    const tempImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
+    data.forEach((image) => tempImages.push(image));
+    isExpenseTab ? this.setState({ expenseImages: tempImages }) : this.setState({ incomeImages: tempImages });
+  };
+
+  onUpdateImagesStateOnDelete = () => {
+    const { imageToDelete, expenseImages, incomeImages } = this.state;
+    const isExpenseTab = this.determineIfExpenseTab();
+
+    const indexToDelete = findIndex(isExpenseTab ? expenseImages : incomeImages, (img) => {
+      if (img.downloadPath && img.downloadPath !== "") {
+        return img.downloadPath === imageToDelete.uri;
+      } else {
+        return img.uri === imageToDelete.uri;
+      }
+    });
+
+    const deletedImgObj = isExpenseTab ? expenseImages[indexToDelete] : incomeImages[indexToDelete];
+
+    const newImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
+    newImages.splice(indexToDelete, 1);
+
+    isExpenseTab ? this.setState({ expenseImages: newImages }) : this.setState({ incomeImages: newImages });
+
+    // TODO -- might need to refactor to ONLY delete from storage when user presses the 'Save' button
+    this.onRemoveImageFromBackend(newImages, deletedImgObj);
+  };
+
+  onRemoveImageFromBackend = (newImages: any, deletedImgObj: any) => {
+    const { imageToDelete } = this.state;
+
+    if (this.isEditting && this.reportData) {
+      this.commonService
+        .deleteSingleItemFromStorage(deletedImgObj.name)
+        .then(() => {
+          this.commonService.handleUpdateSingleField(PROPERTY_FINANCES_DOC, this.reportData.id, { images: newImages });
+        })
+        .catch((error) => console.log(`ERROR could not remove ${imageToDelete.name} from storage`, error));
+    }
+  };
+
   render() {
-    const { activeTabIndex } = this.state;
+    const { activeTabIndex, showAddImageModal, expenseImages, incomeImages, showWarningModal } = this.state;
     const { navigation } = this.props;
 
     let title = "";
@@ -110,17 +225,21 @@ class AddPropertyFinancesComponent extends Component<
     if (this.isEditting) {
       title += "Edit";
       if (this.isIncomeType) {
-        title += " Income";
+        title += ` ${PROPERTY_FINANCES_TYPE.INCOME}`;
       } else {
-        title += " Expense";
+        title += ` ${PROPERTY_FINANCES_TYPE.EXPENSE}`;
       }
     } else {
       if (activeTabIndex === 0) {
-        title += "Add Expense";
+        title += `Add ${PROPERTY_FINANCES_TYPE.EXPENSE}`;
       } else {
-        title += "Add Income";
+        title += `Add ${PROPERTY_FINANCES_TYPE.INCOME}`;
       }
     }
+
+    const isExpenseTab = this.determineIfExpenseTab();
+    const showExpenseAddImageBtn = isExpenseTab && expenseImages && expenseImages.length > 0;
+    const showIncomeAddImageBtn = !isExpenseTab && incomeImages && incomeImages.length > 0;
 
     return (
       <KeyboardAwareScrollView
@@ -136,34 +255,67 @@ class AddPropertyFinancesComponent extends Component<
               flexGrow: 1,
             }}
           >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
-            >
-              {title}
-            </Text>
+            <Container row>
+              <Container style={{ width: "95%" }}>
+                <Text h1 offWhite center style={{ paddingTop: theme.sizes.padding }}>
+                  {title}
+                </Text>
+              </Container>
+
+              {(showExpenseAddImageBtn || showIncomeAddImageBtn) && (
+                <Container flex={false} style={{ width: "5%" }}>
+                  <TouchableOpacity
+                    style={styles.addImagesBtn}
+                    onPress={() => this.setState({ showAddImageModal: true })}
+                  >
+                    <MaterialCommunityIcons name="camera-plus-outline" size={28} color={theme.colors.tertiary} />
+                  </TouchableOpacity>
+                </Container>
+              )}
+            </Container>
+
             {this.renderImageSection()}
             {!this.isEditting && this.renderTabView()}
-            {this.isEditting && this.reportData.type === "income" && (
+            {this.isEditting && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME && (
               <IncomeComponent
                 navigation={navigation}
                 isEditting={this.isEditting}
                 reportData={this.reportData}
                 propertyId={this.propertyId}
+                incomeImages={incomeImages}
               />
             )}
-            {this.isEditting && this.reportData.type === "expense" && (
+            {this.isEditting && this.reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE && (
               <ExpenseComponent
                 navigation={navigation}
                 isEditting={this.isEditting}
                 reportData={this.reportData}
                 propertyId={this.propertyId}
+                expenseImages={expenseImages}
               />
             )}
           </ScrollView>
         </Container>
+        <AddImageModalComponent
+          visible={showAddImageModal}
+          hideModal={() => this.setState({ showAddImageModal: false })}
+          onSelectImages={(data: any[]) => {
+            this.onCaptureImage(isExpenseTab, data);
+          }}
+          onCaptureImages={(data: any[]) => {
+            this.onCaptureImage(isExpenseTab, data);
+          }}
+        />
+        <CommonModal
+          visible={showWarningModal}
+          compact
+          descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
+          hideModal={() => this.setState({ showWarningModal: false })}
+          onSubmit={() => this.onUpdateImagesStateOnDelete()}
+          headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
+          headerIconBackground={theme.colors.primary}
+          title="Confirm"
+        />
       </KeyboardAwareScrollView>
     );
   }
@@ -193,6 +345,12 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     height: 40,
     marginTop: theme.sizes.base,
+  },
+  addImagesBtn: {
+    width: 95,
+    alignSelf: "flex-end",
+    margin: 20,
+    marginTop: 25,
   },
 });
 

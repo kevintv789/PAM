@@ -2,11 +2,7 @@ import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import {
-  Image as RNImage,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Image as RNImage, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 
 import CameraPreviewModalComponent from "components/Modals/Add Image/Camera Modal/Camera Preview/camera-preview.component";
@@ -25,6 +21,8 @@ const ImagesList = (props: any) => {
     isCached = false,
     onDeleteImage,
     onDragEnd,
+    containerStyle,
+    iconHorizontalPadding,
   } = props;
 
   const onImageSelect = (image: any) => {
@@ -36,7 +34,9 @@ const ImagesList = (props: any) => {
   };
 
   const onDeleteSingleImage = (image: any) => {
-    onDeleteImage(image);
+    if (onDeleteImage) {
+      onDeleteImage(image);
+    }
   };
 
   const renderImage = (item: any) => {
@@ -54,7 +54,7 @@ const ImagesList = (props: any) => {
     }
 
     return (
-      <Container>
+      <Container style={containerStyle}>
         <Container
           style={isImageSelected === item.uri ? styles.selected : {}}
           center
@@ -71,13 +71,20 @@ const ImagesList = (props: any) => {
               />
             </TouchableOpacity>
           )}
-          {isImageSelected === item.uri && (
+          {isImageSelected === item.uri && onDeleteImage && (
             <TouchableOpacity onPress={() => onDeleteSingleImage(item)}>
               <Feather
                 name="trash-2"
                 size={32}
                 color={theme.colors.offWhite}
-                style={styles.imagePreviewBtn}
+                style={[
+                  styles.imagePreviewBtn,
+                  {
+                    marginHorizontal: iconHorizontalPadding
+                      ? iconHorizontalPadding
+                      : 7,
+                  },
+                ]}
               />
             </TouchableOpacity>
           )}
@@ -112,7 +119,9 @@ const ImagesList = (props: any) => {
         data={images}
         renderItem={renderItem}
         keyExtractor={(item) => item.uri}
-        onDragEnd={(data) => onDragEnd(data)}
+        onDragEnd={(data) => {
+          onDragEnd ? onDragEnd(data) : null;
+        }}
       />
       <Container flex={false}>
         <CameraPreviewModalComponent

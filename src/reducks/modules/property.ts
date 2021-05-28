@@ -23,7 +23,6 @@ export const getPropertyFinances = () => {
     firebase
       .firestore()
       .collection(PROPERTY_FINANCES_DOC)
-      // .doc()
       .onSnapshot((snapshot) => {
         if (snapshot.docs && snapshot.docs.length > 0) {
           const finances = snapshot.docs.map((i: any) => i.data());

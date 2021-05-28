@@ -48,3 +48,18 @@ export const EXPENSE_STATUS_TYPE = {
   PAID: "paid",
   UNPAID: "unpaid",
 };
+
+export const PROPERTY_FINANCES_TYPE = {
+  EXPENSE: 'Expense',
+  INCOME: 'Income',
+  EXPENSE_TAB: 0,
+  INCOME_TAB: 1,
+}
+
+export const IMAGES_PARENT_FOLDER = {
+  DEFAULT_IMAGES: 'default_images',
+  EXPENSES: 'expenses',
+  INCOME: 'income',
+  PROPERTY: 'property',
+  TENANTS: 'tenants'
+}

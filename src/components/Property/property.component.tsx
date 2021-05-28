@@ -1,41 +1,16 @@
-import {
-  Animated,
-  Dimensions,
-  Image as RNImage,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  AntDesign,
-  Entypo,
-  FontAwesome,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import {
-  CommonModal,
-  Container,
-  HeaderDivider,
-  Text,
-  TooltipWrapper,
-  VerticalDivider,
-} from "components/common";
-import {
-  PROPERTIES_DOC,
-  PROPERTY_FINANCES_DOC,
-  TENANTS_DOC,
-} from "shared/constants/databaseConsts";
+import { Animated, Dimensions, Image as RNImage, StyleSheet, TouchableOpacity, View } from "react-native";
+import { AntDesign, Entypo, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { CommonModal, Container, HeaderDivider, Text, TooltipWrapper, VerticalDivider } from "components/common";
+import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
+import { PROPERTIES_DOC, PROPERTY_FINANCES_DOC, TENANTS_DOC } from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
-import { filter, isEqual, remove, sortBy, uniqBy } from "lodash";
-import {
-  formatNumber,
-  getPropertyImage,
-  getPropertyTypeIcons,
-} from "shared/Utils";
+import { filter, isEqual, property, remove, sortBy, uniqBy } from "lodash";
+import { formatNumber, getPropertyImage, getPropertyTypeIcons } from "shared/Utils";
 
 import AuthService from "services/auth.service";
 import CommonService from "services/common.service";
+import FinanceService from "services/finance.service";
 import { Image } from "react-native-expo-image-cache";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
@@ -48,18 +23,15 @@ import moment from "moment";
 const { width } = Dimensions.get("window");
 
 const AnimatedContainer = Animated.createAnimatedComponent(Container);
-const AnimatedImage = Animated.createAnimatedComponent(Image);
 const AnimatedText = Animated.createAnimatedComponent(Text);
 const date = Date.now();
 
-class PropertyComponent extends Component<
-  PropertyModel.Props,
-  PropertyModel.State
-> {
+class PropertyComponent extends Component<PropertyModel.Props, PropertyModel.State> {
   private tooltipRef: React.RefObject<any>;
   private propertyService = new PropertyService();
   private authService = new AuthService();
   private commonService = new CommonService();
+  private financeService = new FinanceService();
 
   constructor(props: PropertyModel.Props) {
     super(props);
@@ -95,10 +67,7 @@ class PropertyComponent extends Component<
     }
   }
 
-  static getDerivedStateFromProps(
-    props: PropertyModel.Props,
-    state: PropertyModel.State
-  ) {
+  static getDerivedStateFromProps(props: PropertyModel.Props, state: PropertyModel.State) {
     if (!isEqual(props.propertyData, state.propertyData)) {
       return { propertyData: props.propertyData };
     }
@@ -109,10 +78,7 @@ class PropertyComponent extends Component<
   componentDidUpdate(prevProps: PropertyModel.Props) {
     const { financesData, tenantData, propertyData } = this.props;
 
-    if (
-      !isEqual(prevProps.propertyData, propertyData) ||
-      !isEqual(prevProps.tenantData, tenantData)
-    ) {
+    if (!isEqual(prevProps.propertyData, propertyData) || !isEqual(prevProps.tenantData, tenantData)) {
       this.getTenantData(propertyData);
       setTimeout(() => {
         this.updateImageDownloadUrl(propertyData.images);
@@ -128,34 +94,22 @@ class PropertyComponent extends Component<
     const { propertyData } = this.props;
     const propertyImages = [...propertyData.images];
 
-    const removedItem = remove(
-      propertyImages,
-      (p: any) => p.downloadPath === image.uri
-    );
+    const removedItem = remove(propertyImages, (p: any) => p.downloadPath === image.uri);
 
     this.commonService
       .deleteStorageFile(removedItem)
       .then(() => {
         // update property images with new object
-        this.commonService.handleUpdateSingleField(
-          PROPERTIES_DOC,
-          propertyData.id,
-          { images: propertyImages }
-        );
+        this.commonService.handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, { images: propertyImages });
       })
-      .catch((error) =>
-        console.log("ERROR cannot remove item: ", removedItem[0].name, error)
-      );
+      .catch((error) => console.log("ERROR cannot remove item: ", removedItem[0].name, error));
   };
 
   setFinancialData = () => {
     const { financesData } = this.props;
     const { propertyData } = this.state;
 
-    const filteredFinancialData = filter(
-      financesData,
-      (e: any) => e.propertyId === propertyData.id
-    );
+    const filteredFinancialData = filter(financesData, (e: any) => e.propertyId === propertyData.id);
 
     this.setState({ financesData: filteredFinancialData });
   };
@@ -202,32 +156,16 @@ class PropertyComponent extends Component<
     animations.animateOnToggle(animatedHeaderImageHeight, expanded, 74, 45);
 
     // animate property address width
-    animations.animateOnToggle(
-      animatedPropertyAddressWidth,
-      expanded,
-      180,
-      210
-    );
+    animations.animateOnToggle(animatedPropertyAddressWidth, expanded, 180, 210);
 
     // Animate content height
     animations.animateOnToggle(animatedContainerHeight, expanded, 0, 1);
 
     // animate property address on header
-    animations.animateOnToggle(
-      animatedHeaderPropertyAddressTop,
-      expanded,
-      0,
-      10
-    );
+    animations.animateOnToggle(animatedHeaderPropertyAddressTop, expanded, 0, 10);
 
     // animate expanded content opacity
-    animations.animateOnToggle(
-      animatedExpandedContentOpacity,
-      expanded,
-      0,
-      1,
-      1000
-    );
+    animations.animateOnToggle(animatedExpandedContentOpacity, expanded, 0, 1, 1000);
 
     // The onPropertySelect() prop sets a height on the parent (HomeScreen) component
     // to help the auto scroll function
@@ -237,15 +175,8 @@ class PropertyComponent extends Component<
 
   renderEditPropertyButton = () => {
     return (
-      <View
-        style={{ width: 50 }}
-        hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}
-      >
-        <Entypo
-          name="dots-three-vertical"
-          size={20}
-          color={theme.colors.accent}
-        />
+      <View style={{ width: 50 }} hitSlop={{ top: 20, bottom: 20, left: 30, right: 30 }}>
+        <Entypo name="dots-three-vertical" size={20} color={theme.colors.accent} />
       </View>
     );
   };
@@ -268,19 +199,12 @@ class PropertyComponent extends Component<
         >
           <Container row flex={false}>
             <AntDesign name="edit" size={18} color={theme.colors.accent} />
-            <Text
-              accent
-              style={{ paddingLeft: 5 }}
-              size={theme.fontSizes.medium}
-            >
+            <Text accent style={{ paddingLeft: 5 }} size={theme.fontSizes.medium}>
               Edit
             </Text>
           </Container>
         </TouchableOpacity>
-        <HeaderDivider
-          color="accent"
-          style={{ width, height: StyleSheet.hairlineWidth, marginTop: 0 }}
-        />
+        <HeaderDivider color="accent" style={{ width, height: StyleSheet.hairlineWidth, marginTop: 0 }} />
         <TouchableOpacity
           style={{ width: "100%" }}
           onPress={() => {
@@ -289,16 +213,8 @@ class PropertyComponent extends Component<
           }}
         >
           <Container row flex={false}>
-            <MaterialCommunityIcons
-              name="bulldozer"
-              size={18}
-              color={theme.colors.red}
-            />
-            <Text
-              accent
-              style={{ paddingLeft: 5 }}
-              size={theme.fontSizes.medium}
-            >
+            <MaterialCommunityIcons name="bulldozer" size={18} color={theme.colors.red} />
+            <Text accent style={{ paddingLeft: 5 }} size={theme.fontSizes.medium}>
               Bulldoze
             </Text>
           </Container>
@@ -311,14 +227,12 @@ class PropertyComponent extends Component<
     const { propertyData } = this.props;
 
     // use this to only download images if and only if said property doesn't have download path
-    const filteredPropertyImages = images.filter(
-      (p: any) => p.downloadPath == null
-    );
+    const filteredPropertyImages = images.filter((p: any) => p.downloadPath == null || p.downloadPath === "");
 
     if (filteredPropertyImages && filteredPropertyImages.length > 0) {
-      const data = await (
-        await this.commonService.getImageDownloadUri(filteredPropertyImages)
-      ).filter((i: any) => i.uri != null);
+      const data = await (await this.commonService.getImageDownloadUri(filteredPropertyImages)).filter(
+        (i: any) => i.uri != null
+      );
 
       if (data && data.length > 0) {
         // update property object collection to include the full uri
@@ -334,9 +248,7 @@ class PropertyComponent extends Component<
           .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
             images: uniqBy(propertyImages, "uri"),
           })
-          .then(() =>
-            console.log("Updated property document with new image list")
-          );
+          .then(() => console.log("Updated property document with new image list"));
       }
     }
   };
@@ -351,7 +263,13 @@ class PropertyComponent extends Component<
       propertyData,
       imagesUrl,
     } = this.state;
+
+    const imageUri = getPropertyImage(propertyData.images, propertyData.unitType).uri;
+
     const iconImageData = getPropertyTypeIcons(propertyData.unitType);
+    const AnimatedImage = Animated.createAnimatedComponent(Image);
+    const AnimatedRNImage = Animated.createAnimatedComponent(RNImage);
+
     return (
       <TouchableOpacity
         style={[styles.touchableArea, theme.sharedStyles.shadowEffect]}
@@ -369,49 +287,46 @@ class PropertyComponent extends Component<
             },
           ]}
         >
-          <AnimatedImage
-            uri={
-              getPropertyImage(propertyData.images, propertyData.unitType).uri
-            }
-            onError={() => console.log("ERROR in retrieving cache image")}
-            style={[
-              styles.propertyImages,
-              {
-                width: animatedHeaderImageWidth,
-                height: animatedHeaderImageHeight,
-              },
-            ]}
-          />
+          {imageUri.includes("http") && (
+            <AnimatedImage
+              uri={imageUri}
+              onError={() => console.log("ERROR in retrieving cache image")}
+              style={[
+                styles.propertyImages,
+                {
+                  width: animatedHeaderImageWidth,
+                  height: animatedHeaderImageHeight,
+                },
+              ]}
+            />
+          )}
+
+          {imageUri.includes("file") && (
+            <AnimatedRNImage
+              source={{ uri: imageUri }}
+              style={[
+                styles.propertyImages,
+                {
+                  width: animatedHeaderImageWidth,
+                  height: animatedHeaderImageHeight,
+                },
+              ]}
+            />
+          )}
           <Container>
-            <AnimatedContainer
-              row
-              center
-              left
-              flex={1}
-              style={{ top: animatedHeaderPropertyAddressTop }}
-            >
+            <AnimatedContainer row center left flex={1} style={{ top: animatedHeaderPropertyAddressTop }}>
               <RNImage
                 source={iconImageData.imagePath}
                 style={[
                   styles.propIcons,
                   {
-                    width: iconImageData.newWidth
-                      ? iconImageData.newWidth / 1.8
-                      : 20,
-                    height: iconImageData.newHeight
-                      ? iconImageData.newHeight / 1.8
-                      : 20,
+                    width: iconImageData.newWidth ? iconImageData.newWidth / 1.8 : 20,
+                    height: iconImageData.newHeight ? iconImageData.newHeight / 1.8 : 20,
                     marginTop: -5,
                   },
                 ]}
               />
-              <AnimatedText
-                accent
-                light
-                size={theme.fontSizes.medium}
-                numberOfLines={1}
-                style={{ width: "80%" }}
-              >
+              <AnimatedText accent light size={theme.fontSizes.medium} numberOfLines={1} style={{ width: "80%" }}>
                 {propertyData.propertyAddress}
               </AnimatedText>
 
@@ -426,12 +341,7 @@ class PropertyComponent extends Component<
               </Container>
             </AnimatedContainer>
 
-            <Text
-              accent
-              semibold
-              size={theme.fontSizes.medium}
-              numberOfLines={1}
-            >
+            <Text accent semibold size={theme.fontSizes.medium} numberOfLines={1}>
               {!expanded && propertyData.propertyName}
             </Text>
           </Container>
@@ -445,9 +355,8 @@ class PropertyComponent extends Component<
 
     // sort on leaseStartDate
     if (tenantsData && tenantsData.length > 0) {
-      const earliestMoveIn = sortBy(tenantsData, (e: any) =>
-        moment(new Date(e.leaseStartDate), moment.ISO_8601)
-      )[0].leaseStartDate;
+      const earliestMoveIn = sortBy(tenantsData, (e: any) => moment(new Date(e.leaseStartDate), moment.ISO_8601))[0]
+        .leaseStartDate;
       return moment(earliestMoveIn, "MM/DD/YYYY").format("MM/DD/YYYY");
     }
   };
@@ -455,7 +364,7 @@ class PropertyComponent extends Component<
   sumExpenseForTimePeriod = (timePeriod: string) => {
     const { financesData } = this.state;
     const date = new Date();
-    const expenseData = financesData.filter((f: any) => f.type === "expense");
+    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
     let totalExpense = 0;
 
     switch (timePeriod) {
@@ -464,8 +373,7 @@ class PropertyComponent extends Component<
         const curDate = moment(new Date(date), moment.ISO_8601);
 
         expenseData.forEach((data: any) => {
-          const paidMonth =
-            moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+          const paidMonth = moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
           const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
           if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
@@ -528,9 +436,7 @@ class PropertyComponent extends Component<
     let totalIncome = 0;
 
     // filter to type of income only
-    const filteredFinancesData = financesData.filter(
-      (i: any) => i.type === "income"
-    );
+    const filteredFinancesData = financesData.filter((i: any) => i.type === PROPERTY_FINANCES_TYPE.INCOME);
 
     if (filteredFinancesData && filteredFinancesData.length > 0) {
       switch (timePeriod) {
@@ -540,8 +446,7 @@ class PropertyComponent extends Component<
 
           filteredFinancesData.forEach((data: any) => {
             if (data.paidOn) {
-              const paidMonth =
-                moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
+              const paidMonth = moment(new Date(data.paidOn), moment.ISO_8601).month() + 1;
               const paidDate = moment(new Date(data.paidOn), moment.ISO_8601);
 
               if (curMonth === paidMonth && paidDate.diff(curDate) <= 0) {
@@ -560,12 +465,8 @@ class PropertyComponent extends Component<
   };
 
   renderBottom = () => {
-    const expensesSum = this.sumExpenseForTimePeriod(
-      constants.RECURRING_PAYMENT_TYPE.MONTHLY
-    );
-    const totalIncome =
-      this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) ||
-      0;
+    const expensesSum = this.sumExpenseForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY);
+    const totalIncome = this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY) || 0;
     const totalProfit = totalIncome - expensesSum;
 
     return (
@@ -580,10 +481,7 @@ class PropertyComponent extends Component<
               Tenants
             </Text>
           </Container>
-          <Container
-            padding={8}
-            style={{ width: width / 2.3, position: "absolute", top: 30 }}
-          >
+          <Container padding={8} style={{ width: width / 2.3, position: "absolute", top: 30 }}>
             {this.renderTenantNames()}
           </Container>
         </Container>
@@ -601,25 +499,15 @@ class PropertyComponent extends Component<
               }}
             />
             <Text light accent>
-              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")}{" "}
-              Report
+              {moment(new Date(date), moment.ISO_8601).format("MMM, YYYY")} Report
             </Text>
           </Container>
-          <Container
-            padding={[0, 5, 0, 3]}
-            flex={false}
-            style={{ width: width / 2.3, position: "absolute", top: 40 }}
-          >
+          <Container padding={[0, 5, 0, 3]} flex={false} style={{ width: width / 2.3, position: "absolute", top: 40 }}>
             <Container row space="between" style={styles.dollarContainers}>
               <Text accent medium style={styles.dollars}>
                 Total Income
               </Text>
-              <Text
-                secondary
-                size={theme.fontSizes.small}
-                bold
-                style={styles.dollars}
-              >
+              <Text secondary size={theme.fontSizes.small} bold style={styles.dollars}>
                 ${formatNumber(totalIncome)}
               </Text>
             </Container>
@@ -628,12 +516,7 @@ class PropertyComponent extends Component<
               <Text accent medium style={styles.dollars}>
                 Total Expense
               </Text>
-              <Text
-                primary
-                size={theme.fontSizes.small}
-                bold
-                style={styles.dollars}
-              >
+              <Text primary size={theme.fontSizes.small} bold style={styles.dollars}>
                 ${formatNumber(expensesSum)}
               </Text>
             </Container>
@@ -648,8 +531,7 @@ class PropertyComponent extends Component<
                 bold
                 style={styles.dollars}
               >
-                {totalProfit < 0 ? "-" : ""}$
-                {formatNumber(Math.abs(totalProfit))}
+                {totalProfit < 0 ? "-" : ""}${formatNumber(Math.abs(totalProfit))}
               </Text>
             </Container>
           </Container>
@@ -663,6 +545,10 @@ class PropertyComponent extends Component<
     const propertyId = propertyData.id;
     const images = propertyData.images;
     const promises: Promise<any>[] = [];
+
+    // Finds any images from PROPERTY_FINANCES doc with property ID and deletes those
+    const deleteExpenseImages = this.deleteSubTypeImages(propertyId, IMAGES_PARENT_FOLDER.EXPENSES);
+    const deleteIncomeImages = this.deleteSubTypeImages(propertyId, IMAGES_PARENT_FOLDER.INCOME);
 
     const propertyFinancesPromise = this.propertyService
       .handleRemovePropertyFromFinances(propertyId)
@@ -715,10 +601,21 @@ class PropertyComponent extends Component<
     promises.push(propertyFinancesPromise);
     promises.push(userPromise);
     promises.push(propertiesPromise);
+    promises.push(deleteExpenseImages);
+    promises.push(deleteIncomeImages);
 
     return await Promise.all(promises).finally(() => {
       this.updateUserData();
     });
+  };
+
+  deleteSubTypeImages = async (propertyId: string, type: string) => {
+    this.commonService
+      .listAllFiles(`images/${type}/${propertyId}`)
+      .then((data) => {
+        data.items.forEach((itemRef) => this.commonService.deleteSingleItemFromStorage(itemRef.fullPath));
+      })
+      .catch((error) => console.log(error));
   };
 
   updateUserData = async () => {
@@ -729,12 +626,7 @@ class PropertyComponent extends Component<
       .then((res) => {
         getUser(res.data());
       })
-      .catch((error) =>
-        console.log(
-          "ERROR in getting user after removal of properties: ",
-          error
-        )
-      );
+      .catch((error) => console.log("ERROR in getting user after removal of properties: ", error));
   };
 
   updateImagePosition = (images: any) => {
@@ -746,18 +638,13 @@ class PropertyComponent extends Component<
       const to = images.to;
 
       // swap locations
-      [oldImageData[from], oldImageData[to]] = [
-        oldImageData[to],
-        oldImageData[from],
-      ];
+      [oldImageData[from], oldImageData[to]] = [oldImageData[to], oldImageData[from]];
 
       this.commonService
         .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
           images: oldImageData,
         })
-        .catch((error) =>
-          console.log("Could not update image positioning", error)
-        );
+        .catch((error) => console.log("Could not update image positioning", error));
     }
   };
 
@@ -773,7 +660,7 @@ class PropertyComponent extends Component<
     } = this.state;
 
     const imagesUrl = propertyData.images.map((image: any) => ({
-      uri: image.downloadPath,
+      uri: image.downloadPath && image.downloadPath !== "" ? image.downloadPath : image.uri,
     }));
 
     // TODO -- add in an actual loading icon when state is finally being called from API
@@ -799,20 +686,14 @@ class PropertyComponent extends Component<
           {this.renderHeader()}
           {!expanded && this.renderBottom()}
           {expanded && (
-            <AnimatedContainer
-              style={{ opacity: animatedExpandedContentOpacity }}
-            >
+            <AnimatedContainer style={{ opacity: animatedExpandedContentOpacity }}>
               <PropertyContentComponent
                 tenantsData={tenantsData}
                 financesData={financesData}
                 propertyData={propertyData}
                 imagesUrl={imagesUrl}
-                totalIncome={this.sumIncomeForTimePeriod(
-                  constants.RECURRING_PAYMENT_TYPE.MONTHLY
-                )}
-                onDeleteImageFromProperty={(image: any) =>
-                  this.onDeleteSingleImage(image)
-                }
+                totalIncome={this.sumIncomeForTimePeriod(constants.RECURRING_PAYMENT_TYPE.MONTHLY)}
+                onDeleteImageFromProperty={(image: any) => this.onDeleteSingleImage(image)}
                 onImageDragEnd={(data: any) => this.updateImagePosition(data)}
               />
             </AnimatedContainer>
@@ -823,13 +704,7 @@ class PropertyComponent extends Component<
             descriptorText={`Are you sure you want to bulldoze this property?\n\nYou can't undo this action.`}
             hideModal={() => this.setState({ showCommonModal: false })}
             onSubmit={() => this.onRemoveProperty()}
-            headerIcon={
-              <FontAwesome
-                name="warning"
-                size={36}
-                color={theme.colors.offWhite}
-              />
-            }
+            headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
             headerIconBackground={theme.colors.primary}
             title="Confirm"
             isAsync

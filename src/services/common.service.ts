@@ -1,3 +1,4 @@
+import { doesElementExistArrObj } from "shared/Utils";
 import firebase from "firebase";
 
 export default class CommonService {
@@ -32,12 +33,13 @@ export default class CommonService {
    * @param ref
    * @param images
    */
-  handleCreateWithImages = (payload: any, ref: any, images: any[]) => {
+  handleCreateWithImages = (payload: any, ref: any, images: any[], type: string, subType = null) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
       imagesUri.push({
-        name: `images/property/${ref.id}-${index}`,
+        downloadPath: "",
+        name: constructImageName(type, subType, ref.id, index),
         uri: image.uri,
       });
     });
@@ -75,14 +77,33 @@ export default class CommonService {
     docId: string,
     collection: string,
     images: any[],
-    type: string
+    type: string,
+    subType = null
   ) => {
     const imagesUri: object[] = [];
 
     images.forEach((image, index) => {
+      let imageName = image.name;
+
+      if (imageName == null) {
+        imageName = constructImageName(type, subType, docId, index);
+        let doesNameExist =
+          doesElementExistArrObj(images, "name", imageName) || doesElementExistArrObj(imagesUri, "name", imageName);
+        let increment = 1;
+
+        while (doesNameExist) {
+          alert(imageName);
+          imageName = constructImageName(type, subType, docId, index);
+          alert(imageName);
+          doesNameExist =
+            doesElementExistArrObj(images, "name", imageName) || doesElementExistArrObj(imagesUri, "name", imageName);
+          alert(doesNameExist);
+          increment++;
+        }
+      }
+
       imagesUri.push({
-        name:
-          image.name != null ? image.name : `images/${type}/${docId}-${index}`,
+        name: imageName,
         uri: image.uri,
         downloadPath: image.downloadPath != null ? image.downloadPath : "",
       });
@@ -101,16 +122,8 @@ export default class CommonService {
    * @param docId
    * @param fieldToUpdate
    */
-  handleUpdateSingleField = (
-    collection: string,
-    docId: string,
-    fieldToUpdate: any
-  ) => {
-    return firebase
-      .firestore()
-      .collection(collection)
-      .doc(docId)
-      .update(fieldToUpdate);
+  handleUpdateSingleField = (collection: string, docId: string, fieldToUpdate: any) => {
+    return firebase.firestore().collection(collection).doc(docId).update(fieldToUpdate);
   };
 
   /**
@@ -121,10 +134,7 @@ export default class CommonService {
    * @param dataToQuery
    */
   getRefsFrom = (collection: string, property: string, dataToQuery: any) => {
-    return firebase
-      .firestore()
-      .collection(collection)
-      .where(property, "==", dataToQuery);
+    return firebase.firestore().collection(collection).where(property, "==", dataToQuery);
   };
 
   /**
@@ -132,19 +142,26 @@ export default class CommonService {
    * using an array of images
    * @param images
    */
-  handleUploadImages = async (images: any[], id: string, type: string) => {
+  handleUploadImages = async (images: any[], id: string, type: string, subType = null) => {
+    const oldImages = images.filter((img: any) => img.name != null);
+    const newImages = images.filter((img: any) => img.name == null);
+
+    // Reconstruct the images array to make new images last b/c storage shouldn't care about ordering
+    const combinedImages = oldImages.concat(newImages);
+
     return await Promise.all(
-      images.map(async (image, index) => {
-        if (image.name == null) {
+      combinedImages.map(async (image, index) => {
+        let imageName = image.name;
+
+        if (imageName == null) {
           // only add to storage if the image isn't already in storage
           const imageUri: string = image.uri;
           const response = await fetch(imageUri);
           const blob = await response.blob();
 
-          const ref = firebase
-            .storage()
-            .ref()
-            .child(`images/${type}/${id}-${index}`);
+          imageName = constructImageName(type, subType, id, index);
+
+          const ref = firebase.storage().ref().child(imageName);
 
           return await ref.put(blob);
         }
@@ -170,6 +187,16 @@ export default class CommonService {
     return await Promise.all(imageDownloadUrls);
   };
 
+  getSingleImageDownloadPath = async (image: any) => {
+    const ref = firebase.storage().ref().child(image.name);
+    let url = await ref
+      .getDownloadURL()
+      .then((url) => url)
+      .catch((error) => console.log("ERROR can't retrieve image: ", error));
+
+    return url;
+  };
+
   /**
    * This function takes in an array of images and removes them one by one
    * @param images
@@ -191,4 +218,16 @@ export default class CommonService {
     const ref = firebase.storage().ref().child(fileName);
     return await ref.delete();
   };
+
+  listAllFiles = (reference: string) => {
+    return firebase.storage().ref().child(reference).listAll();
+  }
 }
+
+const constructImageName = (type: string, subType = null, id: string, index: number) => {
+  if (subType) {
+    return `images/${type}/${subType}/${id}-${index}`;
+  }
+
+  return `images/${type}/${id}-${index}`;
+};

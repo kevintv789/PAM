@@ -9,17 +9,25 @@ export interface initialState {
   showRecurringModal: boolean;
   recurringText?: string;
   errors: string[];
+  isLoading: boolean;
 }
 
 export interface defaultProps {
-  navigation: any;
+  navigation?: any;
   addFinances?: any;
   isEditting?: boolean;
   reportData?: any;
-  updateFinances: (payload: any) => { type: string; payload: any };
-  propertyId: number;
+  updateFinances?: (payload: any) => { type: string; payload: any };
+  propertyId?: number;
+  incomeImages?: any[];
+  expenseImages?: any[];
 }
 
 export interface addFinancesState {
   activeTabIndex: number;
+  showAddImageModal: boolean;
+  expenseImages: any[];
+  incomeImages: any[];
+  showWarningModal: boolean;
+  imageToDelete: any;
 }

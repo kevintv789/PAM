@@ -27,18 +27,19 @@ import {
 } from "@expo/vector-icons";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
+import { hasErrors, updateArrayPosition } from "shared/Utils";
 import { isEqual, remove } from "lodash";
 
 import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddPropertyModel } from "models";
 import CommonService from "services/common.service";
+import { IMAGES_PARENT_FOLDER } from "shared/constants/constants";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
 import { ScrollView } from "react-native-gesture-handler";
 import { connect } from "react-redux";
-import { hasErrors } from "shared/Utils";
 import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
@@ -156,15 +157,8 @@ class AddPropertyComponent extends Component<
     const tempImagesUrl = [...images];
     const tempStorageDownloadUrls = [...imageStorageDownloadUrls];
 
-    [tempImagesUrl[from], tempImagesUrl[to]] = [
-      tempImagesUrl[to],
-      tempImagesUrl[from],
-    ];
-
-    [tempStorageDownloadUrls[from], tempStorageDownloadUrls[to]] = [
-      tempStorageDownloadUrls[to],
-      tempStorageDownloadUrls[from],
-    ];
+    updateArrayPosition(tempImagesUrl, from, to);
+    updateArrayPosition(tempStorageDownloadUrls, from, to);
 
     this.setState({
       imageStorageDownloadUrls: tempStorageDownloadUrls,
@@ -188,6 +182,7 @@ class AddPropertyComponent extends Component<
       return (
         <Container style={{ flex: 1 }}>
           <ImagesList
+            iconHorizontalPadding={14}
             images={images}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
             isCached={false}
@@ -195,16 +190,22 @@ class AddPropertyComponent extends Component<
               this.setState({ showWarningModal: true, imageToDelete: image })
             }
             onDragEnd={(data: any[]) => {
-              this.updateImagePosition(data, false);
+              this.updateImagePosition(data);
             }}
           />
         </Container>
       );
     } else {
-      if (imageStorageDownloadUrls.length > 0)
+      if (imageStorageDownloadUrls.length > 0) {
+        const nonCachedUri = imageStorageDownloadUrls.filter((img: any) =>
+          img.uri.includes("file")
+        );
+
         return (
           <Container style={{ flex: 1 }}>
             <ImagesList
+              isCached={nonCachedUri.length === 0}
+              iconHorizontalPadding={14}
               images={imageStorageDownloadUrls}
               showAddImageModal={() =>
                 this.setState({ showAddImageModal: true })
@@ -213,11 +214,12 @@ class AddPropertyComponent extends Component<
                 this.setState({ showWarningModal: true, imageToDelete: image })
               }
               onDragEnd={(data: any[]) => {
-                this.updateImagePosition(data, true);
+                this.updateImagePosition(data);
               }}
             />
           </Container>
         );
+      }
     }
   };
 
@@ -360,7 +362,12 @@ class AddPropertyComponent extends Component<
         );
 
         this.commonService
-          .handleCreateWithImages(payload, propertiesCollection, images)
+          .handleCreateWithImages(
+            payload,
+            propertiesCollection,
+            images,
+            IMAGES_PARENT_FOLDER.PROPERTY
+          )
           .then(() => {
             const propertyId = propertiesCollection.id;
 
@@ -416,7 +423,7 @@ class AddPropertyComponent extends Component<
     const { navigation } = this.props;
 
     this.commonService
-      .handleUploadImages(images, propertyId, "property")
+      .handleUploadImages(images, propertyId, IMAGES_PARENT_FOLDER.PROPERTY)
       .then(() => {
         setTimeout(() => {
           navigation.goBack();

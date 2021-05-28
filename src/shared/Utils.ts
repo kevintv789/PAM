@@ -19,22 +19,15 @@ export const validateEmail = (email: string) => {
  * @param currentState
  * @param previousState
  */
-export const formatMobileNumber = (
-  currentState: string,
-  previousState: string
-) => {
+export const formatMobileNumber = (currentState: string, previousState: string) => {
   if (!currentState) return currentState;
   const currentValue = currentState.replace(/[^\d]/g, "");
   const cvLength = currentValue.length;
 
   if (!previousState || currentState.length > previousState.length) {
     if (cvLength < 4) return currentValue;
-    if (cvLength < 7)
-      return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
-    return `(${currentValue.slice(0, 3)}) ${currentValue.slice(
-      3,
-      6
-    )}-${currentValue.slice(6, 10)}`;
+    if (cvLength < 7) return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3)}`;
+    return `(${currentValue.slice(0, 3)}) ${currentValue.slice(3, 6)}-${currentValue.slice(6, 10)}`;
   }
 };
 
@@ -111,7 +104,9 @@ export const getPropertyImage = (images: any[], type: string) => {
         return;
     }
   } else {
-    return { uri: images[0].downloadPath };
+    return {
+      uri: images[0].downloadPath && images[0].downloadPath !== "" ? images[0].downloadPath : images[0].uri,
+    };
   }
 };
 
@@ -139,10 +134,7 @@ export const formatNumber = (value: any) => {
  * @param inputValue
  * @param amountState
  */
-export const formatCurrencyFromCents = (
-  inputValue: string,
-  amountState: string
-) => {
+export const formatCurrencyFromCents = (inputValue: string, amountState: string) => {
   let formattedAmt = "";
   let tempValue = inputValue.slice(-1);
   let rawVal = amountState + tempValue;
@@ -155,8 +147,7 @@ export const formatCurrencyFromCents = (
     let intAmount = rawVal.slice(0, rawVal.length - 2);
     let centAmount = rawVal.slice(-2);
 
-    formattedAmt =
-      intAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + centAmount;
+    formattedAmt = intAmount.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + centAmount;
   }
 
   return { formattedAmt, rawVal };
@@ -167,11 +158,7 @@ export const formatCurrencyFromCents = (
  * @param startDate
  * @param endDate
  */
-export const getDaysDiffFrom = (
-  startDate: any,
-  endDate: any,
-  inclusive: boolean = false
-) => {
+export const getDaysDiffFrom = (startDate: any, endDate: any, inclusive: boolean = false) => {
   const start = moment(new Date(startDate), moment.ISO_8601);
   const end = moment(new Date(endDate), moment.ISO_8601);
 
@@ -280,9 +267,7 @@ export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
   }
 
   if (timeToAdd >= 0) {
-    return moment(new Date(startDate), moment.ISO_8601)
-      .add(timeToAdd, dateType)
-      .format("MM/DD/YYYY");
+    return moment(new Date(startDate), moment.ISO_8601).add(timeToAdd, dateType).format("MM/DD/YYYY");
   }
 };
 
@@ -292,10 +277,7 @@ export const getNextPaymentDate = (startDate: string, payPeriod: string) => {
  * @param objectToUpdate
  * @param originalArray
  */
-export const updateArrayOfObjects = (
-  objectToUpdate: any,
-  originalArray: any[]
-) => {
+export const updateArrayOfObjects = (objectToUpdate: any, originalArray: any[]) => {
   return originalArray.map((p: any, index: number) => {
     if (p.id === objectToUpdate.id) {
       originalArray[index] = objectToUpdate;
@@ -303,18 +285,11 @@ export const updateArrayOfObjects = (
   });
 };
 
-export const filterArrayForTimePeriod = (
-  array: any[],
-  prop: string,
-  timePeriod: string
-) => {
+export const filterArrayForTimePeriod = (array: any[], prop: string, timePeriod: string) => {
   switch (timePeriod) {
     case constants.RECURRING_PAYMENT_TYPE.MONTHLY:
       const curMonth = new Date().getMonth() + 1;
-      return array.filter(
-        (item) =>
-          moment(new Date(item[prop]), moment.ISO_8601).month() + 1 === curMonth
-      );
+      return array.filter((item) => moment(new Date(item[prop]), moment.ISO_8601).month() + 1 === curMonth);
     default:
       return;
   }
@@ -331,8 +306,26 @@ export const getCurrentUserId = () => {
  * This function returns the current user data
  */
 export const getCurrentUserData = () => {
-  return firebase
-    .firestore()
-    .collection(USER_DOC)
-    .doc(firebase.auth().currentUser?.uid);
+  return firebase.firestore().collection(USER_DOC).doc(firebase.auth().currentUser?.uid);
+};
+
+/**
+ * This function takes in an array, the original index and the updated index to the new position
+ * @param array
+ * @param fromIndex
+ * @param toIndex
+ */
+export const updateArrayPosition = (array: any[], fromIndex: number, toIndex: number) => {
+  return ([array[fromIndex], array[toIndex]] = [array[toIndex], array[fromIndex]]);
+};
+
+/**
+ * This function takes in an array of objects and returns a boolean to determine
+ * if the specified value exists within said array of objects
+ * @param arr
+ * @param key
+ * @param valueToFind
+ */
+export const doesElementExistArrObj = (arr: any[], key: string, valueToFind: any) => {
+  return arr.find((item) => item[key] === valueToFind) != null;
 };
