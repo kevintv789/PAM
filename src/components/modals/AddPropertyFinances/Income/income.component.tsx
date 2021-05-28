@@ -1,12 +1,4 @@
-import {
-  Button,
-  Container,
-  CurrencyInput,
-  HeaderDivider,
-  Text,
-  TextInput,
-  Toggle,
-} from "components/common";
+import { Button, Container, CurrencyInput, HeaderDivider, Text, TextInput, Toggle } from "components/common";
 import { Dimensions, Modal, StyleSheet } from "react-native";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
@@ -22,10 +14,7 @@ import { hasErrors } from "shared/Utils";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
-class IncomeComponent extends Component<
-  FinancesModel.defaultProps,
-  FinancesModel.initialState
-> {
+class IncomeComponent extends Component<FinancesModel.defaultProps, FinancesModel.initialState> {
   private commonService = new CommonService();
 
   constructor(props: FinancesModel.defaultProps) {
@@ -34,24 +23,20 @@ class IncomeComponent extends Component<
     this.state = {
       name: "",
       amount: 0,
-      expenseStatusDate: moment(new Date(), moment.ISO_8601).format(
-        "MM/DD/YYYY"
-      ),
+      expenseStatusDate: moment(new Date(), moment.ISO_8601).format("MM/DD/YYYY"),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
       notes: null,
       showNotesModal: false,
       showRecurringModal: false,
       errors: [],
+      images: [],
+      isLoading: false,
     };
   }
 
   componentDidMount() {
     const { reportData, isEditting } = this.props;
-    if (
-      isEditting &&
-      reportData &&
-      reportData.type === PROPERTY_FINANCES_TYPE.INCOME
-    ) {
+    if (isEditting && reportData && reportData.type === PROPERTY_FINANCES_TYPE.INCOME) {
       const { amount, name, paidOn, status } = reportData;
 
       this.setState({
@@ -97,16 +82,12 @@ class IncomeComponent extends Component<
           .then(() => {
             navigation.goBack();
           })
-          .catch((error: any) =>
-            console.log("ERROR in creating a new income object: ", error)
-          );
+          .catch((error: any) => console.log("ERROR in creating a new income object: ", error));
       } else {
         this.commonService
           .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
           .then(() => navigation.goBack())
-          .catch((error: any) =>
-            console.log("ERROR in updating a new income object: ", error)
-          );
+          .catch((error: any) => console.log("ERROR in updating a new income object: ", error));
       }
     }
 
@@ -114,14 +95,7 @@ class IncomeComponent extends Component<
   };
 
   renderTextInputs = () => {
-    const {
-      name,
-      amount,
-      notes,
-      expenseStatus,
-      expenseStatusDate,
-      errors,
-    } = this.state;
+    const { name, amount, notes, expenseStatus, expenseStatusDate, errors } = this.state;
 
     const expenseStatusOptions = [
       {
@@ -164,9 +138,7 @@ class IncomeComponent extends Component<
             <Toggle
               options={expenseStatusOptions}
               initialIndex={1}
-              handleToggled={(expenseStatus: string) =>
-                this.setState({ expenseStatus })
-              }
+              handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
               containerStyle={styles.expenseStatus}
               borderRadius={13}
               height={48}
@@ -181,13 +153,8 @@ class IncomeComponent extends Component<
             label="Paid on Date"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(
-              new Date(expenseStatusDate),
-              moment.ISO_8601
-            ).toDate()}
-            onChangeDate={(expenseStatusDate: string) =>
-              this.setState({ expenseStatusDate })
-            }
+            dateValue={moment(new Date(expenseStatusDate), moment.ISO_8601).toDate()}
+            onChangeDate={(expenseStatusDate: string) => this.setState({ expenseStatusDate })}
           />
         ) : (
           <TextInput
@@ -195,20 +162,12 @@ class IncomeComponent extends Component<
             label="Payment Due On"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(
-              new Date(expenseStatusDate),
-              moment.ISO_8601
-            ).toDate()}
-            onChangeDate={(expenseStatusDate: string) =>
-              this.setState({ expenseStatusDate })
-            }
+            dateValue={moment(new Date(expenseStatusDate), moment.ISO_8601).toDate()}
+            onChangeDate={(expenseStatusDate: string) => this.setState({ expenseStatusDate })}
           />
         )}
 
-        <TouchableOpacity
-          style={styles.addNotesButton}
-          onPress={() => this.setState({ showNotesModal: true })}
-        >
+        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
@@ -218,12 +177,7 @@ class IncomeComponent extends Component<
             value={notes ? notes.text : ""}
             numberOfLines={1}
           />
-          <Entypo
-            name="chevron-small-right"
-            size={26}
-            color={theme.colors.gray}
-            style={styles.notesChevron}
-          />
+          <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
       </Container>
     );
@@ -237,28 +191,15 @@ class IncomeComponent extends Component<
         row
         space="between"
         flex={false}
-        padding={[
-          theme.sizes.padding / 1.3,
-          theme.sizes.padding / 1.3,
-          0,
-          theme.sizes.padding / 1.3,
-        ]}
+        padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
         style={{ height: height / 4.8 }}
       >
-        <Button
-          color="red"
-          style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
-        >
+        <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
             Cancel
           </Text>
         </Button>
-        <Button
-          color="secondary"
-          style={styles.navigationButtons}
-          onPress={() => this.handleIncomeSave()}
-        >
+        <Button color="secondary" style={styles.navigationButtons} onPress={() => this.handleIncomeSave()}>
           <Text offWhite center semibold>
             Save
           </Text>
@@ -271,16 +212,10 @@ class IncomeComponent extends Component<
     const { showNotesModal } = this.state;
 
     return (
-      <Modal
-        visible={showNotesModal}
-        animationType="fade"
-        onDismiss={() => this.setState({ showNotesModal: false })}
-      >
+      <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label="New Income"
-          handleBackClick={(notes: string) =>
-            this.setState({ notes, showNotesModal: false })
-          }
+          handleBackClick={(notes: string) => this.setState({ notes, showNotesModal: false })}
         />
       </Modal>
     );

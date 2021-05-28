@@ -1,19 +1,8 @@
 import * as EvaUI from "@ui-kitten/components";
 
-import {
-  AddImageButton,
-  CommonModal,
-  Container,
-  ImagesList,
-  Text,
-} from "components/common";
+import { AddImageButton, CommonModal, Container, ImagesList, Text } from "components/common";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  Keyboard,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Keyboard, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import React, { Component } from "react";
 import { Tab, TabView } from "@ui-kitten/components";
 
@@ -31,10 +20,7 @@ import { findIndex } from "lodash";
 import { theme } from "shared";
 import { updateArrayPosition } from "shared/Utils";
 
-class AddPropertyFinancesComponent extends Component<
-  FinancesModel.defaultProps,
-  FinancesModel.addFinancesState
-> {
+class AddPropertyFinancesComponent extends Component<FinancesModel.defaultProps, FinancesModel.addFinancesState> {
   private reportData: any;
   private isEditting = false;
   private isIncomeType = false;
@@ -56,8 +42,7 @@ class AddPropertyFinancesComponent extends Component<
     const { navigation } = this.props;
     this.isEditting = navigation.getParam("isEditting");
     this.reportData = navigation.getParam("reportData");
-    this.isIncomeType =
-      this.reportData && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME;
+    this.isIncomeType = this.reportData && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME;
     this.propertyId = this.props.navigation.getParam("propertyId");
   }
 
@@ -71,17 +56,14 @@ class AddPropertyFinancesComponent extends Component<
   }
 
   determineIfExpenseTab = () =>
-    (this.reportData &&
-      this.reportData.type.toUpperCase() ===
-        PROPERTY_FINANCES_TYPE.EXPENSE.toUpperCase()) ||
-    (this.reportData == null &&
-      this.state.activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB);
+    (this.reportData && this.reportData.type.toUpperCase() === PROPERTY_FINANCES_TYPE.EXPENSE.toUpperCase()) ||
+    (this.reportData == null && this.state.activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB);
 
   renderImageSection = () => {
     const { expenseImages, incomeImages } = this.state;
     const isExpenseTab = this.determineIfExpenseTab();
 
-    if (expenseImages.length > 0 && isExpenseTab) {
+    if (expenseImages && expenseImages.length > 0 && isExpenseTab) {
       const uris = expenseImages.map((image) => {
         let obj = {};
         if (image.downloadPath !== "" && image.downloadPath != null) {
@@ -101,16 +83,14 @@ class AddPropertyFinancesComponent extends Component<
             images={uris}
             iconHorizontalPadding={14}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
-            onDeleteImage={(image: any) =>
-              this.setState({ showWarningModal: true, imageToDelete: image })
-            }
+            onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
             onDragEnd={(data: any[]) => {
               this.updateImagePosition(data);
             }}
           />
         </Container>
       );
-    } else if (incomeImages.length > 0 && !isExpenseTab) {
+    } else if (incomeImages && incomeImages.length > 0 && !isExpenseTab) {
     } else {
       return (
         <AddImageButton
@@ -132,7 +112,7 @@ class AddPropertyFinancesComponent extends Component<
     updateArrayPosition(tempArray, from, to);
 
     this.setState({ expenseImages: tempArray });
-  }
+  };
 
   renderTabView = () => {
     const { activeTabIndex, incomeImages, expenseImages } = this.state;
@@ -152,44 +132,28 @@ class AddPropertyFinancesComponent extends Component<
           title={(evaProps) => (
             <EvaUI.Text
               {...evaProps}
-              style={
-                activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB
-                  ? styles.activeTab
-                  : styles.inactiveTab
-              }
+              style={activeTabIndex === PROPERTY_FINANCES_TYPE.EXPENSE_TAB ? styles.activeTab : styles.inactiveTab}
             >
               {PROPERTY_FINANCES_TYPE.EXPENSE}
             </EvaUI.Text>
           )}
         >
           <Container flex={false}>
-            <ExpenseComponent
-              navigation={navigation}
-              propertyId={this.propertyId}
-              expenseImages={expenseImages}
-            />
+            <ExpenseComponent navigation={navigation} propertyId={this.propertyId} expenseImages={expenseImages} />
           </Container>
         </Tab>
         <Tab
           title={(evaProps) => (
             <EvaUI.Text
               {...evaProps}
-              style={
-                activeTabIndex === PROPERTY_FINANCES_TYPE.INCOME_TAB
-                  ? styles.activeTab
-                  : styles.inactiveTab
-              }
+              style={activeTabIndex === PROPERTY_FINANCES_TYPE.INCOME_TAB ? styles.activeTab : styles.inactiveTab}
             >
               {PROPERTY_FINANCES_TYPE.INCOME}
             </EvaUI.Text>
           )}
         >
           <Container flex={false}>
-            <IncomeComponent
-              navigation={navigation}
-              propertyId={this.propertyId}
-              incomeImages={incomeImages}
-            />
+            <IncomeComponent navigation={navigation} propertyId={this.propertyId} incomeImages={incomeImages} />
           </Container>
         </Tab>
       </TabView>
@@ -201,34 +165,27 @@ class AddPropertyFinancesComponent extends Component<
 
     const tempImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
     data.forEach((image) => tempImages.push(image));
-    isExpenseTab
-      ? this.setState({ expenseImages: tempImages })
-      : this.setState({ incomeImages: tempImages });
+    isExpenseTab ? this.setState({ expenseImages: tempImages }) : this.setState({ incomeImages: tempImages });
   };
 
   onUpdateImagesStateOnDelete = () => {
     const { imageToDelete, expenseImages, incomeImages } = this.state;
     const isExpenseTab = this.determineIfExpenseTab();
 
-    const indexToDelete = findIndex(
-      isExpenseTab ? expenseImages : incomeImages,
-      (img) => {
-        if (img.downloadPath && img.downloadPath !== "") {
-          return img.downloadPath === imageToDelete.uri;
-        } else {
-          return img.uri === imageToDelete.uri;
-        }
+    const indexToDelete = findIndex(isExpenseTab ? expenseImages : incomeImages, (img) => {
+      if (img.downloadPath && img.downloadPath !== "") {
+        return img.downloadPath === imageToDelete.uri;
+      } else {
+        return img.uri === imageToDelete.uri;
       }
-    );
+    });
 
     const deletedImgObj = expenseImages[indexToDelete];
 
     const newImages = isExpenseTab ? [...expenseImages] : [...incomeImages];
     newImages.splice(indexToDelete, 1);
 
-    isExpenseTab
-      ? this.setState({ expenseImages: newImages })
-      : this.setState({ incomeImages: newImages });
+    isExpenseTab ? this.setState({ expenseImages: newImages }) : this.setState({ incomeImages: newImages });
 
     this.onRemoveImageFromBackend(newImages, deletedImgObj);
   };
@@ -240,29 +197,14 @@ class AddPropertyFinancesComponent extends Component<
       this.commonService
         .deleteSingleItemFromStorage(deletedImgObj.name)
         .then(() => {
-          this.commonService.handleUpdateSingleField(
-            PROPERTY_FINANCES_DOC,
-            this.reportData.id,
-            { images: newImages }
-          );
+          this.commonService.handleUpdateSingleField(PROPERTY_FINANCES_DOC, this.reportData.id, { images: newImages });
         })
-        .catch((error) =>
-          console.log(
-            `ERROR could not remove ${imageToDelete.name} from storage`,
-            error
-          )
-        );
+        .catch((error) => console.log(`ERROR could not remove ${imageToDelete.name} from storage`, error));
     }
   };
 
   render() {
-    const {
-      activeTabIndex,
-      showAddImageModal,
-      expenseImages,
-      incomeImages,
-      showWarningModal,
-    } = this.state;
+    const { activeTabIndex, showAddImageModal, expenseImages, incomeImages, showWarningModal } = this.state;
     const { navigation } = this.props;
 
     let title = "";
@@ -283,10 +225,8 @@ class AddPropertyFinancesComponent extends Component<
     }
 
     const isExpenseTab = this.determineIfExpenseTab();
-    const showExpenseAddImageBtn =
-      isExpenseTab && expenseImages && expenseImages.length > 0;
-    const showIncomeAddImageBtn =
-      !isExpenseTab && incomeImages && incomeImages.length > 0;
+    const showExpenseAddImageBtn = isExpenseTab && expenseImages && expenseImages.length > 0;
+    const showIncomeAddImageBtn = !isExpenseTab && incomeImages && incomeImages.length > 0;
 
     return (
       <KeyboardAwareScrollView
@@ -304,12 +244,7 @@ class AddPropertyFinancesComponent extends Component<
           >
             <Container row>
               <Container style={{ width: "95%" }}>
-                <Text
-                  h1
-                  offWhite
-                  center
-                  style={{ paddingTop: theme.sizes.padding }}
-                >
+                <Text h1 offWhite center style={{ paddingTop: theme.sizes.padding }}>
                   {title}
                 </Text>
               </Container>
@@ -320,11 +255,7 @@ class AddPropertyFinancesComponent extends Component<
                     style={styles.addImagesBtn}
                     onPress={() => this.setState({ showAddImageModal: true })}
                   >
-                    <MaterialCommunityIcons
-                      name="camera-plus-outline"
-                      size={28}
-                      color={theme.colors.tertiary}
-                    />
+                    <MaterialCommunityIcons name="camera-plus-outline" size={28} color={theme.colors.tertiary} />
                   </TouchableOpacity>
                 </Container>
               )}
@@ -332,26 +263,24 @@ class AddPropertyFinancesComponent extends Component<
 
             {this.renderImageSection()}
             {!this.isEditting && this.renderTabView()}
-            {this.isEditting &&
-              this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME && (
-                <IncomeComponent
-                  navigation={navigation}
-                  isEditting={this.isEditting}
-                  reportData={this.reportData}
-                  propertyId={this.propertyId}
-                  incomeImages={incomeImages}
-                />
-              )}
-            {this.isEditting &&
-              this.reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE && (
-                <ExpenseComponent
-                  navigation={navigation}
-                  isEditting={this.isEditting}
-                  reportData={this.reportData}
-                  propertyId={this.propertyId}
-                  expenseImages={expenseImages}
-                />
-              )}
+            {this.isEditting && this.reportData.type === PROPERTY_FINANCES_TYPE.INCOME && (
+              <IncomeComponent
+                navigation={navigation}
+                isEditting={this.isEditting}
+                reportData={this.reportData}
+                propertyId={this.propertyId}
+                incomeImages={incomeImages}
+              />
+            )}
+            {this.isEditting && this.reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE && (
+              <ExpenseComponent
+                navigation={navigation}
+                isEditting={this.isEditting}
+                reportData={this.reportData}
+                propertyId={this.propertyId}
+                expenseImages={expenseImages}
+              />
+            )}
           </ScrollView>
         </Container>
         <AddImageModalComponent
@@ -370,13 +299,7 @@ class AddPropertyFinancesComponent extends Component<
           descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
           hideModal={() => this.setState({ showWarningModal: false })}
           onSubmit={() => this.onUpdateImagesStateOnDelete()}
-          headerIcon={
-            <FontAwesome
-              name="warning"
-              size={36}
-              color={theme.colors.offWhite}
-            />
-          }
+          headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
           headerIconBackground={theme.colors.primary}
           title="Confirm"
         />

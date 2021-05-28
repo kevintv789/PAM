@@ -9,10 +9,7 @@ import {
   Toggle,
 } from "components/common";
 import { Dimensions, Modal, StyleSheet } from "react-native";
-import {
-  IMAGES_PARENT_FOLDER,
-  PROPERTY_FINANCES_TYPE,
-} from "shared/constants/constants";
+import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 
@@ -27,10 +24,7 @@ import { isEqual } from "lodash";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
-class ExpenseComponent extends Component<
-  FinancesModel.defaultProps,
-  FinancesModel.initialState
-> {
+class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesModel.initialState> {
   private commonService = new CommonService();
 
   constructor(props: FinancesModel.defaultProps) {
@@ -39,9 +33,7 @@ class ExpenseComponent extends Component<
     this.state = {
       name: "",
       amount: 0,
-      expenseStatusDate: moment(new Date(), moment.ISO_8601).format(
-        "MM/DD/YYYY"
-      ),
+      expenseStatusDate: moment(new Date(), moment.ISO_8601).format("MM/DD/YYYY"),
       expenseStatus: constants.EXPENSE_STATUS_TYPE.PAID,
       recurring: false,
       notes: null,
@@ -56,12 +48,8 @@ class ExpenseComponent extends Component<
 
   componentDidMount() {
     const { reportData, isEditting } = this.props;
-    if (
-      isEditting &&
-      reportData &&
-      reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE
-    ) {
-      const { amount, name, paidOn, status, recurring, images } = reportData;
+    if (isEditting && reportData && reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE) {
+      const { amount, name, paidOn, status, recurring } = reportData;
 
       this.setState({
         name,
@@ -69,18 +57,14 @@ class ExpenseComponent extends Component<
         expenseStatusDate: paidOn,
         expenseStatus: status,
         recurring,
-        images,
       });
     }
   }
 
-  componentDidUpdate(
-    prevProps: FinancesModel.defaultProps,
-    prevState: FinancesModel.initialState
-  ) {
-    const { images } = this.state;
+  componentDidUpdate(prevProps: FinancesModel.defaultProps, prevState: FinancesModel.initialState) {
+    const { expenseImages } = this.props;
 
-    if (!isEqual(images, prevState.images)) {
+    if (!isEqual(expenseImages, prevProps.expenseImages)) {
       this.updateImagesWithDownloadPath();
     }
   }
@@ -94,7 +78,7 @@ class ExpenseComponent extends Component<
       expenseStatusDate,
       expenseStatus,
       recurring,
-      images,
+      // images,
     } = this.state;
 
     const errors = [];
@@ -113,7 +97,7 @@ class ExpenseComponent extends Component<
       paymentDue: "",
       recurring,
       additionalNotes: "",
-      images,
+      images: expenseImages,
       propertyId,
       name,
       type: PROPERTY_FINANCES_TYPE.EXPENSE,
@@ -156,27 +140,18 @@ class ExpenseComponent extends Component<
       .then(() => {
         navigation.goBack();
       })
-      .catch((error: any) =>
-        console.log("ERROR in creating a new income object: ", error)
-      );
+      .catch((error: any) => console.log("ERROR in creating a new income object: ", error));
   };
 
   handleCreateWithImages = (payload: any, docRef: any) => {
     const { expenseImages } = this.props;
 
     this.commonService
-      .handleCreateWithImages(
-        payload,
-        docRef,
-        expenseImages,
-        IMAGES_PARENT_FOLDER.EXPENSES
-      )
+      .handleCreateWithImages(payload, docRef, expenseImages, IMAGES_PARENT_FOLDER.EXPENSES)
       .then(() => {
         this.uploadImages(docRef.id);
       })
-      .catch((error: any) =>
-        console.log("ERROR in updating a new expense object: ", error)
-      );
+      .catch((error: any) => console.log("ERROR in updating a new expense object: ", error));
   };
 
   handleRegularUpdate = (payload: any, reportData: any) => {
@@ -184,9 +159,7 @@ class ExpenseComponent extends Component<
     this.commonService
       .handleUpdate(payload, reportData.id, PROPERTY_FINANCES_DOC)
       .then(() => navigation.goBack())
-      .catch((error: any) =>
-        console.log("ERROR in updating a new expense object: ", error)
-      )
+      .catch((error: any) => console.log("ERROR in updating a new expense object: ", error))
       .finally(() => this.setState({ isLoading: false }));
   };
 
@@ -202,9 +175,7 @@ class ExpenseComponent extends Component<
         IMAGES_PARENT_FOLDER.EXPENSES
       )
       .then(() => this.uploadImages(reportData.id))
-      .catch((error) =>
-        console.log("ERROR in updating expenses with images: ", error)
-      );
+      .catch((error) => console.log("ERROR in updating expenses with images: ", error));
   };
 
   uploadImages = (id: string) => {
@@ -213,26 +184,22 @@ class ExpenseComponent extends Component<
     this.commonService
       .handleUploadImages(expenseImages, id, IMAGES_PARENT_FOLDER.EXPENSES)
       .then(() => navigation.goBack())
-      .catch((error) =>
-        console.log("ERROR in uploading expense images, ", error)
-      )
+      .catch((error) => console.log("ERROR in uploading expense images, ", error))
       .finally(() => this.setState({ isLoading: false }));
   };
 
   updateImagesWithDownloadPath = async () => {
-    const { images } = this.state;
     const { reportData } = this.props;
+    const images = reportData ? reportData.images : [];
     let newImages: any[] = [...images];
     let shouldUpdate = false;
 
     if (images.length > 0 && reportData) {
       // retrieve download path from storage and update image array with download path
       await Promise.all(
-        images.map(async (image, index) => {
+        images.map(async (image: any, index: number) => {
           if (image.downloadPath === "" || image.downloadPath == null) {
-            const url = await this.commonService.getSingleImageDownloadPath(
-              image
-            );
+            const url = await this.commonService.getSingleImageDownloadPath(image);
 
             const obj = {
               downloadPath: url,
@@ -248,26 +215,13 @@ class ExpenseComponent extends Component<
 
       if (shouldUpdate) {
         // update backend with new image array
-        this.commonService.handleUpdateSingleField(
-          PROPERTY_FINANCES_DOC,
-          reportData.id,
-          { images: newImages }
-        );
+        this.commonService.handleUpdateSingleField(PROPERTY_FINANCES_DOC, reportData.id, { images: newImages });
       }
     }
   };
 
   renderTextInputs = () => {
-    const {
-      name,
-      amount,
-      notes,
-      expenseStatus,
-      expenseStatusDate,
-      recurring,
-      recurringText,
-      errors,
-    } = this.state;
+    const { name, amount, notes, expenseStatus, expenseStatusDate, recurring, recurringText, errors } = this.state;
 
     const { navigation } = this.props;
 
@@ -323,9 +277,7 @@ class ExpenseComponent extends Component<
             <Toggle
               options={expenseStatusOptions}
               initialIndex={1}
-              handleToggled={(expenseStatus: string) =>
-                this.setState({ expenseStatus })
-              }
+              handleToggled={(expenseStatus: string) => this.setState({ expenseStatus })}
               containerStyle={styles.expenseStatus}
               borderRadius={13}
               height={48}
@@ -339,8 +291,7 @@ class ExpenseComponent extends Component<
             handleToggled={(recurring: boolean) => {
               if (recurring) {
                 navigation.navigate("RecurringPaymentModal", {
-                  onGoBack: (value: any) =>
-                    this.setState({ recurringText: value.recurringText }),
+                  onGoBack: (value: any) => this.setState({ recurringText: value.recurringText }),
                 });
               }
               this.setState({ recurring });
@@ -358,13 +309,8 @@ class ExpenseComponent extends Component<
             label="Paid on Date"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(
-              new Date(expenseStatusDate),
-              moment.ISO_8601
-            ).toDate()}
-            onChangeDate={(expenseStatusDate: string) =>
-              this.setState({ expenseStatusDate })
-            }
+            dateValue={moment(new Date(expenseStatusDate), moment.ISO_8601).toDate()}
+            onChangeDate={(expenseStatusDate: string) => this.setState({ expenseStatusDate })}
           />
         ) : (
           <TextInput
@@ -372,13 +318,8 @@ class ExpenseComponent extends Component<
             label="Payment Due On"
             style={styles.input}
             value={expenseStatusDate}
-            dateValue={moment(
-              new Date(expenseStatusDate),
-              moment.ISO_8601
-            ).toDate()}
-            onChangeDate={(expenseStatusDate: string) =>
-              this.setState({ expenseStatusDate })
-            }
+            dateValue={moment(new Date(expenseStatusDate), moment.ISO_8601).toDate()}
+            onChangeDate={(expenseStatusDate: string) => this.setState({ expenseStatusDate })}
           />
         )}
 
@@ -387,30 +328,16 @@ class ExpenseComponent extends Component<
             style={[styles.addNotesButton, { marginBottom: 10 }]}
             onPress={() =>
               navigation.navigate("RecurringPaymentModal", {
-                onGoBack: (value: any) =>
-                  this.setState({ recurringText: value.recurringText }),
+                onGoBack: (value: any) => this.setState({ recurringText: value.recurringText }),
               })
             }
           >
-            <TextInput
-              label="Expense Due Every"
-              style={styles.input}
-              value={recurringText}
-              editable={false}
-            />
-            <Entypo
-              name="chevron-small-right"
-              size={26}
-              color={theme.colors.gray}
-              style={styles.notesChevron}
-            />
+            <TextInput label="Expense Due Every" style={styles.input} value={recurringText} editable={false} />
+            <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity
-          style={styles.addNotesButton}
-          onPress={() => this.setState({ showNotesModal: true })}
-        >
+        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
@@ -420,12 +347,7 @@ class ExpenseComponent extends Component<
             value={notes ? notes.text : ""}
             numberOfLines={1}
           />
-          <Entypo
-            name="chevron-small-right"
-            size={26}
-            color={theme.colors.gray}
-            style={styles.notesChevron}
-          />
+          <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
       </Container>
     );
@@ -440,19 +362,10 @@ class ExpenseComponent extends Component<
         row
         space="between"
         flex={false}
-        padding={[
-          theme.sizes.padding / 1.3,
-          theme.sizes.padding / 1.3,
-          0,
-          theme.sizes.padding / 1.3,
-        ]}
+        padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
         style={{ height: height / 4.8 }}
       >
-        <Button
-          color="red"
-          style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
-        >
+        <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
             Cancel
           </Text>
@@ -465,9 +378,7 @@ class ExpenseComponent extends Component<
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Next"}
-            {isLoading && (
-              <LoadingIndicator size="small" color={theme.colors.offWhite} />
-            )}
+            {isLoading && <LoadingIndicator size="small" color={theme.colors.offWhite} />}
           </Text>
         </Button>
       </Container>
@@ -478,16 +389,10 @@ class ExpenseComponent extends Component<
     const { showNotesModal } = this.state;
 
     return (
-      <Modal
-        visible={showNotesModal}
-        animationType="fade"
-        onDismiss={() => this.setState({ showNotesModal: false })}
-      >
+      <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label="New Expense"
-          handleBackClick={(notes: string) =>
-            this.setState({ notes, showNotesModal: false })
-          }
+          handleBackClick={(notes: string) => this.setState({ notes, showNotesModal: false })}
         />
       </Modal>
     );
