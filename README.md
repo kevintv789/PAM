@@ -8,6 +8,13 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.23.20210527
+- Major features
+    - Added ability for users to upload images/documents to expenses and income financials when adding & editting said types
+    - On delete of property, recursively remove all images correlated to expense and income
+- Bug fixes
+    - Fixed a bug where adding new images, and repositioning them to the previously uploaded image's positions will overwrite the old images, thereby deleting them
+
 # Beta Release v0.22.20210520
 - Minor features
     - Added a Remember me checkbox on the Login screen, which will remember the user's Email address
