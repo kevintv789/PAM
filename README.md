@@ -11,6 +11,7 @@ Any other info will be written out at a future date.
 # Beta Release v0.24.20210602
 - Major features
     - Added ability for users to upload images/documents to tenants when adding & editting
+    - On delete of property, recursively remove all images correlated to tenants
 - Bug fixes
     - Fixed a bug where adding a new tenant, then repositioning it, will cause an infinite load of alerts
 
