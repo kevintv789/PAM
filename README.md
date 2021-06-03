@@ -8,6 +8,12 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.24.20210602
+- Major features
+    - Added ability for users to upload images/documents to tenants when adding & editting
+- Bug fixes
+    - Fixed a bug where adding a new tenant, then repositioning it, will cause an infinite load of alerts
+
 # Beta Release v0.23.20210527
 - Major features
     - Added ability for users to upload images/documents to expenses and income financials when adding & editting said types
