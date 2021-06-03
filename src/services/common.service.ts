@@ -92,12 +92,9 @@ export default class CommonService {
         let increment = 1;
 
         while (doesNameExist) {
-          alert(imageName);
-          imageName = constructImageName(type, subType, docId, index);
-          alert(imageName);
+          imageName = constructImageName(type, subType, docId, index + increment);
           doesNameExist =
             doesElementExistArrObj(images, "name", imageName) || doesElementExistArrObj(imagesUri, "name", imageName);
-          alert(doesNameExist);
           increment++;
         }
       }
