@@ -1,43 +1,41 @@
 import {
   AddImageButton,
   Button,
+  CommonModal,
   Container,
   Counter,
   CurrencyInput,
   HeaderDivider,
+  ImagesList,
   LoadingIndicator,
   PillsList,
   Text,
   TextInput,
   Toggle,
 } from "components/common";
-import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
-import {
-  PROPERTY_FINANCES_DOC,
-  TENANTS_DOC,
-} from "shared/constants/databaseConsts";
+import { Dimensions, Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
+import { PROPERTY_FINANCES_DOC, TENANTS_DOC } from "shared/constants/databaseConsts";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
-import { formatMobileNumber, hasErrors } from "shared/Utils";
+import { findIndex, isEqual } from "lodash";
+import { formatMobileNumber, hasErrors, updateArrayPosition } from "shared/Utils";
 
+import AddImageModalComponent from "../Add Image/addImage.component";
 import { AddTenantModel } from "models";
 import CommonService from "services/common.service";
 import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
-import { PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import PropertyService from "services/property.service";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
 
 const { width, height } = Dimensions.get("window");
 const date = Date.now();
 
-class AddTenantComponent extends Component<
-  AddTenantModel.Props,
-  AddTenantModel.State
-> {
+class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.State> {
   private scrollViewRef: any;
   private isEditting: boolean = false;
   private tenantInfo: any;
@@ -52,9 +50,7 @@ class AddTenantComponent extends Component<
       phone: "",
       email: "",
       leaseType: constants.LEASE_TYPE.FIXED_TERM,
-      leaseStartDate: moment(new Date(date), moment.ISO_8601).format(
-        "MM/DD/YYYY"
-      ),
+      leaseStartDate: moment(new Date(date), moment.ISO_8601).format("MM/DD/YYYY"),
       leaseEndDate: "",
       rentPaidPeriod: "Monthly",
       rent: 0,
@@ -62,12 +58,14 @@ class AddTenantComponent extends Component<
       totalOccupants: 1,
       notes: null,
       showNotesModal: false,
-      lastPaymentDate: moment(new Date(date), moment.ISO_8601).format(
-        "MM/DD/YYYY"
-      ),
+      lastPaymentDate: moment(new Date(date), moment.ISO_8601).format("MM/DD/YYYY"),
       hasTenantPaidFirstRent: false,
       errors: [],
       isLoading: false,
+      showAddImageModal: false,
+      images: [],
+      showWarningModal: false,
+      imageToDelete: null,
     };
 
     this.scrollViewRef = React.createRef();
@@ -85,16 +83,23 @@ class AddTenantComponent extends Component<
         email: this.tenantInfo.email,
         leaseType: this.tenantInfo.leaseType,
         leaseStartDate: this.tenantInfo.leaseStartDate,
-        leaseEndDate: moment(this.tenantInfo.leaseEndDate).isValid()
-          ? this.tenantInfo.leaseEndDate
-          : "",
+        leaseEndDate: moment(this.tenantInfo.leaseEndDate).isValid() ? this.tenantInfo.leaseEndDate : "",
         rentPaidPeriod: this.tenantInfo.recurringPaymentType,
         rent: this.tenantInfo.rent,
         deposit: this.tenantInfo.securityDeposit,
         totalOccupants: this.tenantInfo.totalOccupants,
         lastPaymentDate: this.tenantInfo.lastPaymentDate,
         hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate != null,
+        images: this.tenantInfo.images,
       });
+    }
+  }
+
+  componentDidUpdate(_: any, prevState: AddTenantModel.State) {
+    const { images } = this.state;
+
+    if (!isEqual(images, prevState.images)) {
+      this.updateImagesWithDownloadPath();
     }
   }
 
@@ -113,6 +118,7 @@ class AddTenantComponent extends Component<
       lastPaymentDate,
       hasTenantPaidFirstRent,
       rent,
+      images,
     } = this.state;
 
     const errors = [];
@@ -124,9 +130,7 @@ class AddTenantComponent extends Component<
 
     const tenantPayload = {
       id: this.isEditting ? this.tenantInfo.id : "",
-      propertyId: this.isEditting
-        ? this.tenantInfo.propertyId
-        : propertyData.id,
+      propertyId: this.isEditting ? this.tenantInfo.propertyId : propertyData.id,
       name: primaryTenantName.trim(),
       phone,
       email,
@@ -143,53 +147,117 @@ class AddTenantComponent extends Component<
         ? this.tenantInfo.nextPaymentDate
         : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
       createdOn: this.isEditting ? this.tenantInfo.createdOn : new Date(),
+      images,
     };
 
     if (!errors.length) {
       if (!this.isEditting) {
         const tenantDocRef = this.commonService.createNewDocId(TENANTS_DOC);
 
-        this.commonService
-          .handleCreate(tenantPayload, tenantDocRef)
-          .then(() => {
-            // Update property on the backend with the new tenant ID
-            this.propertyService.addTenantIdToProperty(
-              tenantDocRef.id,
-              tenantPayload.propertyId
-            );
-
-            // Add tenant's income/rent to finances
-            if (
-              tenantPayload.lastPaymentDate &&
-              moment(
-                new Date(tenantPayload.lastPaymentDate),
-                moment.ISO_8601
-              ).isValid() &&
-              tenantPayload.lastPaymentDate
-            ) {
-              this.addToPropertyFinances(tenantPayload);
-            } else {
-              navigation.goBack();
-            }
-          })
-          .catch((error: any) =>
-            console.log("ERROR in creating a new tenant: ", error)
-          )
-          .finally(() => this.setState({ isLoading: false }));
+        if (images.length > 0) {
+          // handle create with images
+          this.handleCreateWithImages(tenantPayload, tenantDocRef, tenantPayload.propertyId);
+        } else {
+          // handle create regular
+          this.handleRegularCreate(tenantPayload, tenantDocRef);
+        }
       } else {
-        this.commonService
-          .handleUpdate(tenantPayload, tenantPayload.id, TENANTS_DOC)
-          .then(() => navigation.goBack())
-          .catch((error: any) =>
-            console.log("ERROR in updating tenant: ", error)
-          )
-          .finally(() => this.setState({ isLoading: false }));
+        if (images.length > 0) {
+          // handle update with images
+          this.handleUpdateWithImages(tenantPayload, this.tenantInfo, tenantPayload.propertyId);
+        } else {
+          // handle update regular
+          this.handleUpdateRegular(tenantPayload);
+        }
       }
     } else {
       this.scrollViewRef.current?.scrollTo({ x: 0, y: 10, animated: true });
     }
 
     this.setState({ errors, isLoading: true });
+  };
+
+  handleRegularCreate = (tenantPayload: any, tenantDocRef: any) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleCreate(tenantPayload, tenantDocRef)
+      .then(() => {
+        // Update property on the backend with the new tenant ID
+        this.propertyService.addTenantIdToProperty(tenantDocRef.id, tenantPayload.propertyId);
+
+        // Add tenant's income/rent to finances
+        if (
+          tenantPayload.lastPaymentDate &&
+          moment(new Date(tenantPayload.lastPaymentDate), moment.ISO_8601).isValid() &&
+          tenantPayload.lastPaymentDate
+        ) {
+          this.addToPropertyFinances(tenantPayload);
+        } else {
+          navigation.goBack();
+        }
+      })
+      .catch((error: any) => console.log("ERROR in creating a new tenant: ", error))
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  handleCreateWithImages = (payload: any, docRef: any, propertyId: any) => {
+    const { images } = this.state;
+
+    if (images) {
+      this.commonService
+        .handleCreateWithImages(payload, docRef, images, IMAGES_PARENT_FOLDER.TENANTS, propertyId)
+        .then(() => {
+          // Update property on the backend with the new tenant ID
+          this.propertyService.addTenantIdToProperty(docRef.id, payload.propertyId);
+
+          // Add tenant's income/rent to finances
+          if (
+            payload.lastPaymentDate &&
+            moment(new Date(payload.lastPaymentDate), moment.ISO_8601).isValid() &&
+            payload.lastPaymentDate
+          ) {
+            this.addToPropertyFinances(payload);
+          }
+
+          this.uploadImages(docRef.id, propertyId);
+        })
+        .catch((error: any) => console.log("ERROR in updating a new tenant object: ", error));
+    }
+  };
+
+  handleUpdateRegular = (tenantPayload: any) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleUpdate(tenantPayload, tenantPayload.id, TENANTS_DOC)
+      .then(() => navigation.goBack())
+      .catch((error: any) => console.log("ERROR in updating tenant: ", error))
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  handleUpdateWithImages = (payload: any, reportData: any, propertyId: any) => {
+    const { images } = this.state;
+
+    if (images) {
+      this.commonService
+        .handleUpdateWithImages(payload, reportData.id, TENANTS_DOC, images, IMAGES_PARENT_FOLDER.TENANTS, propertyId)
+        .then(() => this.uploadImages(reportData.id, propertyId))
+        .catch((error) => console.log("ERROR in updating tenant with images: ", error));
+    }
+  };
+
+  uploadImages = (id: string, propertyId: any) => {
+    const { images } = this.state;
+    const { navigation } = this.props;
+
+    if (images) {
+      this.commonService
+        .handleUploadImages(images, id, IMAGES_PARENT_FOLDER.TENANTS, propertyId)
+        .then(() => navigation.goBack())
+        .catch((error) => console.log("ERROR in uploading tenant images, ", error))
+        .finally(() => this.setState({ isLoading: false }));
+    }
   };
 
   addToPropertyFinances = (payload: any) => {
@@ -209,22 +277,82 @@ class AddTenantComponent extends Component<
       type: PROPERTY_FINANCES_TYPE.INCOME,
     };
 
-    const collectionRef = this.commonService.createNewDocId(
-      PROPERTY_FINANCES_DOC
-    );
+    const collectionRef = this.commonService.createNewDocId(PROPERTY_FINANCES_DOC);
 
     this.commonService
       .handleCreate(financePayload, collectionRef)
       .then(() => navigation.goBack())
-      .catch((error: any) =>
-        console.log("ERROR in creating a new finance object: ", error)
+      .catch((error: any) => console.log("ERROR in creating a new finance object: ", error));
+  };
+
+  updateImagesWithDownloadPath = async () => {
+    const images = this.tenantInfo && this.tenantInfo.images ? this.tenantInfo.images : [];
+    let newImages: any[] = [...images];
+    let shouldUpdate = false;
+
+    if (images.length > 0 && this.tenantInfo) {
+      // retrieve download path from storage and update image array with download path
+      await Promise.all(
+        images.map(async (image: any, index: number) => {
+          if (image.downloadPath === "" || image.downloadPath == null) {
+            const url = await this.commonService.getSingleImageDownloadPath(image);
+
+            const obj = {
+              downloadPath: url,
+              name: image.name,
+              uri: image.uri,
+            };
+
+            newImages[index] = obj;
+            shouldUpdate = true;
+          }
+        })
       );
+
+      if (shouldUpdate) {
+        // update backend with new image array
+        this.commonService.handleUpdateSingleField(TENANTS_DOC, this.tenantInfo.id, { images: newImages });
+      }
+    }
   };
 
   renderImageSection = () => {
+    const { images } = this.state;
+
+    if (images.length > 0) {
+      const imagesToMap = [...images];
+
+      const uris = imagesToMap.map((image) => {
+        let obj = {};
+        if (image.downloadPath !== "" && image.downloadPath != null) {
+          obj["uri"] = image.downloadPath;
+        } else {
+          obj["uri"] = image.uri;
+        }
+        return obj;
+      });
+
+      const nonCachedUri = uris.filter((img: any) => img.uri.includes("file"));
+
+      return (
+        <Container style={{ flex: 1 }} margin={[-10, 0, 14]}>
+          <ImagesList
+            isCached={nonCachedUri.length === 0} // caches image if there are only firebase url's available, otherwise don't cache b/c it doesn't work with source files
+            images={uris}
+            iconHorizontalPadding={14}
+            showAddImageModal={() => this.setState({ showAddImageModal: true })}
+            onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
+            onDragEnd={(data: any[]) => {
+              this.updateImagePosition(data);
+            }}
+          />
+        </Container>
+      );
+    }
+
     return (
       <AddImageButton
-        handleOnPress={() => console.log("Adding tenant related images...")}
+        handleOnPress={() => this.setState({ showAddImageModal: true })}
         caption="Add lease related photos or documents"
       />
     );
@@ -298,13 +426,9 @@ class AddTenantComponent extends Component<
       <Container center>
         <PillsList
           label="Select a lease type:"
-          defaultSelected={
-            this.isEditting ? this.tenantInfo.leaseType : leaseType
-          }
+          defaultSelected={this.isEditting ? this.tenantInfo.leaseType : leaseType}
           data={leaseTypes}
-          handlePillSelected={(leaseType: string) =>
-            this.setState({ leaseType })
-          }
+          handlePillSelected={(leaseType: string) => this.setState({ leaseType })}
         />
         <TextInput
           dateTime
@@ -312,28 +436,18 @@ class AddTenantComponent extends Component<
           style={styles.input}
           value={leaseStartDate}
           dateValue={new Date(leaseStartDate)}
-          onChangeDate={(leaseStartDate: string) =>
-            this.setState({ leaseStartDate })
-          }
+          onChangeDate={(leaseStartDate: string) => this.setState({ leaseStartDate })}
         />
         <TextInput
           dateTime
           label="Lease ends on"
           value={leaseEndDate}
           style={styles.input}
-          onChangeDate={(leaseEndDate: string) =>
-            this.setState({ leaseEndDate })
-          }
+          onChangeDate={(leaseEndDate: string) => this.setState({ leaseEndDate })}
         />
 
         {/* ------ RENT IS PAID TOGGLE ------ */}
-        <Container
-          flex={false}
-          row
-          space="between"
-          center
-          margin={[0, 10, 0, 0]}
-        >
+        <Container flex={false} row space="between" center margin={[0, 10, 0, 0]}>
           <Container left padding={[18, 0, 0, 11]}>
             <Text semibold tertiary>
               Has tenant already paid rent?
@@ -342,9 +456,7 @@ class AddTenantComponent extends Component<
 
           <Toggle
             options={options}
-            initialIndex={
-              this.isEditting && this.tenantInfo.lastPaymentDate != null ? 1 : 0
-            }
+            initialIndex={this.isEditting && this.tenantInfo.lastPaymentDate != null ? 1 : 0}
             handleToggled={(value: boolean) => {
               this.setState({ hasTenantPaidFirstRent: value });
             }}
@@ -362,9 +474,7 @@ class AddTenantComponent extends Component<
             value={hasTenantPaidFirstRent ? lastPaymentDate : ""}
             style={styles.input}
             onChangeDate={(lastPaymentDate: string) =>
-              hasTenantPaidFirstRent
-                ? this.setState({ lastPaymentDate })
-                : this.setState({ lastPaymentDate: "" })
+              hasTenantPaidFirstRent ? this.setState({ lastPaymentDate }) : this.setState({ lastPaymentDate: "" })
             }
           />
         )}
@@ -373,14 +483,10 @@ class AddTenantComponent extends Component<
         <PillsList
           label="Rent is paid:"
           defaultSelected={
-            this.isEditting
-              ? this.tenantInfo.recurringPaymentType
-              : constants.RECURRING_PAYMENT_TYPE.MONTHLY
+            this.isEditting ? this.tenantInfo.recurringPaymentType : constants.RECURRING_PAYMENT_TYPE.MONTHLY
           }
           data={rentPeriods}
-          handlePillSelected={(rentPaidPeriod: string) =>
-            this.setState({ rentPaidPeriod })
-          }
+          handlePillSelected={(rentPaidPeriod: string) => this.setState({ rentPaidPeriod })}
         />
 
         <CurrencyInput
@@ -398,16 +504,7 @@ class AddTenantComponent extends Component<
         />
 
         {/* ------- TOTAL OCCUPANTS COUNTER ------- */}
-        <Container
-          row
-          center
-          padding={[
-            theme.sizes.base * 1.4,
-            theme.sizes.base,
-            theme.sizes.base,
-            theme.sizes.base,
-          ]}
-        >
+        <Container row center padding={[theme.sizes.base * 1.4, theme.sizes.base, theme.sizes.base, theme.sizes.base]}>
           <Container left>
             <Text tertiary semibold>
               Total Occupants:
@@ -416,23 +513,16 @@ class AddTenantComponent extends Component<
 
           <Container right flex={false}>
             <Counter
-              defaultValue={
-                this.isEditting ? this.tenantInfo.totalOccupants : null
-              }
+              defaultValue={this.isEditting ? this.tenantInfo.totalOccupants : null}
               min={1}
               max={99}
-              onCountChange={(count: number) =>
-                this.setState({ totalOccupants: count })
-              }
+              onCountChange={(count: number) => this.setState({ totalOccupants: count })}
             />
           </Container>
         </Container>
 
         {/* ------- ADD NOTES INPUT ------- */}
-        <TouchableOpacity
-          style={styles.addNotesButton}
-          onPress={() => this.setState({ showNotesModal: true })}
-        >
+        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
@@ -442,12 +532,7 @@ class AddTenantComponent extends Component<
             value={notes ? notes.text : ""}
             numberOfLines={1}
           />
-          <Entypo
-            name="chevron-small-right"
-            size={26}
-            color={theme.colors.gray}
-            style={styles.notesChevron}
-          />
+          <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
       </Container>
     );
@@ -462,19 +547,10 @@ class AddTenantComponent extends Component<
         row
         space="between"
         flex={false}
-        padding={[
-          theme.sizes.padding / 1.3,
-          theme.sizes.padding / 1.3,
-          0,
-          theme.sizes.padding / 1.3,
-        ]}
+        padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
         style={{ height: height / 4.8 }}
       >
-        <Button
-          color="red"
-          style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
-        >
+        <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
             Cancel
           </Text>
@@ -487,9 +563,7 @@ class AddTenantComponent extends Component<
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Save"}
-            {isLoading && (
-              <LoadingIndicator size="small" color={theme.colors.offWhite} />
-            )}
+            {isLoading && <LoadingIndicator size="small" color={theme.colors.offWhite} />}
           </Text>
         </Button>
       </Container>
@@ -500,55 +574,134 @@ class AddTenantComponent extends Component<
     const { showNotesModal } = this.state;
 
     return (
-      <Modal
-        visible={showNotesModal}
-        animationType="fade"
-        onDismiss={() => this.setState({ showNotesModal: false })}
-      >
+      <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label="New Tenant(s)"
-          handleBackClick={(notes: string) =>
-            this.setState({ notes, showNotesModal: false })
-          }
+          handleBackClick={(notes: string) => this.setState({ notes, showNotesModal: false })}
         />
       </Modal>
     );
   };
 
+  onCaptureImage = (data: any[]) => {
+    const { images } = this.state;
+
+    const tempImages = [...images];
+    data.forEach((image) => tempImages.push(image));
+    this.setState({ images: tempImages });
+  };
+
+  onUpdateImagesStateOnDelete = () => {
+    const { imageToDelete, images } = this.state;
+
+    const indexToDelete = findIndex(images, (img) => {
+      if (img.downloadPath && img.downloadPath !== "") {
+        return img.downloadPath === imageToDelete.uri;
+      } else {
+        return img.uri === imageToDelete.uri;
+      }
+    });
+
+    const deletedImgObj = images[indexToDelete];
+
+    const newImages = [...images];
+    newImages.splice(indexToDelete, 1);
+
+    this.setState({ images: newImages });
+
+    // remove images from backend
+    // TODO -- might need to refactor to ONLY delete from storage when user presses the 'Save' button
+    this.onRemoveImageFromBackend(newImages, deletedImgObj);
+  };
+
+  onRemoveImageFromBackend = (newImages: any, deletedImgObj: any) => {
+    const { imageToDelete } = this.state;
+
+    if (this.isEditting && this.tenantInfo) {
+      this.commonService
+        .deleteSingleItemFromStorage(deletedImgObj.name)
+        .then(() => {
+          this.commonService.handleUpdateSingleField(PROPERTY_FINANCES_DOC, this.tenantInfo.id, { images: newImages });
+        })
+        .catch((error) => console.log(`ERROR could not remove ${imageToDelete.name} from storage`, error));
+    }
+  };
+
+  updateImagePosition = (data: any) => {
+    const { images } = this.state;
+
+    const from = data.from;
+    const to = data.to;
+    const tempArray = [...images];
+
+    updateArrayPosition(tempArray, from, to);
+    this.setState({ images: tempArray });
+  };
+
   render() {
+    const { showAddImageModal, images, showWarningModal } = this.state;
+
     return (
-      <ScrollView
-        keyboardShouldPersistTaps={"handled"}
-        ref={this.scrollViewRef}
-        nestedScrollEnabled
-        scrollEnabled
-      >
-        <Container center color="accent" padding={[0, 0, theme.sizes.padding]}>
-          <KeyboardAwareScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            scrollEnabled={true}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps={"handled"}
-            enableAutomaticScroll={true}
-          >
-            <Text
-              h1
-              offWhite
-              center
-              style={{ paddingTop: theme.sizes.padding }}
+      <React.Fragment>
+        <ScrollView keyboardShouldPersistTaps={"handled"} ref={this.scrollViewRef} nestedScrollEnabled scrollEnabled>
+          <Container center color="accent" padding={[0, 0, theme.sizes.padding]}>
+            <KeyboardAwareScrollView
+              contentContainerStyle={{ flexGrow: 1 }}
+              scrollEnabled={true}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps={"handled"}
+              enableAutomaticScroll={true}
             >
-              {this.isEditting ? "Edit Tenant" : "Add Tenant"}
-            </Text>
-            {this.renderImageSection()}
-            <HeaderDivider title="Primary Tenant Information" />
-            {this.renderTenantInfo()}
-            <HeaderDivider title="Lease Information" />
-            {this.renderLeaseInfo()}
-            {this.renderNavigationButtons()}
-            {this.renderNotesModal()}
-          </KeyboardAwareScrollView>
-        </Container>
-      </ScrollView>
+              <Container row>
+                <Container style={{ width: "95%" }}>
+                  <Text h1 offWhite center style={{ paddingTop: theme.sizes.padding }}>
+                    {this.isEditting ? "Edit Tenant" : "Add Tenant"}
+                  </Text>
+                </Container>
+
+                {images.length > 0 && (
+                  <Container flex={false} style={{ width: "5%" }}>
+                    <TouchableOpacity
+                      style={styles.addImagesBtn}
+                      onPress={() => this.setState({ showAddImageModal: true })}
+                    >
+                      <MaterialCommunityIcons name="camera-plus-outline" size={28} color={theme.colors.tertiary} />
+                    </TouchableOpacity>
+                  </Container>
+                )}
+              </Container>
+
+              {this.renderImageSection()}
+              <HeaderDivider title="Primary Tenant Information" />
+              {this.renderTenantInfo()}
+              <HeaderDivider title="Lease Information" />
+              {this.renderLeaseInfo()}
+              {this.renderNavigationButtons()}
+              {this.renderNotesModal()}
+            </KeyboardAwareScrollView>
+          </Container>
+        </ScrollView>
+        <AddImageModalComponent
+          visible={showAddImageModal}
+          hideModal={() => this.setState({ showAddImageModal: false })}
+          onSelectImages={(data: any[]) => {
+            this.onCaptureImage(data);
+          }}
+          onCaptureImages={(data: any[]) => {
+            this.onCaptureImage(data);
+          }}
+        />
+        <CommonModal
+          visible={showWarningModal}
+          compact
+          descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
+          hideModal={() => this.setState({ showWarningModal: false })}
+          onSubmit={() => this.onUpdateImagesStateOnDelete()}
+          headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
+          headerIconBackground={theme.colors.primary}
+          title="Confirm"
+        />
+      </React.Fragment>
     );
   }
 }
@@ -581,6 +734,12 @@ const styles = StyleSheet.create({
   toggle: {
     minWidth: 140,
     maxWidth: 140,
+  },
+  addImagesBtn: {
+    width: 95,
+    alignSelf: "flex-end",
+    margin: 20,
+    marginTop: 25,
   },
 });
 

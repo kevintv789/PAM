@@ -17,6 +17,10 @@ export interface State {
   hasTenantPaidFirstRent: boolean;
   errors: string[];
   isLoading: boolean;
+  showAddImageModal: boolean;
+  images: any[];
+  showWarningModal: boolean;
+  imageToDelete: any;
 }
 
 export interface Props {
