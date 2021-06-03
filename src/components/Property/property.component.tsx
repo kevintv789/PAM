@@ -546,9 +546,10 @@ class PropertyComponent extends Component<PropertyModel.Props, PropertyModel.Sta
     const images = propertyData.images;
     const promises: Promise<any>[] = [];
 
-    // Finds any images from PROPERTY_FINANCES doc with property ID and deletes those
+    // Finds any images from collection doc with property ID and deletes those
     const deleteExpenseImages = this.deleteSubTypeImages(propertyId, IMAGES_PARENT_FOLDER.EXPENSES);
     const deleteIncomeImages = this.deleteSubTypeImages(propertyId, IMAGES_PARENT_FOLDER.INCOME);
+    const deleteTenantImages = this.deleteSubTypeImages(propertyId, IMAGES_PARENT_FOLDER.TENANTS);
 
     const propertyFinancesPromise = this.propertyService
       .handleRemovePropertyFromFinances(propertyId)
@@ -603,6 +604,7 @@ class PropertyComponent extends Component<PropertyModel.Props, PropertyModel.Sta
     promises.push(propertiesPromise);
     promises.push(deleteExpenseImages);
     promises.push(deleteIncomeImages);
+    promises.push(deleteTenantImages);
 
     return await Promise.all(promises).finally(() => {
       this.updateUserData();
