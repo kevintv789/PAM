@@ -6,7 +6,7 @@ import { PROPERTIES_DOC, PROPERTY_FINANCES_DOC, TENANTS_DOC } from "shared/const
 import React, { Component } from "react";
 import { animations, constants, theme } from "shared";
 import { filter, isEqual, property, remove, sortBy, uniqBy } from "lodash";
-import { formatNumber, getPropertyImage, getPropertyTypeIcons } from "shared/Utils";
+import { formatNumber, getPropertyImage, getPropertyTypeIcons, updateArrayPosition } from "shared/Utils";
 
 import AuthService from "services/auth.service";
 import CommonService from "services/common.service";
@@ -639,8 +639,8 @@ class PropertyComponent extends Component<PropertyModel.Props, PropertyModel.Sta
       const from = images.from;
       const to = images.to;
 
-      // swap locations
-      [oldImageData[from], oldImageData[to]] = [oldImageData[to], oldImageData[from]];
+      // shift elements to a the new index
+      updateArrayPosition(oldImageData, from, to);
 
       this.commonService
         .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
