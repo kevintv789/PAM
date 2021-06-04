@@ -311,12 +311,15 @@ export const getCurrentUserData = () => {
 
 /**
  * This function takes in an array, the original index and the updated index to the new position
+ * by cutting out the element ready to be repositioned, inserting it while shifting all elements
+ * to the new position by an index of 1
  * @param array
  * @param fromIndex
  * @param toIndex
  */
 export const updateArrayPosition = (array: any[], fromIndex: number, toIndex: number) => {
-  return ([array[fromIndex], array[toIndex]] = [array[toIndex], array[fromIndex]]);
+  let cutOut = array.splice(fromIndex, 1)[0]; // cut the element from index 'fromIndex'
+  return array.splice(toIndex, 0, cutOut); // insert it at the desired index
 };
 
 /**
