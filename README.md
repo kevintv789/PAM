@@ -9,6 +9,10 @@ Any other info will be written out at a future date.
 # PAM Test Branch
 
 # Beta Release v0.25.20210603
+- Major features
+    - Added ability for users to rearrange their properties with a long press and drag
+- Minor features
+    - Added animation to the search bar, and a "clamp" effect on the search bar when user scrolls
 - Bug fixes
     - Refactored how image repositioning to shift elements forward an index instead of swapping the location of the image
 
