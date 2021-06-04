@@ -8,6 +8,10 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.25.20210603
+- Bug fixes
+    - Refactored how image repositioning to shift elements forward an index instead of swapping the location of the image
+
 # Beta Release v0.24.20210602
 - Major features
     - Added ability for users to upload images/documents to tenants when adding & editting
