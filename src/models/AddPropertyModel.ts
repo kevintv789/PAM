@@ -15,6 +15,7 @@ export interface State {
   imageStorageDownloadUrls: any[];
   showWarningModal: boolean;
   imageToDelete: any;
+  index: number;
 }
 
 export interface Props {

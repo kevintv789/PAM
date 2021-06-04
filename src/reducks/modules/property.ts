@@ -58,7 +58,7 @@ export const getPropertiesByIds = (propertyIds: any[]) => {
         .onSnapshot((snapshot) => {
           if (snapshot.docs && snapshot.docs.length > 0) {
             let properties = snapshot.docs.map((i) => i.data());
-            properties = orderBy(properties, ["createdOn"], ["desc"]);
+            properties = orderBy(properties, ["index"], ["desc"]);
             dispatch({ type: GET_PROPERTIES, payload: properties });
           }
         });

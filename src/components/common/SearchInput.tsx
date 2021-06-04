@@ -1,41 +1,74 @@
+import { Animated, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { AntDesign, EvilIcons } from "@expo/vector-icons";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 
 import Container from "./Container";
 import React from "react";
 import { theme } from "shared";
 
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+const AnimatedLeftIcon = Animated.createAnimatedComponent(EvilIcons);
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
+
+const INPUT_MAX_HEIGHT = 40;
+const INPUT_MIN_HEIGHT = 0;
+const INPUT_MAX_PADDING = 10;
+const ICON_MAX_TOP = -5;
+const ICON_MIN_TOP = -10;
+
 const SearchInput = (props: any) => {
-  const { handleChangeText, handleClearText, searchValue } = props;
+  const { handleChangeText, handleClearText, searchValue, scrollOffset } = props;
+
+  const animatedInputHeight = scrollOffset.interpolate({
+    inputRange: [0, INPUT_MAX_HEIGHT - INPUT_MIN_HEIGHT],
+    outputRange: [INPUT_MAX_HEIGHT, INPUT_MIN_HEIGHT],
+    extrapolate: "clamp",
+  });
+
+  const animatedInputPadding = scrollOffset.interpolate({
+    inputRange: [0, INPUT_MAX_PADDING - INPUT_MIN_HEIGHT],
+    outputRange: [INPUT_MAX_PADDING, INPUT_MIN_HEIGHT],
+    extrapolate: "clamp",
+  });
+
+  const animatedIconTop = scrollOffset.interpolate({
+    inputRange: [0, ICON_MAX_TOP - ICON_MIN_TOP],
+    outputRange: [ICON_MAX_TOP, ICON_MIN_TOP],
+    extrapolate: "clamp",
+  });
 
   return (
     <Container flex={false} row middle>
-      <EvilIcons
-        name="search"
-        size={22}
-        color={theme.colors.gray2}
-        style={styles.icon}
-      />
+      {scrollOffset._value < 13 && (
+        <AnimatedLeftIcon
+          name="search"
+          size={22}
+          color={theme.colors.gray2}
+          style={[styles.icon, { top: animatedIconTop }]}
+        />
+      )}
 
-      <TextInput
-        style={styles.input}
+      <AnimatedTextInput
+        style={[
+          styles.input,
+          {
+            height: animatedInputHeight,
+            padding: animatedInputPadding,
+            borderWidth: scrollOffset._value > 40 ? 0 : 1,
+          },
+        ]}
         placeholder="Search"
         placeholderTextColor={theme.colors.gray2}
         onChangeText={(value: string) => handleChangeText(value)}
         value={searchValue}
       />
 
-      {searchValue.length > 0 && (
-        <TouchableOpacity
+      {searchValue.length > 0 && scrollOffset._value < 13 && (
+        <AnimatedTouchableOpacity
           onPress={() => handleClearText()}
-          style={styles.clearIcon}
+          style={[styles.clearIcon, { top: animatedIconTop }]}
         >
-          <AntDesign
-            name="closecircleo"
-            size={22}
-            color={theme.colors.tertiary}
-          />
-        </TouchableOpacity>
+          <AntDesign name="closecircleo" size={22} color={theme.colors.tertiary} />
+        </AnimatedTouchableOpacity>
       )}
     </Container>
   );

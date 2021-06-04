@@ -12,19 +12,8 @@ import {
   Text,
   TextInput,
 } from "components/common";
-import {
-  Dimensions,
-  Image,
-  Keyboard,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import {
-  Entypo,
-  FontAwesome,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Dimensions, Image, Keyboard, Modal, StyleSheet, TouchableOpacity } from "react-native";
+import { Entypo, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { Component } from "react";
 import { constants, theme } from "shared";
 import { hasErrors, updateArrayPosition } from "shared/Utils";
@@ -44,10 +33,7 @@ import { updateProperty } from "reducks/modules/property";
 
 const { width, height } = Dimensions.get("window");
 
-class AddPropertyComponent extends Component<
-  AddPropertyModel.Props,
-  AddPropertyModel.State
-> {
+class AddPropertyComponent extends Component<AddPropertyModel.Props, AddPropertyModel.State> {
   private propertyService = new PropertyService();
   private commonService = new CommonService();
 
@@ -76,6 +62,7 @@ class AddPropertyComponent extends Component<
       imageStorageDownloadUrls: [],
       showWarningModal: false,
       imageToDelete: null,
+      index: 0,
     };
 
     this.scrollViewRef = React.createRef();
@@ -91,6 +78,7 @@ class AddPropertyComponent extends Component<
         propertyNickName: this.routePropertyData.propertyName,
         typeSelected: this.routePropertyData.unitType,
         images: this.routePropertyData.images,
+        index: this.routePropertyData.index,
         // TODO -- Add notes later
       });
 
@@ -112,35 +100,21 @@ class AddPropertyComponent extends Component<
     const imageStorageUrls = [...imageStorageDownloadUrls];
 
     const removedItem = remove(propertyImages, (p: any) =>
-      p.downloadPath != null
-        ? p.downloadPath === imageToDelete.uri
-        : p.uri === imageToDelete.uri
+      p.downloadPath != null ? p.downloadPath === imageToDelete.uri : p.uri === imageToDelete.uri
     );
 
     remove(imageStorageUrls, (p: any) => p.uri === imageToDelete.uri);
 
-    if (
-      this.isEditting &&
-      this.routePropertyData &&
-      imageToDelete.uri.substring(0, 4) === "http"
-    ) {
+    if (this.isEditting && this.routePropertyData && imageToDelete.uri.substring(0, 4) === "http") {
       this.commonService
         .deleteStorageFile(removedItem)
         .then(() => {
           // update property images with new object
           this.commonService
-            .handleUpdateSingleField(
-              PROPERTIES_DOC,
-              this.routePropertyData.id,
-              { images: propertyImages }
-            )
-            .then(() =>
-              this.setState({ imageStorageDownloadUrls: imageStorageUrls })
-            );
+            .handleUpdateSingleField(PROPERTIES_DOC, this.routePropertyData.id, { images: propertyImages })
+            .then(() => this.setState({ imageStorageDownloadUrls: imageStorageUrls }));
         })
-        .catch((error) =>
-          console.log("ERROR cannot remove item: ", removedItem[0].name, error)
-        );
+        .catch((error) => console.log("ERROR cannot remove item: ", removedItem[0].name, error));
     } else {
       this.setState({
         images: propertyImages,
@@ -186,9 +160,7 @@ class AddPropertyComponent extends Component<
             images={images}
             showAddImageModal={() => this.setState({ showAddImageModal: true })}
             isCached={false}
-            onDeleteImage={(image: any) =>
-              this.setState({ showWarningModal: true, imageToDelete: image })
-            }
+            onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
             onDragEnd={(data: any[]) => {
               this.updateImagePosition(data);
             }}
@@ -197,9 +169,7 @@ class AddPropertyComponent extends Component<
       );
     } else {
       if (imageStorageDownloadUrls.length > 0) {
-        const nonCachedUri = imageStorageDownloadUrls.filter((img: any) =>
-          img.uri.includes("file")
-        );
+        const nonCachedUri = imageStorageDownloadUrls.filter((img: any) => img.uri.includes("file"));
 
         return (
           <Container style={{ flex: 1 }}>
@@ -207,12 +177,8 @@ class AddPropertyComponent extends Component<
               isCached={nonCachedUri.length === 0}
               iconHorizontalPadding={14}
               images={imageStorageDownloadUrls}
-              showAddImageModal={() =>
-                this.setState({ showAddImageModal: true })
-              }
-              onDeleteImage={(image: any) =>
-                this.setState({ showWarningModal: true, imageToDelete: image })
-              }
+              showAddImageModal={() => this.setState({ showAddImageModal: true })}
+              onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
               onDragEnd={(data: any[]) => {
                 this.updateImagePosition(data);
               }}
@@ -225,9 +191,7 @@ class AddPropertyComponent extends Component<
 
   retrieveImageDownloadUrl = async (images: any[]) => {
     if (images && images.length > 0) {
-      const data = await (
-        await this.commonService.getImageDownloadUri(images)
-      ).filter((i: any) => i.uri != null);
+      const data = await (await this.commonService.getImageDownloadUri(images)).filter((i: any) => i.uri != null);
 
       if (data && data.length > 0) {
         this.setState({ imageStorageDownloadUrls: data });
@@ -260,14 +224,8 @@ class AddPropertyComponent extends Component<
         <HeaderDivider title="Property Type" style={styles.divider} />
         <PillsList
           data={propertyTypes}
-          defaultSelected={
-            this.isEditting
-              ? this.routePropertyData.unitType
-              : constants.PROPERTY_TYPES.SINGLE_FAM
-          }
-          handlePillSelected={(selected: string) =>
-            this.setState({ typeSelected: selected })
-          }
+          defaultSelected={this.isEditting ? this.routePropertyData.unitType : constants.PROPERTY_TYPES.SINGLE_FAM}
+          handlePillSelected={(selected: string) => this.setState({ typeSelected: selected })}
         />
         {this.renderPropertyTypeIcons()}
       </Container>
@@ -301,12 +259,7 @@ class AddPropertyComponent extends Component<
     }
     if (imagePath !== "") {
       return (
-        <Container
-          center
-          middle
-          margin={[theme.sizes.padding]}
-          style={styles.propertyImageContainer}
-        >
+        <Container center middle margin={[theme.sizes.padding]} style={styles.propertyImageContainer}>
           <Image
             source={imagePath}
             style={{
@@ -328,12 +281,7 @@ class AddPropertyComponent extends Component<
    */
   handleSaveProperty = () => {
     const { navigation } = this.props;
-    const {
-      typeSelected,
-      propertyNickName,
-      streetAddress,
-      images,
-    } = this.state;
+    const { typeSelected, propertyNickName, streetAddress, images, index } = this.state;
 
     const errors = [];
 
@@ -350,72 +298,69 @@ class AddPropertyComponent extends Component<
       tenants: [],
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
-      createdOn: this.isEditting
-        ? this.routePropertyData.createdOn
-        : new Date(),
+      createdOn: this.isEditting ? this.routePropertyData.createdOn : new Date(),
+      images,
     };
 
     if (!errors.length) {
       if (!this.isEditting) {
-        const propertiesCollection = this.commonService.createNewDocId(
-          PROPERTIES_DOC
-        );
+        const propertiesCollection = this.commonService.createNewDocId(PROPERTIES_DOC);
 
-        this.commonService
-          .handleCreateWithImages(
-            payload,
-            propertiesCollection,
-            images,
-            IMAGES_PARENT_FOLDER.PROPERTY
-          )
-          .then(() => {
-            const propertyId = propertiesCollection.id;
-
-            // After creating property, set its ID onto the user document
-            this.propertyService
-              .updateUserDataWithProperty(propertyId)
-              .then(() => {
-                // Upload any images if there are any
-                if (images && images.length > 0) {
-                  this.uploadImages(propertyId);
-                } else {
-                  navigation.goBack();
-                  navigation.navigate("AddPropertyDoneModal");
-                }
-              })
-              .catch((error) =>
-                console.log(
-                  "ERROR failed to update property ID onto the user doc",
-                  error
-                )
-              );
-          })
-          .catch((error: any) => console.log(error))
-          .finally(() => {
-            if (!images || images.length === 0) {
-              this.setState({ isLoading: false });
-            }
-          });
+        if (images && images.length > 0) {
+          // handle create with images
+          this.handleCreateWithImages(payload, propertiesCollection);
+        } else {
+          // handle regular create
+          this.handleRegularCreate(payload, propertiesCollection);
+        }
       } else {
-        const { id, notesId, color, tenants } = this.routePropertyData;
+        const { id, notesId, color, tenants, index } = this.routePropertyData;
         payload.notesId = notesId;
         payload.color = color;
         payload.tenants = tenants;
+        payload["index"] = index;
 
         this.commonService
-          .handleUpdateWithImages(
-            payload,
-            id,
-            PROPERTIES_DOC,
-            images,
-            "property"
-          )
+          .handleUpdateWithImages(payload, id, PROPERTIES_DOC, images, "property")
           .then(() => this.uploadImages(id))
           .catch((error) => console.log("ERROR in updating property: ", error));
       }
     }
 
     this.setState({ errors, isLoading: true });
+  };
+
+  handleRegularCreate = (payload: any, docRef: any) => {
+    const { navigation } = this.props;
+
+    this.commonService
+      .handleCreate(payload, docRef)
+      .then(() => {
+        // After creating property, set its ID onto the user document
+        this.propertyService.updateUserDataWithProperty(docRef.id).then(() => {
+          navigation.goBack();
+          navigation.navigate("AddPropertyDoneModal");
+        });
+      })
+      .catch((error: any) => console.log("ERROR in creating a new property: ", error))
+      .finally(() => this.setState({ isLoading: false }));
+  };
+
+  handleCreateWithImages = (payload: any, docRef: any) => {
+    const { images } = this.state;
+    const propertyId = docRef.id;
+
+    if (images) {
+      this.commonService
+        .handleCreateWithImages(payload, docRef, images, IMAGES_PARENT_FOLDER.PROPERTY)
+        .then(() => {
+          // After creating property, set its ID onto the user document
+          this.propertyService.updateUserDataWithProperty(propertyId).then(() => {
+            this.uploadImages(docRef.id);
+          });
+        })
+        .catch((error: any) => console.log("ERROR in updating a new property object: ", error));
+    }
   };
 
   uploadImages = (propertyId: string) => {
@@ -425,20 +370,14 @@ class AddPropertyComponent extends Component<
     this.commonService
       .handleUploadImages(images, propertyId, IMAGES_PARENT_FOLDER.PROPERTY)
       .then(() => {
-        setTimeout(() => {
-          navigation.goBack();
+        navigation.goBack();
 
-          if (!this.isEditting) {
-            navigation.navigate("AddPropertyDoneModal");
-          }
-        }, 3000);
+        if (!this.isEditting) {
+          navigation.navigate("AddPropertyDoneModal");
+        }
       })
-      .catch((error: any) =>
-        console.log("ERROR failed to upload images", error)
-      )
-      .finally(() =>
-        setTimeout(() => this.setState({ isLoading: false }), 3500)
-      );
+      .catch((error) => console.log("ERROR in uploading property images, ", error))
+      .finally(() => this.setState({ isLoading: false }));
   };
 
   renderNavigationButtons = () => {
@@ -450,19 +389,10 @@ class AddPropertyComponent extends Component<
         row
         space="between"
         flex={false}
-        padding={[
-          theme.sizes.padding / 1.3,
-          theme.sizes.padding / 1.3,
-          0,
-          theme.sizes.padding / 1.3,
-        ]}
+        padding={[theme.sizes.padding / 1.3, theme.sizes.padding / 1.3, 0, theme.sizes.padding / 1.3]}
         style={{ height: height / 4.8 }}
       >
-        <Button
-          color="red"
-          style={styles.navigationButtons}
-          onPress={() => navigation.goBack()}
-        >
+        <Button color="red" style={styles.navigationButtons} onPress={() => navigation.goBack()}>
           <Text offWhite center semibold>
             Cancel
           </Text>
@@ -475,9 +405,7 @@ class AddPropertyComponent extends Component<
         >
           <Text offWhite center semibold style={{ alignSelf: "center" }}>
             {!isLoading && "Next"}
-            {isLoading && (
-              <LoadingIndicator size="small" color={theme.colors.offWhite} />
-            )}
+            {isLoading && <LoadingIndicator size="small" color={theme.colors.offWhite} />}
           </Text>
         </Button>
       </Container>
@@ -485,13 +413,7 @@ class AddPropertyComponent extends Component<
   };
 
   renderPropertyDetails = () => {
-    const {
-      propertyNickName,
-      notesValue,
-      errors,
-      streetAddress,
-      autoFill,
-    } = this.state;
+    const { propertyNickName, notesValue, errors, streetAddress, autoFill } = this.state;
 
     return (
       <Container center>
@@ -521,10 +443,7 @@ class AddPropertyComponent extends Component<
                 errors: errors.filter((e) => e !== "streetAddress"),
               })
             }
-            handleResults={(
-              text: string,
-              streetAddressResults: Array<string>
-            ) => {
+            handleResults={(text: string, streetAddressResults: Array<string>) => {
               this.setState({
                 streetAddressResults,
                 streetAddress: text.length > 0 ? streetAddress : "",
@@ -537,10 +456,8 @@ class AddPropertyComponent extends Component<
         )}
         <CheckBox
           rightLabel="Autofill"
-          defaultChecked={!this.isEditting}
-          handleCheck={(checked: boolean) =>
-            this.setState({ autoFill: !checked })
-          }
+          defaultChecked={autoFill}
+          handleCheck={(checked: boolean) => this.setState({ autoFill: !checked })}
           touchAreaStyle={styles.autoFill}
         />
         <TextInput
@@ -554,10 +471,7 @@ class AddPropertyComponent extends Component<
             })
           }
         />
-        <TouchableOpacity
-          style={styles.addNotesButton}
-          onPress={() => this.setState({ showNotesModal: true })}
-        >
+        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
@@ -567,12 +481,7 @@ class AddPropertyComponent extends Component<
             value={notesValue ? notesValue.text : ""}
             numberOfLines={1}
           />
-          <Entypo
-            name="chevron-small-right"
-            size={26}
-            color={theme.colors.gray}
-            style={styles.notesChevron}
-          />
+          <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
         </TouchableOpacity>
       </Container>
     );
@@ -586,16 +495,10 @@ class AddPropertyComponent extends Component<
     const { showNotesModal } = this.state;
 
     return (
-      <Modal
-        visible={showNotesModal}
-        animationType="fade"
-        onDismiss={() => this.setState({ showNotesModal: false })}
-      >
+      <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label="New Property"
-          handleBackClick={(notesValue: string) =>
-            this.handleNotesSave(notesValue)
-          }
+          handleBackClick={(notesValue: string) => this.handleNotesSave(notesValue)}
         />
       </Modal>
     );
@@ -612,14 +515,7 @@ class AddPropertyComponent extends Component<
   };
 
   render() {
-    const {
-      streetAddressResults,
-      autoFill,
-      showKeyboard,
-      showAddImageModal,
-      images,
-      showWarningModal,
-    } = this.state;
+    const { streetAddressResults, autoFill, showKeyboard, showAddImageModal, images, showWarningModal } = this.state;
 
     if (streetAddressResults.length > 0 && autoFill) {
       this.scrollToBottom();
@@ -631,10 +527,7 @@ class AddPropertyComponent extends Component<
 
     return (
       <React.Fragment>
-        <ScrollView
-          keyboardShouldPersistTaps={"handled"}
-          ref={this.scrollViewRef}
-        >
+        <ScrollView keyboardShouldPersistTaps={"handled"} ref={this.scrollViewRef}>
           <Container center color="accent">
             <KeyboardAwareScrollView
               contentContainerStyle={{ flex: 1 }}
@@ -643,12 +536,7 @@ class AddPropertyComponent extends Component<
             >
               <Container row>
                 <Container flex={1} style={{ width: "95%" }}>
-                  <Text
-                    h1
-                    offWhite
-                    center
-                    style={{ paddingTop: theme.sizes.padding }}
-                  >
+                  <Text h1 offWhite center style={{ paddingTop: theme.sizes.padding }}>
                     {this.isEditting ? "Edit Property" : "Add Property"}
                   </Text>
                 </Container>
@@ -658,11 +546,7 @@ class AddPropertyComponent extends Component<
                       style={styles.addImagesBtn}
                       onPress={() => this.setState({ showAddImageModal: true })}
                     >
-                      <MaterialCommunityIcons
-                        name="camera-plus-outline"
-                        size={28}
-                        color={theme.colors.tertiary}
-                      />
+                      <MaterialCommunityIcons name="camera-plus-outline" size={28} color={theme.colors.tertiary} />
                     </TouchableOpacity>
                   </Container>
                 )}
@@ -696,13 +580,7 @@ class AddPropertyComponent extends Component<
           descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
           hideModal={() => this.setState({ showWarningModal: false })}
           onSubmit={() => this.onDeleteSingleImage()}
-          headerIcon={
-            <FontAwesome
-              name="warning"
-              size={36}
-              color={theme.colors.offWhite}
-            />
-          }
+          headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
           headerIconBackground={theme.colors.primary}
           title="Confirm"
         />
