@@ -1,29 +1,30 @@
-import {
-  Button,
-  Container,
-  LoadingIndicator,
-  SearchInput,
-  Text,
-} from "components/common";
-import { Image, Keyboard, RefreshControl, StyleSheet } from "react-native";
+import { Animated, Image, Keyboard, RefreshControl, StyleSheet, TouchableWithoutFeedback } from "react-native";
+import { Button, Container, LoadingIndicator, SearchInput, Text } from "components/common";
+import DraggableFlatList, { RenderItemParams } from "react-native-draggable-flatlist";
 import React, { Component } from "react";
-import { filter, includes, isEqual, some, uniq } from "lodash";
 import { getPropertyFinances, getTenants } from "reducks/modules/property";
+import { includes, isEqual, some, uniq } from "lodash";
 
 import AuthService from "services/auth.service";
+import { FlatList } from "react-native-gesture-handler";
 import { HomeModel } from "models";
 import PropertyComponent from "components/Property/property.component";
-import { ScrollView } from "react-native-gesture-handler";
+import PropertyService from "services/property.service";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { getPropertiesByIds } from "reducks/modules/property";
 import { getUser } from "reducks/modules/user";
 import { theme } from "shared";
+import { updateArrayPosition } from "shared/Utils";
+
+const AnimatedContainer = Animated.createAnimatedComponent(Container);
+const Header_Maximum_Height = 50;
+const Header_Minimum_Height = 0;
 
 class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
-  private scrollViewRef: React.RefObject<ScrollView>;
+  private flatListRef: React.RefObject<FlatList<typeof PropertyComponent>>;
   private authService = new AuthService();
-  private triggered = false;
+  private propertyService = new PropertyService();
 
   constructor(props: any) {
     super(props);
@@ -33,9 +34,11 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       isLoading: true,
       searchQuery: "",
       propertyData: this.props.propertyData, // used as a state to enable mutation through search filtering
+      animatedHeaderValue: new Animated.Value(0),
+      loaded: false,
     };
 
-    this.scrollViewRef = React.createRef();
+    this.flatListRef = React.createRef();
   }
 
   componentDidMount() {
@@ -43,37 +46,18 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   }
 
   componentDidUpdate(prevProps: HomeModel.Props, prevState: HomeModel.State) {
-    const {
-      userData,
-      getPropertiesByIds,
-      propertyData,
-      getPropertyFinances,
-      financesData,
-    } = this.props;
+    const { userData, getPropertiesByIds, propertyData, getPropertyFinances, financesData } = this.props;
 
-    const { searchQuery, refreshing } = this.state;
+    const { searchQuery, loaded } = this.state;
 
-    if (
-      this.scrollViewRef &&
-      this.scrollViewRef.current &&
-      !this.triggered &&
-      searchQuery === "" &&
-      !refreshing
-    ) {
+    if (this.flatListRef && this.flatListRef.current && !loaded) {
       setTimeout(() => {
-        this.scrollViewRef.current?.scrollTo({
-          x: 0,
-          y: 50,
-          animated: true,
-        });
+        this.flatListRef.current?._component.scrollToOffset({ offset: 42, animated: true });
+        this.setState({ loaded: true });
       }, 10);
     }
 
-    if (
-      !isEqual(prevProps.userData, userData) &&
-      userData.properties &&
-      userData.properties.length > 0
-    ) {
+    if (!isEqual(prevProps.userData, userData) && userData.properties && userData.properties.length > 0) {
       getPropertiesByIds(userData.properties);
     }
 
@@ -127,10 +111,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
       (t: any) =>
         (includes(t.name.toUpperCase(), searchQuery.toUpperCase()) ||
           includes(t.leaseType.toUpperCase(), searchQuery.toUpperCase()) ||
-          includes(
-            t.recurringPaymentType.toUpperCase(),
-            searchQuery.toUpperCase()
-          )) &&
+          includes(t.recurringPaymentType.toUpperCase(), searchQuery.toUpperCase())) &&
         searchQuery !== ""
     );
 
@@ -143,10 +124,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     } else {
       filteredProperties = propertyData.filter(
         (p: any) =>
-          includes(
-            p.propertyAddress.toUpperCase(),
-            searchQuery.toUpperCase()
-          ) ||
+          includes(p.propertyAddress.toUpperCase(), searchQuery.toUpperCase()) ||
           includes(p.unitType.toUpperCase(), searchQuery.toUpperCase()) ||
           includes(p.propertyName.toUpperCase(), searchQuery.toUpperCase())
       );
@@ -157,9 +135,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
   filterTenantsByProperty = () => {
     const { tenantData, propertyData } = this.props;
-    return tenantData?.filter((t: any) =>
-      some(propertyData, (p: any) => p.id === t.propertyId)
-    );
+    return tenantData?.filter((t: any) => some(propertyData, (p: any) => p.id === t.propertyId));
   };
 
   getTenantData = () => {
@@ -175,29 +151,15 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
   renderDefaultMessage = () => {
     const { userData, navigation } = this.props;
     return (
-      <Container
-        flex={false}
-        center
-        middle
-        padding={[theme.sizes.padding * 0.2]}
-      >
+      <Container flex={false} center middle padding={[theme.sizes.padding * 0.2]}>
         <Image source={require("assets/icons/keys.png")} style={styles.keys} />
         <Text offWhite size={30}>
           Hi {userData.name}!
         </Text>
-        <Text
-          center
-          offWhite
-          light
-          style={{ width: "90%", paddingTop: theme.sizes.base }}
-        >
-          Start by adding your first property to unlock new features, and i’ll
-          handle the rest!
+        <Text center offWhite light style={{ width: "90%", paddingTop: theme.sizes.base }}>
+          Start by adding your first property to unlock new features, and i’ll handle the rest!
         </Text>
-        <Button
-          style={styles.setUpProperty}
-          onPress={() => navigation.navigate("AddPropertyModal")}
-        >
+        <Button style={styles.setUpProperty} onPress={() => navigation.navigate("AddPropertyModal")}>
           <Text center offWhite size={theme.fontSizes.medium}>
             Set Up Property
           </Text>
@@ -211,73 +173,114 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
     this.handleUpdateData();
   };
 
-  renderProperties = () => {
+  renderItem = ({ item, drag, index }: RenderItemParams<any>) => {
     const { navigation, tenantData } = this.props;
-    const { refreshing, propertyData, searchQuery } = this.state;
+    const { searchQuery } = this.state;
 
     return (
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: theme.sizes.padding,
-        }}
-        nestedScrollEnabled
-        style={styles.propertiesScrollView}
-        ref={this.scrollViewRef}
-        keyboardShouldPersistTaps={"handled"}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => this.onRefresh()}
-          />
-        }
-      >
+      <React.Fragment>
+        <TouchableWithoutFeedback
+          onLongPress={() => {
+            if (searchQuery === "") {
+              drag();
+            }
+          }}
+        >
+          <Container center>
+            <PropertyComponent
+              tenantData={tenantData}
+              propertyData={item}
+              navigation={navigation}
+              onPropertySelect={() => this.scrollToProperty(index || 0)}
+            />
+          </Container>
+        </TouchableWithoutFeedback>
+      </React.Fragment>
+    );
+  };
+
+  onDragEnd = (data: any) => {
+    const { propertyData } = this.state;
+
+    const from = data.from;
+    const to = data.to;
+    const tempArray = [...propertyData];
+
+    updateArrayPosition(tempArray, from, to);
+
+    // update index of property
+    let increment = 1;
+
+    for (let i = 0; i < tempArray.length; i++) {
+      const newIndex = tempArray.length - increment;
+      tempArray[i].index = newIndex;
+      increment++;
+    }
+    this.setState({ propertyData: tempArray }, () => {
+      setTimeout(() => {
+        this.propertyService.updatePropertiesIndex(tempArray);
+      }, 1000);
+    });
+  };
+
+  renderProperties = () => {
+    const { refreshing, propertyData, loaded } = this.state;
+
+    return (
+      <Container>
+        <DraggableFlatList
+          keyboardShouldPersistTaps={"handled"}
+          showsVerticalScrollIndicator={false}
+          data={propertyData}
+          renderItem={this.renderItem}
+          keyExtractor={(item) => item.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => this.onRefresh()} />}
+          onRef={(flatList) => (this.flatListRef = flatList)}
+          onDragEnd={this.onDragEnd}
+          onScrollOffsetChange={(y) => {
+            this.setState({ animatedHeaderValue: new Animated.Value(y) });
+          }}
+          contentContainerStyle={{ paddingTop: loaded ? 42 : 0 }}
+        />
+      </Container>
+    );
+  };
+
+  renderSearchBar = () => {
+    const { searchQuery, animatedHeaderValue } = this.state;
+
+    const animateHeaderHeight = animatedHeaderValue.interpolate({
+      inputRange: [0, Header_Maximum_Height - Header_Minimum_Height],
+      outputRange: [Header_Maximum_Height, Header_Minimum_Height],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <AnimatedContainer flex={false} style={{ height: animateHeaderHeight, marginTop: 20, marginBottom: -20 }}>
         <SearchInput
           handleChangeText={(value: string) => {
             this.setState({ searchQuery: value });
-            this.triggered = true;
           }}
           handleClearText={() => {
             this.setState({ searchQuery: "" });
             Keyboard.dismiss();
           }}
           searchValue={searchQuery}
+          scrollOffset={animatedHeaderValue}
         />
-
-        <Container center>
-          {propertyData &&
-            propertyData.map((property: any) => {
-              // this is returning a property id
-              let positionY = 0;
-              return (
-                <Container
-                  key={property.id}
-                  onLayout={(event: any) =>
-                    (positionY = event.nativeEvent.layout.y)
-                  }
-                >
-                  <PropertyComponent
-                    tenantData={tenantData}
-                    propertyData={property}
-                    navigation={navigation}
-                    onPropertySelect={() => this.scrollToProperty(positionY)}
-                  />
-                </Container>
-              );
-            })}
-        </Container>
-      </ScrollView>
+      </AnimatedContainer>
     );
   };
 
-  scrollToProperty = (positionY: number) => {
-    setTimeout(() => {
-      this.scrollViewRef.current?.scrollTo({
-        x: 0,
-        y: positionY + 50,
-        animated: true,
-      });
-    }, 400);
+  scrollToProperty = (index: number) => {
+    if (this.flatListRef) {
+      setTimeout(() => {
+        this.flatListRef.current?._component.scrollToIndex({
+          animated: true,
+          index,
+        });
+      }, 400);
+    }
   };
 
   renderContent = () => {
@@ -286,13 +289,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     return (
       <Container color="accent">
-        <Container
-          middle
-          center
-          flex={false}
-          style={{ marginTop: theme.sizes.padding * 2.5 }}
-          row
-        >
+        <Container middle center flex={false} style={{ marginTop: theme.sizes.padding * 2.5 }} row>
           <Text h1 tertiary style={{ marginBottom: theme.sizes.base }}>
             My Properties
           </Text>
@@ -301,16 +298,12 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
             style={styles.addPropButton}
             onPress={() => navigation.navigate("AddPropertyModal")}
           >
-            <Image
-              source={require("assets/icons/plus.png")}
-              style={{ width: 29, height: 29 }}
-            />
+            <Image source={require("assets/icons/plus.png")} style={{ width: 29, height: 29 }} />
           </Button>
         </Container>
+        {this.renderSearchBar()}
 
-        {userData.properties.length === 0
-          ? this.renderDefaultMessage()
-          : this.renderProperties()}
+        {userData.properties.length === 0 ? this.renderDefaultMessage() : this.renderProperties()}
       </Container>
     );
   };
@@ -321,12 +314,7 @@ class HomeScreen extends Component<HomeModel.Props, HomeModel.State> {
 
     if (isLoading) {
       return (
-        <Container
-          color="accent"
-          flex={1}
-          center
-          padding={[theme.sizes.base * 8]}
-        >
+        <Container color="accent" flex={1} center padding={[theme.sizes.base * 8]}>
           <LoadingIndicator size="large" color={theme.colors.offWhite} />
         </Container>
       );

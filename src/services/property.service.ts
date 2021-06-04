@@ -1,13 +1,9 @@
 import "firebase/firestore";
 
-import {
-  PROPERTIES_DOC,
-  PROPERTY_FINANCES_DOC,
-  TENANTS_DOC,
-  USER_DOC,
-} from "shared/constants/databaseConsts";
+import { PROPERTIES_DOC, PROPERTY_FINANCES_DOC, TENANTS_DOC, USER_DOC } from "shared/constants/databaseConsts";
 
 import CommonService from "services/common.service";
+import { PROPERTY_TYPES } from "shared/constants/constants";
 import firebase from "firebase";
 import { remove } from "lodash";
 
@@ -21,10 +17,7 @@ export default class PropertyService {
    * @param curPropertyId
    */
   addTenantIdToProperty = (tenantId: string, curPropertyId: string) => {
-    const propertyRef = firebase
-      .firestore()
-      .collection(PROPERTIES_DOC)
-      .doc(curPropertyId);
+    const propertyRef = firebase.firestore().collection(PROPERTIES_DOC).doc(curPropertyId);
 
     return propertyRef.get().then((res) => {
       if (res.exists) {
@@ -43,21 +36,47 @@ export default class PropertyService {
    * used to query for a specific property for each unique user
    * @param propertyId - newly created property ID
    */
-  updateUserDataWithProperty = (propertyId: any) => {
+  updateUserDataWithProperty = async (propertyId: any) => {
     // Retrieve properties array from users doc
-    const currentUser = firebase
-      .firestore()
-      .collection(USER_DOC)
-      .doc(firebase.auth().currentUser?.uid);
+    const currentUser = firebase.firestore().collection(USER_DOC).doc(firebase.auth().currentUser?.uid);
+    const property = firebase.firestore().collection(PROPERTIES_DOC);
 
-    return currentUser.get().then((snapshot: any) => {
-      const properties = snapshot.data().properties;
-      properties.push(propertyId);
+    return await Promise.resolve(
+      currentUser.get().then(async (snapshot: any) => {
+        const properties = snapshot.data().properties;
+        properties.push(propertyId);
 
-      return currentUser.update({
-        properties,
-        updatedOn: new Date(),
-      });
+        const updateCurrentUser = currentUser.update({
+          properties,
+          updatedOn: new Date(),
+        });
+
+        const updatePropertyIndex = property.doc(propertyId).update({
+          index: properties.length - 1,
+          updatedOn: new Date(),
+        });
+
+        return await Promise.all([updateCurrentUser, updatePropertyIndex]);
+      })
+    );
+  };
+
+  /**
+   * This function checks whether the updated property's index has changed, if so, then update
+   * @param properties
+   */
+  updatePropertiesIndex = (properties: any[]) => {
+    const property = firebase.firestore().collection(PROPERTIES_DOC);
+
+    properties.forEach((p: any) => {
+      property
+        .doc(p.id)
+        .get()
+        .then((snapshot) => {
+          if (snapshot.exists && snapshot.data()?.index !== p.index) {
+            property.doc(p.id).update({ index: p.index, updatedOn: new Date() });
+          }
+        });
     });
   };
 
@@ -124,10 +143,6 @@ export default class PropertyService {
     remove(properties, (p: string) => p === propertyId);
 
     // Sets the new properties array
-    return firebase
-      .firestore()
-      .collection(USER_DOC)
-      .doc(firebase.auth().currentUser?.uid)
-      .update({ properties });
+    return firebase.firestore().collection(USER_DOC).doc(firebase.auth().currentUser?.uid).update({ properties });
   };
 }

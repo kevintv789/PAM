@@ -3,6 +3,8 @@ export interface State {
   isLoading: boolean;
   searchQuery: string;
   propertyData: any;
+  animatedHeaderValue: any;
+  loaded: boolean;
 }
 
 export interface Props {

@@ -10,7 +10,6 @@ import { formatNumber, getPropertyImage, getPropertyTypeIcons, updateArrayPositi
 
 import AuthService from "services/auth.service";
 import CommonService from "services/common.service";
-import FinanceService from "services/finance.service";
 import { Image } from "react-native-expo-image-cache";
 import PropertyContentComponent from "components/PropertyContent/property.content.component";
 import { PropertyModel } from "models";
@@ -31,7 +30,6 @@ class PropertyComponent extends Component<PropertyModel.Props, PropertyModel.Sta
   private propertyService = new PropertyService();
   private authService = new AuthService();
   private commonService = new CommonService();
-  private financeService = new FinanceService();
 
   constructor(props: PropertyModel.Props) {
     super(props);
