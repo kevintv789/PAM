@@ -8,6 +8,10 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.26.20210610
+- Major features
+    - Added ability for users to create notes for properties, tenants, expenses & income
+
 # Beta Release v0.25.20210603
 - Major features
     - Added ability for users to rearrange their properties with a long press and drag
