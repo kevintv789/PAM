@@ -1,6 +1,8 @@
+import { Note } from "./NotesModel";
+
 export interface State {
   showNotesModal: boolean;
-  notesValue: any;
+  notes: any;
   showUploadImagesModal: boolean;
   isUploadingImages: boolean;
   showWarningModal: boolean;

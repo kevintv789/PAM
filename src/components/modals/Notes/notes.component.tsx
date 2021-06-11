@@ -9,10 +9,7 @@ import { theme } from "shared";
 
 const { height } = Dimensions.get("window");
 
-export default class NotesComponent extends Component<
-  NotesModel.Props,
-  NotesModel.State
-> {
+export default class NotesComponent extends Component<NotesModel.Props, NotesModel.State> {
   constructor(props: any) {
     super(props);
 
@@ -23,15 +20,13 @@ export default class NotesComponent extends Component<
 
   componentDidMount() {
     const { notesData } = this.props;
-    if (notesData && notesData.text.length) {
-      this.setState({ value: notesData.text });
+    if (notesData && notesData.value &&notesData.value.length) {
+      this.setState({ value: notesData.value });
     }
   }
 
   formatCurrentDate = () => {
-    return (
-      moment().format("MMMM DD, YYYY") + " at " + moment().format("h:mm A")
-    );
+    return moment().format("MMMM DD, YYYY") + " at " + moment().format("h:mm A");
   };
 
   render() {
@@ -39,20 +34,25 @@ export default class NotesComponent extends Component<
     const { value } = this.state;
 
     const payload = {
-      text: value,
-      lastUpdated: moment().format("MM/DD/YYYY"),
+      value,
+      createdOn: notesData && notesData.createdOn ? notesData.createdOn : moment().format("MM/DD/YYYY"),
     };
+
+    if (notesData && notesData.createdOn) {
+      payload["lastUpdated"] = moment().format("MM/DD/YYYY");
+    }
 
     return (
       <Container color="accent">
         <ScrollView>
           <Container padding={[theme.sizes.padding * 2, 25, 25, 25]}>
             <TouchableOpacity onPress={() => handleBackClick(payload)}>
-              <Image
-                source={require("assets/icons/left_arrow.png")}
-                style={{ width: 40, height: 40 }}
-              />
+              <Container row center>
+                <Image source={require("assets/icons/left_arrow.png")} style={{ width: 40, height: 40 }} />
+                <Text tertiary bold size={18}>Done</Text>
+              </Container>
             </TouchableOpacity>
+
             <Text offWhite size={24} bold style={styles.label}>
               {label} Notes
             </Text>
@@ -62,7 +62,7 @@ export default class NotesComponent extends Component<
             <TextInput
               onChangeText={(value: string) => this.setState({ value })}
               value={value}
-              defaultValue={notesData ? notesData.text : ""}
+              defaultValue={notesData ? notesData.value : ""}
               multiline
               editable
               style={styles.input}

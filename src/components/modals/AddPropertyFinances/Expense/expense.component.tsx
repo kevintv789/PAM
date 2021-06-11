@@ -48,7 +48,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
   componentDidMount() {
     const { reportData, isEditting } = this.props;
     if (isEditting && reportData && reportData.type === PROPERTY_FINANCES_TYPE.EXPENSE) {
-      const { amount, name, paidOn, status, recurring } = reportData;
+      const { amount, name, paidOn, status, recurring, notes } = reportData;
 
       this.setState({
         name,
@@ -56,6 +56,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
         expenseStatusDate: paidOn,
         expenseStatus: status,
         recurring,
+        notes,
       });
     }
   }
@@ -71,7 +72,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
   handleExpenseSave = () => {
     const { isEditting, reportData, propertyId, expenseImages } = this.props;
 
-    const { name, amount, expenseStatusDate, expenseStatus, recurring } = this.state;
+    const { name, amount, expenseStatusDate, expenseStatus, recurring, notes } = this.state;
 
     const errors = [];
 
@@ -88,7 +89,7 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
       paidOn: expenseStatusDate,
       paymentDue: "",
       recurring,
-      additionalNotes: "",
+      notes,
       images: expenseImages,
       propertyId,
       name,
@@ -338,8 +339,8 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
             size={theme.fontSizes.medium}
             style={[styles.addNotesButtonText]}
             editable={false}
-            label="Add Notes"
-            value={notes ? notes.text : ""}
+            label={notes ? "Edit Notes" : "Add Notes"}
+            value={notes ? notes.value : ""}
             numberOfLines={1}
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
@@ -381,13 +382,14 @@ class ExpenseComponent extends Component<FinancesModel.defaultProps, FinancesMod
   };
 
   renderNotesModal = () => {
-    const { showNotesModal } = this.state;
+    const { showNotesModal, notes } = this.state;
 
     return (
       <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
-          label="New Expense"
+          label={notes ? "Edit Expense" : "New Expense"}
           handleBackClick={(notes: string) => this.setState({ notes, showNotesModal: false })}
+          notesData={notes}
         />
       </Modal>
     );
