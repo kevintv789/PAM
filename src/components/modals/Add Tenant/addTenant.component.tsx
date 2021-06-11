@@ -13,7 +13,7 @@ import {
   TextInput,
   Toggle,
 } from "components/common";
-import { Dimensions, Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { PROPERTY_FINANCES_DOC, TENANTS_DOC } from "shared/constants/databaseConsts";
@@ -29,6 +29,7 @@ import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import PropertyService from "services/property.service";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
 
@@ -91,6 +92,7 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
         lastPaymentDate: this.tenantInfo.lastPaymentDate,
         hasTenantPaidFirstRent: this.tenantInfo.lastPaymentDate != null,
         images: this.tenantInfo.images,
+        notes: this.tenantInfo.notes,
       });
     }
   }
@@ -119,6 +121,7 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
       hasTenantPaidFirstRent,
       rent,
       images,
+      notes,
     } = this.state;
 
     const errors = [];
@@ -148,6 +151,7 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
         : getNextPaymentDate(leaseStartDate, rentPaidPeriod),
       createdOn: this.isEditting ? this.tenantInfo.createdOn : new Date(),
       images,
+      notes,
     };
 
     if (!errors.length) {
@@ -528,8 +532,8 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
             size={theme.fontSizes.medium}
             style={styles.addNotesButtonText}
             editable={false}
-            label="Add Notes"
-            value={notes ? notes.text : ""}
+            label={notes ? "Edit Notes" : "Add Notes"}
+            value={notes ? notes.value : ""}
             numberOfLines={1}
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
@@ -571,13 +575,14 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
   };
 
   renderNotesModal = () => {
-    const { showNotesModal } = this.state;
+    const { showNotesModal, notes } = this.state;
 
     return (
       <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
-          label="New Tenant(s)"
+          label={notes ? "Edit Tenant(s)" : "New Tenant(s)"}
           handleBackClick={(notes: string) => this.setState({ notes, showNotesModal: false })}
+          notesData={notes}
         />
       </Modal>
     );

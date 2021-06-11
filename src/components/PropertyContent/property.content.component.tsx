@@ -1,23 +1,8 @@
-import {
-  Button,
-  CommonModal,
-  Container,
-  DataOutline,
-  ImagesList,
-  LoadingIndicator,
-  Text,
-} from "components/common";
+import { Button, CommonModal, Container, DataOutline, ImagesList, LoadingIndicator, Text } from "components/common";
 import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
-import {
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-} from "react-native";
+import { Image, Modal, ScrollView, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from "react-native";
 import React, { Component } from "react";
-import { constants, mockData, theme } from "shared";
+import { constants, theme } from "shared";
 import { formatNumber, formatPlural, getDaysDiffFrom, updateArrayPosition } from "shared/Utils";
 import { isEqual, orderBy, sumBy } from "lodash";
 
@@ -32,13 +17,9 @@ import { PropertyContentModel } from "models";
 import moment from "moment";
 import { withNavigation } from "react-navigation";
 
-const notesData = mockData.Notes;
 const date = Date.now();
 
-class PropertyContentComponent extends Component<
-  PropertyContentModel.Props,
-  PropertyContentModel.State
-> {
+class PropertyContentComponent extends Component<PropertyContentModel.Props, PropertyContentModel.State> {
   private commonService = new CommonService();
 
   constructor(props: PropertyContentModel.Props) {
@@ -46,13 +27,21 @@ class PropertyContentComponent extends Component<
 
     this.state = {
       showNotesModal: false,
-      notesValue: null,
+      notes: null,
       showUploadImagesModal: false,
       isUploadingImages: false,
       showWarningModal: false,
       imageToDelete: null,
       imagesUrl: this.props.imagesUrl,
     };
+  }
+
+  componentDidMount() {
+    const { propertyData } = this.props;
+
+    if (propertyData.notes) {
+      this.setState({ notes: propertyData.notes });
+    }
   }
 
   componentDidUpdate(prevProps: PropertyContentModel.Props) {
@@ -89,10 +78,8 @@ class PropertyContentComponent extends Component<
     const { onImageDragEnd } = this.props;
     const { imagesUrl } = this.state;
 
-    const nonCachedUri = imagesUrl.filter((img: any) =>
-      img.uri.includes("file")
-    );
-    
+    const nonCachedUri = imagesUrl.filter((img: any) => img.uri.includes("file"));
+
     if (imagesUrl && imagesUrl.length > 0) {
       return (
         <Container>
@@ -110,10 +97,7 @@ class PropertyContentComponent extends Component<
               <Text light accent style={{ top: 2 }} size={13}>
                 Add More Images
               </Text>
-              <Image
-                source={require("assets/icons/plus.png")}
-                style={{ width: 20, height: 20 }}
-              />
+              <Image source={require("assets/icons/plus.png")} style={{ width: 20, height: 20 }} />
             </Button>
           </Container>
 
@@ -124,9 +108,7 @@ class PropertyContentComponent extends Component<
               imageSize={{ width: 125, height: 125 }}
               margins={{ marginTop: 8, marginHorizontal: 5 }}
               isCached={nonCachedUri.length === 0}
-              onDeleteImage={(image: any) =>
-                this.setState({ showWarningModal: true, imageToDelete: image })
-              }
+              onDeleteImage={(image: any) => this.setState({ showWarningModal: true, imageToDelete: image })}
               onDragEnd={(data: any[]) => {
                 onImageDragEnd && onImageDragEnd(data);
                 this.updateImagePosition(data);
@@ -149,12 +131,7 @@ class PropertyContentComponent extends Component<
       .then(() => {
         this.updatePropertyWithImage(images);
       })
-      .catch((error) =>
-        console.log(
-          "ERROR couldn't upload additional images to the property: ",
-          error
-        )
-      )
+      .catch((error) => console.log("ERROR couldn't upload additional images to the property: ", error))
       .finally(() =>
         this.setState({
           isUploadingImages: false,
@@ -176,13 +153,9 @@ class PropertyContentComponent extends Component<
       tempImages.push(imageObj);
     });
 
-    this.commonService.handleUpdateSingleField(
-      PROPERTIES_DOC,
-      propertyData.id,
-      {
-        images: tempImages,
-      }
-    );
+    this.commonService.handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, {
+      images: tempImages,
+    });
   };
 
   renderTenantHeader = () => {
@@ -190,10 +163,7 @@ class PropertyContentComponent extends Component<
 
     return (
       <Container row padding={10} style={styles.tenantheader} flex={false}>
-        <Image
-          source={require("assets/icons/key.png")}
-          style={{ width: theme.sizes.base, height: theme.sizes.base }}
-        />
+        <Image source={require("assets/icons/key.png")} style={{ width: theme.sizes.base, height: theme.sizes.base }} />
         <Text accent bold size={13}>
           All Tenants {"  "}
         </Text>
@@ -203,17 +173,12 @@ class PropertyContentComponent extends Component<
         <Button
           color="transparent"
           style={styles.addTenantButton}
-          onPress={() =>
-            navigation.navigate("AddTenantModal", { propertyData })
-          }
+          onPress={() => navigation.navigate("AddTenantModal", { propertyData })}
         >
           <Text light accent style={{ top: 2 }} size={13}>
             Add Tenant
           </Text>
-          <Image
-            source={require("assets/icons/plus.png")}
-            style={{ width: 20, height: 20 }}
-          />
+          <Image source={require("assets/icons/plus.png")} style={{ width: 20, height: 20 }} />
         </Button>
       </Container>
     );
@@ -276,9 +241,7 @@ class PropertyContentComponent extends Component<
           <Button
             flat
             style={styles.addTenantFromVacantButton}
-            onPress={() =>
-              navigation.navigate("AddTenantModal", { propertyData })
-            }
+            onPress={() => navigation.navigate("AddTenantModal", { propertyData })}
           >
             <Text center secondary bold>
               + Add a tenant
@@ -289,11 +252,7 @@ class PropertyContentComponent extends Component<
     }
 
     return (
-      <Container
-        onStartShouldSetResponder={() => true}
-        style={{ maxHeight: 150, paddingTop: 5 }}
-        flex={false}
-      >
+      <Container onStartShouldSetResponder={() => true} style={{ maxHeight: 150, paddingTop: 5 }} flex={false}>
         <ScrollView
           keyboardShouldPersistTaps={"handled"}
           showsVerticalScrollIndicator={true}
@@ -303,10 +262,7 @@ class PropertyContentComponent extends Component<
           {tenantsData &&
             tenantsData.map((tenant: any, index: number) => {
               return (
-                <Container
-                  style={styles.tenantInfoItem}
-                  key={tenant.id + "-" + index}
-                >
+                <Container style={styles.tenantInfoItem} key={tenant.id + "-" + index}>
                   <TouchableWithoutFeedback>
                     <TouchableOpacity
                       onPress={() =>
@@ -317,29 +273,13 @@ class PropertyContentComponent extends Component<
                       }
                     >
                       <Container row space="between" padding={10}>
-                        <Text
-                          numberOfLines={1}
-                          semibold
-                          accent
-                          size={13}
-                          style={{ width: "33%" }}
-                        >
+                        <Text numberOfLines={1} semibold accent size={13} style={{ width: "33%" }}>
                           {tenant.name}
                         </Text>
-                        <Text
-                          semibold
-                          accent
-                          size={13}
-                          style={{ width: "31%" }}
-                        >
+                        <Text semibold accent size={13} style={{ width: "31%" }}>
                           Payment
                         </Text>
-                        <Text
-                          semibold
-                          accent
-                          size={13}
-                          style={{ width: "32%", left: 8 }}
-                        >
+                        <Text semibold accent size={13} style={{ width: "32%", left: 8 }}>
                           Next Payment
                         </Text>
                         <Entypo
@@ -349,41 +289,18 @@ class PropertyContentComponent extends Component<
                           style={{ width: "5%", top: -4 }}
                         />
                       </Container>
-                      <Container
-                        row
-                        flex={false}
-                        padding={[0, 0, 0, 10]}
-                        style={{ top: -5 }}
-                      >
-                        <Text
-                          light
-                          accent
-                          size={theme.fontSizes.small}
-                          style={{ width: "32%" }}
-                        >
+                      <Container row flex={false} padding={[0, 0, 0, 10]} style={{ top: -5 }}>
+                        <Text light accent size={theme.fontSizes.small} style={{ width: "32%" }}>
                           From {tenant.leaseStartDate}
                         </Text>
-                        <Text
-                          light
-                          style={{ width: "30%" }}
-                          size={theme.fontSizes.small}
-                        >
+                        <Text light style={{ width: "30%" }} size={theme.fontSizes.small}>
                           {this.renderDueDate(tenant)}
                         </Text>
-                        <Text
-                          light
-                          style={{ width: "38%", left: 8 }}
-                          size={theme.fontSizes.small}
-                          numberOfLines={1}
-                        >
+                        <Text light style={{ width: "38%", left: 8 }} size={theme.fontSizes.small} numberOfLines={1}>
                           <Text secondary medium>
                             ${formatNumber(tenant.rent)}{" "}
                           </Text>
-                          on{" "}
-                          {moment(
-                            new Date(tenant.nextPaymentDate),
-                            moment.ISO_8601
-                          ).format("MM/DD")}
+                          on {moment(new Date(tenant.nextPaymentDate), moment.ISO_8601).format("MM/DD")}
                         </Text>
                       </Container>
                     </TouchableOpacity>
@@ -408,8 +325,7 @@ class PropertyContentComponent extends Component<
           }}
         />
         <Text accent size={13} bold>
-          Monthly Report for{" "}
-          {moment(new Date(date), moment.ISO_8601).format("MMMM")}
+          Monthly Report for {moment(new Date(date), moment.ISO_8601).format("MMMM")}
         </Text>
 
         <Container row>
@@ -422,21 +338,11 @@ class PropertyContentComponent extends Component<
               })
             }
           >
-            <Image
-              source={require("assets/icons/plus.png")}
-              style={{ width: 20, height: 20 }}
-            />
+            <Image source={require("assets/icons/plus.png")} style={{ width: 20, height: 20 }} />
           </Button>
 
-          <Button
-            color="transparent"
-            style={styles.filterButton}
-            onPress={() => console.log("Filtering...")}
-          >
-            <Image
-              source={require("assets/icons/filter_button.png")}
-              style={{ width: 20, height: 20 }}
-            />
+          <Button color="transparent" style={styles.filterButton} onPress={() => console.log("Filtering...")}>
+            <Image source={require("assets/icons/filter_button.png")} style={{ width: 20, height: 20 }} />
           </Button>
         </Container>
       </Container>
@@ -452,10 +358,7 @@ class PropertyContentComponent extends Component<
 
         list.forEach((item) => {
           const monthPaid = moment(new Date(item.paidOn), moment.ISO_8601);
-          if (
-            monthPaid.diff(curDate) <= 0 &&
-            curDate.month() + 1 === monthPaid.month() + 1
-          ) {
+          if (monthPaid.diff(curDate) <= 0 && curDate.month() + 1 === monthPaid.month() + 1) {
             newList.push(item);
           }
         });
@@ -485,10 +388,7 @@ class PropertyContentComponent extends Component<
     const { financesData, navigation, propertyData } = this.props;
 
     // further filters out array based on selected time period
-    const filteredList = this.getReportForTimePeriod(
-      financesData,
-      constants.RECURRING_PAYMENT_TYPE.MONTHLY
-    );
+    const filteredList = this.getReportForTimePeriod(financesData, constants.RECURRING_PAYMENT_TYPE.MONTHLY);
 
     return (
       <ScrollView
@@ -501,10 +401,7 @@ class PropertyContentComponent extends Component<
         {filteredList.map((data: any) => {
           if (data.paidOn) {
             return (
-              <Container
-                key={`${data.id}-${data.type}`}
-                style={styles.expensesContainer}
-              >
+              <Container key={`${data.id}-${data.type}`} style={styles.expensesContainer}>
                 <TouchableWithoutFeedback>
                   <TouchableOpacity
                     onPress={() =>
@@ -524,23 +421,11 @@ class PropertyContentComponent extends Component<
                         Paid {data.paidOn}
                       </Text>
                       <Container row style={{ right: 0, position: "absolute" }}>
-                        <Text
-                          color={
-                            data.type === PROPERTY_FINANCES_TYPE.INCOME
-                              ? "secondary"
-                              : "primary"
-                          }
-                          semibold
-                        >
+                        <Text color={data.type === PROPERTY_FINANCES_TYPE.INCOME ? "secondary" : "primary"} semibold>
                           {this.formatAmount(data.amount, data.type)}
                         </Text>
 
-                        <Entypo
-                          name="chevron-small-right"
-                          size={20}
-                          color={theme.colors.accent}
-                          style={{ top: -2 }}
-                        />
+                        <Entypo name="chevron-small-right" size={20} color={theme.colors.accent} style={{ top: -2 }} />
                       </Container>
                     </Container>
                   </TouchableOpacity>
@@ -555,47 +440,23 @@ class PropertyContentComponent extends Component<
 
   renderReport = () => {
     const { financesData, totalIncome } = this.props;
-    const expenseData = financesData.filter(
-      (f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE
-    );
+    const expenseData = financesData.filter((f: any) => f.type === PROPERTY_FINANCES_TYPE.EXPENSE);
     const totalExpense = sumBy(expenseData, "amount");
     const profit = totalIncome - totalExpense;
 
     return (
-      <Container
-        padding={[theme.sizes.padding, 10, 10, 10]}
-        style={{ maxHeight: 350 }}
-        flex={false}
-      >
+      <Container padding={[theme.sizes.padding, 10, 10, 10]} style={{ maxHeight: 350 }} flex={false}>
         {this.renderReportHeader()}
 
-        <Container
-          row
-          middle
-          space="around"
-          flex={false}
-          padding={[0, 0, theme.sizes.base]}
-        >
-          <DataOutline
-            square
-            color="secondary"
-            text={"$" + formatNumber(totalIncome)}
-            caption="Income"
-          />
+        <Container row middle space="around" flex={false} padding={[0, 0, theme.sizes.base]}>
+          <DataOutline square color="secondary" text={"$" + formatNumber(totalIncome)} caption="Income" />
           <DataOutline
             circle
             color={profit < 0 ? "primary" : "secondary"}
-            text={
-              (profit < 0 ? "-" : "") + "$" + formatNumber(Math.abs(profit))
-            }
+            text={(profit < 0 ? "-" : "") + "$" + formatNumber(Math.abs(profit))}
             caption="Profit"
           />
-          <DataOutline
-            square
-            color="primary"
-            text={"$" + formatNumber(totalExpense)}
-            caption="Expense"
-          />
+          <DataOutline square color="primary" text={"$" + formatNumber(totalExpense)} caption="Expense" />
         </Container>
 
         {this.renderReportDetailsSection()}
@@ -604,12 +465,7 @@ class PropertyContentComponent extends Component<
   };
 
   renderNotesSection = () => {
-    const { propertyData } = this.props;
-    const { notesValue } = this.state;
-
-    const notesFromProperty =
-      notesValue ||
-      notesData.filter((note: any) => note.id === propertyData.notesId)[0];
+    const { notes } = this.state;
 
     return (
       <Container>
@@ -626,31 +482,22 @@ class PropertyContentComponent extends Component<
             Notes
           </Text>
         </Container>
-        {notesFromProperty ? (
-          <TouchableOpacity
-            style={styles.notesContainer}
-            onPress={() => this.setState({ showNotesModal: true })}
-          >
-            <Container
-              color="accent"
-              margin={10}
-              flex={false}
-              padding={10}
-              style={{ borderRadius: 10 }}
-            >
+        {notes ? (
+          <TouchableOpacity style={styles.notesContainer} onPress={() => this.setState({ showNotesModal: true })}>
+            <Container color="accent" margin={10} flex={false} padding={10} style={{ borderRadius: 10 }}>
               <Text offWhite numberOfLines={3}>
-                {notesFromProperty.text}
+                {notes.value}
               </Text>
 
               <Container flex={false} row space="between">
-                {notesFromProperty.lastUpdated && (
-                  <Text
-                    light
-                    offWhite
-                    size={theme.fontSizes.small}
-                    style={{ marginTop: 2 }}
-                  >
-                    Last editted on {notesFromProperty.lastUpdated}
+                {notes.createdOn && !notes.lastUpdated && (
+                  <Text light offWhite size={theme.fontSizes.small} style={{ marginTop: 2 }}>
+                    Created on {notes.createdOn}
+                  </Text>
+                )}
+                {notes.lastUpdated && (
+                  <Text light offWhite size={theme.fontSizes.small} style={{ marginTop: 2 }}>
+                    Last editted on {notes.lastUpdated}
                   </Text>
                 )}
                 <Text offWhite style={{ textDecorationLine: "underline" }}>
@@ -661,16 +508,8 @@ class PropertyContentComponent extends Component<
           </TouchableOpacity>
         ) : (
           <Container center padding={[theme.sizes.padding]}>
-            <Button
-              flat
-              style={styles.createNotesButton}
-              onPress={() => this.setState({ showNotesModal: true })}
-            >
-              <Ionicons
-                name="ios-create-outline"
-                size={22}
-                color={theme.colors.secondary}
-              />
+            <Button flat style={styles.createNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
+              <Ionicons name="ios-create-outline" size={22} color={theme.colors.secondary} />
               <Text center secondary bold style={{ paddingTop: 2 }}>
                 Create a Note
               </Text>
@@ -682,50 +521,40 @@ class PropertyContentComponent extends Component<
   };
 
   handleNotesSave = (notesValue: string) => {
-    this.setState({ showNotesModal: false, notesValue });
+    const { notes } = this.state;
+    const { propertyData } = this.props;
+
+    this.setState({ showNotesModal: false, notes: notesValue });
+
+    // Update backend
+    this.commonService
+      .handleUpdateSingleField(PROPERTIES_DOC, propertyData.id, { notes: notesValue })
+      .catch((error) => console.log("ERROR failed to update notes for property", error));
   };
 
   renderNotesModal = () => {
-    const { showNotesModal } = this.state;
+    const { showNotesModal, notes } = this.state;
     const { propertyData } = this.props;
 
-    const notesFromProperty = notesData.filter(
-      (note: any) => note.id === propertyData.notesId
-    )[0];
-
     return (
-      <Modal
-        visible={showNotesModal}
-        animationType="fade"
-        onDismiss={() => this.setState({ showNotesModal: false })}
-      >
+      <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label={propertyData.propertyAddress}
-          handleBackClick={(notesValue: string) =>
-            this.handleNotesSave(notesValue)
-          }
-          notesData={notesFromProperty}
+          handleBackClick={(notesValue: string) => this.handleNotesSave(notesValue)}
+          notesData={notes}
         />
       </Modal>
     );
   };
 
   render() {
-    const {
-      showUploadImagesModal,
-      isUploadingImages,
-      showWarningModal,
-    } = this.state;
+    const { showUploadImagesModal, isUploadingImages, showWarningModal } = this.state;
 
     return (
       <Container>
         <Container style={isUploadingImages ? styles.overlay : {}}>
           {isUploadingImages && (
-            <LoadingIndicator
-              size="large"
-              color={theme.colors.offWhite}
-              containerStyle={styles.loading}
-            />
+            <LoadingIndicator size="large" color={theme.colors.offWhite} containerStyle={styles.loading} />
           )}
         </Container>
 
@@ -753,13 +582,7 @@ class PropertyContentComponent extends Component<
           descriptorText={`Are you sure you want to delete this image?\n\nYou can't undo this action.`}
           hideModal={() => this.setState({ showWarningModal: false })}
           onSubmit={() => this.onDeleteSingleImage()}
-          headerIcon={
-            <FontAwesome
-              name="warning"
-              size={36}
-              color={theme.colors.offWhite}
-            />
-          }
+          headerIcon={<FontAwesome name="warning" size={36} color={theme.colors.offWhite} />}
           headerIconBackground={theme.colors.primary}
           title="Confirm"
         />
@@ -826,6 +649,7 @@ const styles = StyleSheet.create({
   },
   notesContainer: {
     maxHeight: 100,
+    marginBottom: 10,
   },
   createNotesButton: {
     backgroundColor: "transparent",

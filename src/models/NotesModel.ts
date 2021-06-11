@@ -7,3 +7,9 @@ export interface Props {
   handleBackClick: any;
   notesData?: any;
 }
+
+export interface Note {
+  createdOn: Date;
+  updatedOn: Date;
+  value: string;
+}
