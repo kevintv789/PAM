@@ -8,6 +8,12 @@ Any other info will be written out at a future date.
 
 # PAM Test Branch
 
+# Beta Release v0.27.20210701
+- Bug fixes
+    - Fixed bug where adding notes weren't enabled when creating and editting a property through the modal screen
+    - Fixed crash when there are emptied notes in the property content card
+    - Fixed camera icon not pressable to add in multiple images to the tenants card
+
 # Beta Release v0.26.20210610
 - Major features
     - Added ability for users to create notes for properties, tenants, expenses & income
