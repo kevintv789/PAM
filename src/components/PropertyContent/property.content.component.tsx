@@ -482,7 +482,7 @@ class PropertyContentComponent extends Component<PropertyContentModel.Props, Pro
             Notes
           </Text>
         </Container>
-        {notes ? (
+        {notes && notes.value !== "" ? (
           <TouchableOpacity style={styles.notesContainer} onPress={() => this.setState({ showNotesModal: true })}>
             <Container color="accent" margin={10} flex={false} padding={10} style={{ borderRadius: 10 }}>
               <Text offWhite numberOfLines={3}>

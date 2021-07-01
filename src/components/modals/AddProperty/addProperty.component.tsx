@@ -12,9 +12,10 @@ import {
   Text,
   TextInput,
 } from "components/common";
-import { Dimensions, Image, Keyboard, Modal, StyleSheet, TouchableOpacity } from "react-native";
+import { Dimensions, Image, Keyboard, Modal, StyleSheet } from "react-native";
 import { Entypo, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { Component } from "react";
+import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import { constants, theme } from "shared";
 import { hasErrors, updateArrayPosition } from "shared/Utils";
 import { isEqual, remove } from "lodash";
@@ -27,7 +28,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import NotesComponent from "components/Modals/Notes/notes.component";
 import { PROPERTIES_DOC } from "shared/constants/databaseConsts";
 import PropertyService from "services/property.service";
-import { ScrollView } from "react-native-gesture-handler";
 import { connect } from "react-redux";
 import { updateProperty } from "reducks/modules/property";
 
@@ -79,7 +79,7 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
         typeSelected: this.routePropertyData.unitType,
         images: this.routePropertyData.images,
         index: this.routePropertyData.index,
-        // TODO -- Add notes later
+        notesValue: this.routePropertyData.notes,
       });
 
       this.retrieveImageDownloadUrl(this.routePropertyData.images);
@@ -280,8 +280,7 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
    *
    */
   handleSaveProperty = () => {
-    const { navigation } = this.props;
-    const { typeSelected, propertyNickName, streetAddress, images, index } = this.state;
+    const { typeSelected, propertyNickName, streetAddress, images, notesValue } = this.state;
 
     const errors = [];
 
@@ -294,7 +293,7 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
     const payload = {
       propertyName: propertyNickName,
       propertyAddress: streetAddress,
-      notesId: "",
+      notes: notesValue,
       tenants: [],
       unitType: typeSelected,
       color: colorArray[Math.floor(Math.random() * 4)],
@@ -314,8 +313,8 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
           this.handleRegularCreate(payload, propertiesCollection);
         }
       } else {
-        const { id, notesId, color, tenants, index } = this.routePropertyData;
-        payload.notesId = notesId;
+        const { id, color, tenants, index } = this.routePropertyData;
+        payload.notes = notesValue;
         payload.color = color;
         payload.tenants = tenants;
         payload["index"] = index;
@@ -478,7 +477,7 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
             style={styles.addNotesButtonText}
             editable={false}
             label="Add Notes"
-            value={notesValue ? notesValue.text : ""}
+            value={notesValue ? notesValue.value : ""}
             numberOfLines={1}
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
@@ -492,13 +491,14 @@ class AddPropertyComponent extends Component<AddPropertyModel.Props, AddProperty
   };
 
   renderNotesModal = () => {
-    const { showNotesModal } = this.state;
+    const { showNotesModal, notesValue } = this.state;
 
     return (
       <Modal visible={showNotesModal} animationType="fade" onDismiss={() => this.setState({ showNotesModal: false })}>
         <NotesComponent
           label="New Property"
           handleBackClick={(notesValue: string) => this.handleNotesSave(notesValue)}
+          notesData={notesValue}
         />
       </Modal>
     );

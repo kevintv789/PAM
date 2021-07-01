@@ -13,7 +13,7 @@ import {
   TextInput,
   Toggle,
 } from "components/common";
-import { Dimensions, Modal, ScrollView, StyleSheet } from "react-native";
+import { Dimensions, Modal, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { IMAGES_PARENT_FOLDER, PROPERTY_FINANCES_TYPE } from "shared/constants/constants";
 import { PROPERTY_FINANCES_DOC, TENANTS_DOC } from "shared/constants/databaseConsts";
@@ -29,7 +29,7 @@ import { Entypo } from "@expo/vector-icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import NotesComponent from "components/Modals/Notes/notes.component";
 import PropertyService from "services/property.service";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity as ToucableOpacityRNGH } from "react-native-gesture-handler";
 import { getNextPaymentDate } from "shared/Utils";
 import moment from "moment";
 
@@ -526,7 +526,7 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
         </Container>
 
         {/* ------- ADD NOTES INPUT ------- */}
-        <TouchableOpacity style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
+        <ToucableOpacityRNGH style={styles.addNotesButton} onPress={() => this.setState({ showNotesModal: true })}>
           <TextInput
             gray
             size={theme.fontSizes.medium}
@@ -537,7 +537,7 @@ class AddTenantComponent extends Component<AddTenantModel.Props, AddTenantModel.
             numberOfLines={1}
           />
           <Entypo name="chevron-small-right" size={26} color={theme.colors.gray} style={styles.notesChevron} />
-        </TouchableOpacity>
+        </ToucableOpacityRNGH>
       </Container>
     );
   };

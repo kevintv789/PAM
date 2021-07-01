@@ -120,6 +120,10 @@ export default class CommonService {
    * @param fieldToUpdate
    */
   handleUpdateSingleField = (collection: string, docId: string, fieldToUpdate: any) => {
+    if (fieldToUpdate.notes && (fieldToUpdate.notes.value === "" || fieldToUpdate.notes.value == null)) {
+      return firebase.firestore().collection(collection).doc(docId).update({ notes: null });
+    }
+
     return firebase.firestore().collection(collection).doc(docId).update(fieldToUpdate);
   };
 
@@ -218,7 +222,7 @@ export default class CommonService {
 
   listAllFiles = (reference: string) => {
     return firebase.storage().ref().child(reference).listAll();
-  }
+  };
 }
 
 const constructImageName = (type: string, subType = null, id: string, index: number) => {
